@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b100f" />
+    <meta
+      name="description"
+      content="100 台轻量人形机器人协同完成取货、搬运和多层货架上架任务的可交互仓储仿真控制台。"
+    />
+    <title>100台人形机器人仓储调度台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="eyebrow">WAREHOUSE CONTROL / DEMO 01</div>
+            <h1>群体机器人调度台</h1>
+          </div>
+        </div>
+
+        <div class="topbar-meta">
+          <div class="system-health">
+            <span class="pulse-dot"></span>
+            <span>系统运行中</span>
+            <span class="health-divider"></span>
+            <strong id="connectionLatency">18 ms</strong>
+          </div>
+          <div class="clock-block">
+            <span>仿真时钟</span>
+            <strong id="simClock">08:00:00</strong>
+          </div>
+          <button class="button ghost export-button" id="exportButton" type="button" aria-label="导出机器人状态">
+            <span class="download-icon" aria-hidden="true">↓</span> 导出状态
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="metrics-strip" aria-label="实时运行指标">
+          <article class="metric-card accent-lime">
+            <div class="metric-head"><span>在线机器人</span><span class="metric-index">01</span></div>
+            <div class="metric-value"><strong id="onlineCount">100</strong><small>/ 100 台</small></div>
+            <div class="metric-foot positive"><span>●</span> 全部连接正常</div>
+            <svg class="sparkline" viewBox="0 0 160 34" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 24 L15 22 L30 23 L45 17 L60 19 L75 13 L90 15 L105 10 L120 11 L140 7 L160 8" />
+            </svg>
+          </article>
+
+          <article class="metric-card accent-blue">
+            <div class="metric-head"><span>执行中任务</span><span class="metric-index">02</span></div>
+            <div class="metric-value"><strong id="activeTaskCount">86</strong><small>项</small></div>
+            <div class="metric-foot"><span id="waitingTaskCount">14</span> 项等待分配</div>
+            <div class="mini-bar"><i id="taskLoadBar" style="width: 86%"></i></div>
+          </article>
+
+          <article class="metric-card accent-orange">
+            <div class="metric-head"><span>今日完成</span><span class="metric-index">03</span></div>
+            <div class="metric-value"><strong id="completedCount">1,284</strong><small>箱</small></div>
+            <div class="metric-foot positive">↗ <span id="throughputDelta">12.4%</span> 较上一时段</div>
+            <svg class="sparkline orange-line" viewBox="0 0 160 34" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 28 L18 23 L34 25 L49 17 L66 20 L82 12 L99 14 L115 5 L132 10 L146 4 L160 6" />
+            </svg>
+          </article>
+
+          <article class="metric-card accent-red">
+            <div class="metric-head"><span>需关注</span><span class="metric-index">04</span></div>
+            <div class="metric-value"><strong id="warningCount">3</strong><small>台</small></div>
+            <div class="metric-foot warning-text">低电量 2 · 路径阻塞 1</div>
+            <div class="warning-dots"><i></i><i></i><i></i><i class="muted"></i><i class="muted"></i></div>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <aside class="left-panel panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">FLEET</span><h2>机器人集群</h2></div>
+              <button class="icon-button" id="resetButton" type="button" title="重置仿真" aria-label="重置仿真">↺</button>
+            </div>
+
+            <label class="search-field">
+              <span aria-hidden="true">⌕</span>
+              <input id="robotSearch" type="search" placeholder="搜索机器人编号" autocomplete="off" />
+              <kbd>↵</kbd>
+            </label>
+
+            <div class="filter-list" id="filterList">
+              <button class="filter-row active" type="button" data-filter="all">
+                <span class="filter-name"><i class="status-dot all-dot"></i>全部机器人</span>
+                <strong id="filterAll">100</strong>
+              </button>
+              <button class="filter-row" type="button" data-filter="moving">
+                <span class="filter-name"><i class="status-dot moving-dot"></i>移动中</span>
+                <strong id="filterMoving">72</strong>
+              </button>
+              <button class="filter-row" type="button" data-filter="handling">
+                <span class="filter-name"><i class="status-dot handling-dot"></i>取放货物</span>
+                <strong id="filterHandling">18</strong>
+              </button>
+              <button class="filter-row" type="button" data-filter="idle">
+                <span class="filter-name"><i class="status-dot idle-dot"></i>待命 / 充电</span>
+                <strong id="filterIdle">7</strong>
+              </button>
+              <button class="filter-row" type="button" data-filter="warning">
+                <span class="filter-name"><i class="status-dot warning-dot"></i>需关注</span>
+                <strong id="filterWarning">3</strong>
+              </button>
+            </div>
+
+            <div class="panel-separator"></div>
+
+            <div class="utilization-head">
+              <div><span class="section-kicker">UTILIZATION</span><h3>集群利用率</h3></div>
+              <strong id="utilizationValue">86%</strong>
+            </div>
+            <div class="utilization-chart">
+              <div class="donut" id="utilizationDonut"><span>86<small>%</small></span></div>
+              <div class="utilization-legend">
+                <p><i class="moving-dot"></i><span>任务执行</span><strong id="legendMoving">72</strong></p>
+                <p><i class="handling-dot"></i><span>取放动作</span><strong id="legendHandling">18</strong></p>
+                <p><i class="idle-dot"></i><span>待命充电</span><strong id="legendIdle">7</strong></p>
+              </div>
+            </div>
+
+            <div class="panel-separator"></div>
+
+            <div class="flow-control">
+              <div class="control-label"><span>任务流入速度</span><strong id="flowValue">中等 · 48 单/时</strong></div>
+              <input id="flowRange" type="range" min="20" max="100" value="48" aria-label="任务流入速度" />
+              <div class="range-labels"><span>平缓</span><span>峰值</span></div>
+            </div>
+
+            <button class="button primary wide" id="priorityTaskButton" type="button">
+              <span>＋</span> 插入优先任务
+            </button>
+          </aside>
+
+          <section class="scene-panel panel" aria-label="仓库实时仿真">
+            <div class="scene-toolbar">
+              <div class="scene-title">
+                <span class="live-badge"><i></i>LIVE</span>
+                <div><h2>仓库实时态势</h2><p>32 × 22 单元 · 4 层货架 · 100 台设备</p></div>
+              </div>
+
+              <div class="toolbar-actions">
+                <div class="segmented" aria-label="视图切换">
+                  <button type="button" class="active" data-view="iso">透视</button>
+                  <button type="button" data-view="top">俯视</button>
+                </div>
+                <label class="select-wrap">
+                  <span>货架层</span>
+                  <select id="levelSelect" aria-label="显示货架层">
+                    <option value="all">全部层</option>
+                    <option value="1">第 1 层</option>
+                    <option value="2">第 2 层</option>
+                    <option value="3">第 3 层</option>
+                    <option value="4">第 4 层</option>
+                  </select>
+                </label>
+                <button class="tool-button active" id="routeToggle" type="button" aria-pressed="true"><i class="route-icon"></i>路径</button>
+                <button class="tool-button" id="heatToggle" type="button" aria-pressed="false"><i class="heat-icon"></i>热力</button>
+              </div>
+            </div>
+
+            <div class="canvas-stage" id="canvasStage">
+              <canvas id="warehouseCanvas" aria-label="100 台机器人仓库实时运行画面"></canvas>
+              <div class="canvas-hint"><span>拖拽平移</span><i></i><span>滚轮缩放</span><i></i><span>点击查看机器人</span></div>
+              <div class="scene-legend">
+                <span><i class="moving-dot"></i>搬运中</span>
+                <span><i class="handling-dot"></i>取放货</span>
+                <span><i class="idle-dot"></i>待命</span>
+                <span><i class="warning-dot"></i>需关注</span>
+              </div>
+              <div class="zoom-controls" aria-label="缩放控制">
+                <button type="button" id="zoomIn" aria-label="放大">＋</button>
+                <button type="button" id="zoomOut" aria-label="缩小">−</button>
+                <button type="button" id="zoomReset" aria-label="重置视图">⌂</button>
+              </div>
+              <div class="zone-label inbound-label">INBOUND / 入库</div>
+              <div class="zone-label outbound-label">OUTBOUND / 出库</div>
+              <div class="zone-label charge-label">CHARGE / 充电区</div>
+            </div>
+
+            <div class="timeline-bar">
+              <button class="play-button" id="playButton" type="button" aria-label="暂停仿真"><span id="playIcon">Ⅱ</span></button>
+              <div class="speed-control" id="speedControl">
+                <button type="button" data-speed="0.5">0.5×</button>
+                <button type="button" class="active" data-speed="1">1×</button>
+                <button type="button" data-speed="2">2×</button>
+                <button type="button" data-speed="4">4×</button>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-labels"><span>08:00</span><span>当前班次进度</span><span>16:00</span></div>
+                <div class="timeline-line"><i id="timelineProgress"></i><span id="timelineHandle"></span></div>
+              </div>
+              <div class="frame-rate"><span class="pulse-dot"></span><strong id="fpsCounter">60 FPS</strong></div>
+            </div>
+          </section>
+
+          <aside class="right-panel panel">
+            <div class="panel-heading detail-heading">
+              <div><span class="section-kicker">INSPECTOR</span><h2>设备详情</h2></div>
+              <span class="robot-id-tag" id="robotIdTag">HR-037</span>
+            </div>
+
+            <div class="robot-portrait-card">
+              <canvas id="robotPortrait" width="128" height="150" aria-label="选中机器人示意图"></canvas>
+              <div class="portrait-info">
+                <span class="state-pill moving" id="selectedStatus"><i></i>前往货架</span>
+                <h3 id="selectedRobotName">人形搬运单元 037</h3>
+                <p id="selectedRobotPosition">坐标 B12 · 通道 04</p>
+                <div class="battery-line"><span>电量</span><div><i id="batteryBar" style="width: 82%"></i></div><strong id="batteryValue">82%</strong></div>
+              </div>
+            </div>
+
+            <div class="task-card">
+              <div class="task-card-head"><span>当前指令</span><strong id="selectedTaskId">#TK-2094</strong></div>
+              <h3 id="selectedTaskTitle">将货物送至 B区 · 货架 12</h3>
+              <div class="cargo-row">
+                <div class="cargo-cube" aria-hidden="true"><i></i></div>
+                <div><span>搬运货物</span><strong id="selectedCargo">BX-4082 · 标准箱</strong></div>
+                <div class="level-chip" id="selectedLevel">L3</div>
+              </div>
+              <div class="task-progress-label"><span id="selectedAction">正在移动至目标货架</span><strong id="selectedProgressText">64%</strong></div>
+              <div class="task-progress"><i id="selectedProgressBar" style="width: 64%"></i></div>
+              <div class="task-steps">
+                <span class="done"><i>✓</i>取货</span>
+                <b></b>
+                <span class="active"><i>2</i>运输</span>
+                <b></b>
+                <span><i>3</i>上架</span>
+              </div>
+            </div>
+
+            <div class="queue-section">
+              <div class="queue-heading"><div><span class="section-kicker">QUEUE</span><h3>任务队列</h3></div><button type="button" id="queueMode">按优先级⌄</button></div>
+              <div class="queue-list" id="taskQueue"></div>
+            </div>
+
+            <div class="event-ticker" id="eventTicker">
+              <span class="event-time">08:14:32</span>
+              <p><strong>HR-063</strong> 已完成 A-08 / L2 上架</p>
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      <footer class="footer-bar">
+        <span>SIMULATION / LOCAL PROCESS</span>
+        <span>场景版本 <strong>WH-01.4</strong></span>
+        <span>坐标单位 <strong>0.5 m</strong></span>
+        <span class="footer-spacer"></span>
+        <span><i class="footer-dot"></i>自动派单已启用</span>
+        <span><i class="footer-dot blue"></i>路径插值已启用</span>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <span id="toastIcon">✓</span><p id="toastText">操作已完成</p>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
