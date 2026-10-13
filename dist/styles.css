@@ -936,9 +936,28 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .portrait-info p {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   color: var(--muted);
   font: 8px var(--mono);
+}
+
+.robot-spec-line {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.robot-spec-line span {
+  padding: 3px 5px;
+  border: 1px solid #35423e;
+  background: #151e1b;
+  color: #aebbb6;
+  font: 7px var(--mono);
+}
+
+.robot-spec-line span:first-child {
+  border-color: rgba(104, 199, 255, 0.35);
+  color: var(--blue);
 }
 
 .battery-line {

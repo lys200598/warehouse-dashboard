@@ -144,7 +144,7 @@
             <div class="scene-toolbar">
               <div class="scene-title">
                 <span class="live-badge"><i></i>LIVE</span>
-                <div><h2>仓库实时态势</h2><p>32 × 22 单元 · 4 层货架 · 100 台设备</p></div>
+                <div><h2>仓库实时态势</h2><p>32 × 22 单元 · 3 层低位货架 · 100 台设备</p></div>
               </div>
 
               <div class="toolbar-actions">
@@ -159,7 +159,6 @@
                     <option value="1">第 1 层</option>
                     <option value="2">第 2 层</option>
                     <option value="3">第 3 层</option>
-                    <option value="4">第 4 层</option>
                   </select>
                 </label>
                 <button class="tool-button active" id="routeToggle" type="button" aria-pressed="true"><i class="route-icon"></i>路径</button>
@@ -214,17 +213,18 @@
                 <span class="state-pill moving" id="selectedStatus"><i></i>前往货架</span>
                 <h3 id="selectedRobotName">人形搬运单元 037</h3>
                 <p id="selectedRobotPosition">坐标 B12 · 通道 04</p>
+                <div class="robot-spec-line"><span id="selectedRobotType">长臂型 X3</span><span id="selectedReach">最高 L3</span></div>
                 <div class="battery-line"><span>电量</span><div><i id="batteryBar" style="width: 82%"></i></div><strong id="batteryValue">82%</strong></div>
               </div>
             </div>
 
             <div class="task-card">
               <div class="task-card-head"><span>当前指令</span><strong id="selectedTaskId">#TK-2094</strong></div>
-              <h3 id="selectedTaskTitle">将货物送至 B区 · 货架 12</h3>
+              <h3 id="selectedTaskTitle">将货物送至 B区 · 货架 12 · 第2列</h3>
               <div class="cargo-row">
                 <div class="cargo-cube" aria-hidden="true"><i></i></div>
                 <div><span>搬运货物</span><strong id="selectedCargo">BX-4082 · 标准箱</strong></div>
-                <div class="level-chip" id="selectedLevel">L3</div>
+                <div class="level-chip" id="selectedLevel">L3 · 1.42m</div>
               </div>
               <div class="task-progress-label"><span id="selectedAction">正在移动至目标货架</span><strong id="selectedProgressText">64%</strong></div>
               <div class="task-progress"><i id="selectedProgressBar" style="width: 64%"></i></div>

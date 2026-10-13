@@ -26,6 +26,26 @@
     box: "#a67546",
   };
 
+  const SHELF_LEVELS = [
+    { level: 1, baseZ: 0.07, centerHeight: 0.28 },
+    { level: 2, baseZ: 0.61, centerHeight: 0.82 },
+    { level: 3, baseZ: 1.15, centerHeight: 1.36 },
+  ];
+  const SHELF_GAP = 0.54;
+  const RACK_HEIGHT = 1.78;
+  const ROBOT_TYPES = [
+    { key: "A1", name: "基础型 A1", maxLevel: 1, maxHeight: 0.55, extension: 0.18, accent: "#d6e0dc" },
+    { key: "R2", name: "增程型 R2", maxLevel: 2, maxHeight: 1.05, extension: 0.52, accent: "#c9f46c" },
+    { key: "X3", name: "长臂型 X3", maxLevel: 3, maxHeight: 1.55, extension: 0.92, accent: "#68c7ff" },
+  ];
+  const BOX_PALETTES = [
+    { top: "#c0905f", left: "#8c6039", right: "#a57143" },
+    { top: "#7399a3", left: "#45656e", right: "#547b84" },
+    { top: "#91836b", left: "#635945", right: "#776a52" },
+    { top: "#7b9361", left: "#52633f", right: "#63784c" },
+  ];
+  const ACTIVE_BOX_PALETTE = { top: "#e8c57c", left: "#9d7042", right: "#bd8952" };
+
   const state = {
     running: true,
     speed: 1,
@@ -62,7 +82,7 @@
     { time: "08:14:32", robot: "HR-063", text: "已完成 A-08 / L2 上架" },
     { time: "08:14:18", robot: "HR-024", text: "抵达入库台，开始识别货物" },
     { time: "08:13:56", robot: "HR-081", text: "路径已重规划，绕行通道 06" },
-    { time: "08:13:41", robot: "HR-012", text: "已完成 C-15 / L4 上架" },
+    { time: "08:13:41", robot: "HR-012", text: "已完成 C-15 / L3 上架" },
   ];
 
   function mulberry32(seed) {
@@ -77,10 +97,18 @@
   const random = mulberry32(20261013);
   const pick = (items) => items[Math.floor(random() * items.length)];
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const lerp = (from, to, amount) => from + (to - from) * clamp(amount, 0, 1);
   const pad = (value, size = 2) => String(value).padStart(size, "0");
   const robotCode = (id) => `HR-${pad(id, 3)}`;
-  const taskCode = (robot) => `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`;
-  const cargoCode = (robot) => `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`;
+  const taskCode = (robot) => robot.taskId || `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`;
+  const cargoCode = (robot) => robot.cargoId || `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`;
+
+  function robotTypeFor(id) {
+    const group = id % 10;
+    if (group < 4) return ROBOT_TYPES[0];
+    if (group < 8) return ROBOT_TYPES[1];
+    return ROBOT_TYPES[2];
+  }
 
   function categoryFor(robot) {
     if (robot.stage === "warning") return "warning";
@@ -93,8 +121,8 @@
     const labels = {
       toPick: "前往入库台",
       picking: "正在取货",
-      toRack: "前往货架",
-      placing: `正在执行 L${robot.level} 上架`,
+      toRack: `前往 ${robot.rack?.zone || "-"}-${pad(robot.rack?.id || 0)} / L${robot.level}`,
+      placing: `${robot.type.name} 伸臂放置至 L${robot.level}`,
       returning: "返回调度区",
       idle: "待命中",
       charging: "充电中",
@@ -109,9 +137,19 @@
     [8, 13, 18, 23, 28].forEach((x, column) => {
       [4.3, 9.4, 14.5].forEach((y, row) => {
         const slots = [];
-        for (let level = 1; level <= 4; level += 1) {
+        for (let level = 1; level <= 3; level += 1) {
           for (let bay = 0; bay < 3; bay += 1) {
-            slots.push({ level, bay, occupied: random() > 0.24, colorIndex: Math.floor(random() * 4) });
+            const occupied = random() > 0.82;
+            slots.push({
+              rackId,
+              level,
+              bay,
+              occupied,
+              reservedBy: null,
+              cargoId: occupied ? `ST-${pad(rackId)}${level}${bay + 1}` : null,
+              colorIndex: Math.floor(random() * 4),
+              placedAt: null,
+            });
           }
         }
         result.push({
@@ -141,7 +179,20 @@
 
   function rackTarget(robot) {
     const rack = robot.rack;
-    return { x: rack.x + 1.4, y: rack.y + 1.85 };
+    return { x: rack.x + 0.45 + (robot.slot?.bay || 0) * 0.88, y: rack.y + 1.72 };
+  }
+
+  function slotGeometry(rack, slot) {
+    const level = SHELF_LEVELS[slot.level - 1];
+    return {
+      x: rack.x + 0.12 + slot.bay * 0.88,
+      y: rack.y + 0.12,
+      width: 0.66,
+      depth: 0.77,
+      height: 0.36,
+      baseZ: level.baseZ,
+      centerHeight: level.centerHeight,
+    };
   }
 
   function buildRoute(from, destination, kind, id) {
@@ -172,10 +223,40 @@
   }
 
   function prepareTask(robot) {
+    if (robot.slot?.reservedBy === robot.id && !robot.slot.occupied) {
+      robot.slot.reservedBy = null;
+    }
     robot.taskRound += 1;
-    robot.rack = racks[(robot.id * 5 + robot.taskRound * 3) % racks.length];
-    robot.level = 1 + ((robot.id + robot.taskRound) % 4);
-    robot.priority = robot.priority === "high" ? "high" : pick(["normal", "normal", "normal", "medium"]);
+    let available = racks.flatMap((rack) => rack.slots
+      .filter((slot) => slot.level <= robot.type.maxLevel && !slot.occupied && slot.reservedBy === null)
+      .map((slot) => ({ rack, slot })));
+    const preferredLevelSlots = available.filter(({ slot }) => slot.level === robot.type.maxLevel);
+    if (preferredLevelSlots.length) available = preferredLevelSlots;
+
+    if (!available.length) {
+      const recyclable = racks.flatMap((rack) => rack.slots
+        .filter((slot) => slot.level <= robot.type.maxLevel && slot.occupied && slot.reservedBy === null)
+        .map((slot) => ({ rack, slot })))
+        .sort((a, b) => (a.slot.placedAt ?? -1) - (b.slot.placedAt ?? -1));
+      const released = recyclable[0];
+      if (released) {
+        released.slot.occupied = false;
+        released.slot.cargoId = null;
+        released.slot.placedAt = null;
+        available = [released];
+      }
+    }
+
+    const target = available[(robot.id * 7 + robot.taskRound * 5) % Math.max(1, available.length)]
+      || { rack: racks[0], slot: racks[0].slots.find((slot) => slot.level <= robot.type.maxLevel) };
+    robot.rack = target.rack;
+    robot.slot = target.slot;
+    robot.slot.reservedBy = robot.id;
+    robot.level = robot.slot.level;
+    robot.bay = robot.slot.bay + 1;
+    robot.taskId = `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`;
+    robot.cargoId = `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`;
+    robot.priority = pick(["normal", "normal", "normal", "medium"]);
   }
 
   function setMovingStage(robot, stageName) {
@@ -231,8 +312,10 @@
 
   function createRobot(id) {
     const laneY = pick([2.8, 7.5, 12.6, 17.8, 19.6]);
+    const type = robotTypeFor(id);
     const robot = {
       id,
+      type,
       x: 2 + random() * 27,
       y: laneY + (random() - 0.5) * 0.35,
       heading: 0,
@@ -244,7 +327,11 @@
       actionDuration: 1,
       taskRound: Math.floor(random() * 9),
       level: 1,
+      bay: 1,
       rack: racks[0],
+      slot: null,
+      taskId: null,
+      cargoId: null,
       priority: "normal",
       alert: "",
       path: [],
@@ -277,7 +364,7 @@
       const point = robot.stage === "picking" ? pickupPoint(id) : rackTarget(robot);
       robot.x = point.x;
       robot.y = point.y;
-      robot.actionDuration = 1.9 + random() * 1.4;
+      robot.actionDuration = robot.stage === "placing" ? 4.4 : 2.2 + random() * 0.8;
       robot.actionTimer = random() * robot.actionDuration;
     } else if (id <= 97) {
       robot.stage = id % 2 ? "idle" : "charging";
@@ -302,7 +389,9 @@
     robots = Array.from({ length: 100 }, (_, index) => createRobot(index + 1));
     state.elapsed = 14 * 60 + 20;
     state.completed = 1284;
-    state.selectedId = 37;
+    state.selectedId = robots.find((robot) => robot.stage === "placing" && robot.type.maxLevel === 3 && robot.level === 3)?.id
+      || robots.find((robot) => robot.stage === "placing" && robot.type.maxLevel === 3)?.id
+      || 37;
     lastTime = performance.now();
     updateAllDom(true);
   }
@@ -321,7 +410,7 @@
           robot.actionTimer = 0;
         } else if (robot.stage === "toRack") {
           robot.stage = "placing";
-          robot.actionDuration = 2.4 + robot.level * 0.22;
+          robot.actionDuration = 4.4;
           robot.actionTimer = 0;
         } else {
           robot.stage = robot.battery < 28 ? "charging" : "idle";
@@ -343,8 +432,15 @@
           setMovingStage(robot, "toRack");
         } else {
           robot.carrying = false;
+          if (robot.slot) {
+            robot.slot.occupied = true;
+            robot.slot.reservedBy = null;
+            robot.slot.cargoId = cargoCode(robot);
+            robot.slot.colorIndex = (robot.id + robot.taskRound) % BOX_PALETTES.length;
+            robot.slot.placedAt = state.elapsed;
+          }
           state.completed += 1;
-          pushEvent(robot, `已完成 ${robot.rack.zone}-${pad(robot.rack.id)} / L${robot.level} 上架`);
+          pushEvent(robot, `已完成 ${robot.rack.zone}-${pad(robot.rack.id)} / C${robot.bay} / L${robot.level} 伸臂上架`);
           setMovingStage(robot, "returning");
         }
       }
@@ -561,37 +657,50 @@
         ctx.lineTo(bx, p2.y);
         ctx.stroke();
       }
+      rack.slots.forEach((slot) => {
+        if (state.level !== "all" && Number(state.level) !== slot.level) return;
+        const isTarget = slot.reservedBy === state.selectedId;
+        const isFresh = slot.placedAt !== null && state.elapsed - slot.placedAt < 12;
+        if (!slot.occupied && !isTarget) return;
+        const bayWidth = (p2.x - p1.x) / 3;
+        const x = p1.x + slot.bay * bayWidth + 2;
+        const y = p1.y + 2;
+        ctx.globalAlpha = state.level === "all" ? 0.35 + slot.level * 0.14 : 0.92;
+        ctx.fillStyle = slot.occupied
+          ? (isFresh ? ACTIVE_BOX_PALETTE.top : BOX_PALETTES[slot.colorIndex].top)
+          : "rgba(201,244,108,0.08)";
+        ctx.fillRect(x, y, bayWidth - 4, Math.max(2, p2.y - p1.y - 4));
+        if (isTarget || isFresh) {
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = isFresh ? COLORS.lime : robotTypeFor(slot.reservedBy || 1).accent;
+          ctx.lineWidth = 1.3;
+          ctx.strokeRect(x, y, bayWidth - 4, Math.max(2, p2.y - p1.y - 4));
+        }
+      });
       ctx.restore();
       return;
     }
 
-    const rackHeight = 3.1;
-    drawPrism(rack.x, rack.y, rack.width, rack.depth, rackHeight, {
+    drawPrism(rack.x, rack.y, rack.width, rack.depth, RACK_HEIGHT, {
       top: "rgba(65,82,76,0.30)",
       left: "rgba(37,49,45,0.28)",
       right: "rgba(46,60,55,0.30)",
     }, "rgba(102,122,114,0.34)");
 
-    const boxColors = [
-      { top: "#c0905f", left: "#8c6039", right: "#a57143" },
-      { top: "#7399a3", left: "#45656e", right: "#547b84" },
-      { top: "#91836b", left: "#635945", right: "#776a52" },
-      { top: "#7b9361", left: "#52633f", right: "#63784c" },
-    ];
-
     rack.slots.forEach((slot) => {
       if (!slot.occupied) return;
       if (state.level !== "all" && Number(state.level) !== slot.level) return;
-      const levelBase = (slot.level - 1) * 0.7 + 0.09;
+      const geometry = slotGeometry(rack, slot);
+      const isFresh = slot.placedAt !== null && state.elapsed - slot.placedAt < 12;
       drawPrism(
-        rack.x + 0.12 + slot.bay * 0.88,
-        rack.y + 0.12,
-        0.66,
-        0.77,
-        0.47,
-        boxColors[slot.colorIndex],
-        "rgba(255,255,255,0.1)",
-        levelBase,
+        geometry.x,
+        geometry.y,
+        geometry.width,
+        geometry.depth,
+        geometry.height,
+        isFresh ? ACTIVE_BOX_PALETTE : BOX_PALETTES[slot.colorIndex],
+        isFresh ? COLORS.lime : "rgba(255,255,255,0.1)",
+        geometry.baseZ,
       );
     });
 
@@ -601,15 +710,15 @@
     [0, rack.width].forEach((dx) => {
       [0, rack.depth].forEach((dy) => {
         const bottom = project(rack.x + dx, rack.y + dy, 0);
-        const top = project(rack.x + dx, rack.y + dy, rackHeight);
+        const top = project(rack.x + dx, rack.y + dy, RACK_HEIGHT);
         ctx.beginPath();
         ctx.moveTo(bottom.x, bottom.y);
         ctx.lineTo(top.x, top.y);
         ctx.stroke();
       });
     });
-    for (let level = 0; level <= 4; level += 1) {
-      const z = 0.04 + level * 0.72;
+    for (let level = 0; level <= 3; level += 1) {
+      const z = 0.03 + level * SHELF_GAP;
       const points = [
         project(rack.x, rack.y, z),
         project(rack.x + rack.width, rack.y, z),
@@ -619,12 +728,209 @@
       ctx.globalAlpha = state.level === "all" || Number(state.level) === level ? 0.85 : 0.22;
       pathPolygon(points, null, "#60736b", 0.75);
     }
-    const labelPoint = project(rack.x + rack.width / 2, rack.y + rack.depth, rackHeight + 0.22);
+    const labelPoint = project(rack.x + rack.width / 2, rack.y + rack.depth, RACK_HEIGHT + 0.18);
     ctx.globalAlpha = 0.72;
     ctx.fillStyle = "#aebbb6";
     ctx.font = `${Math.max(6, 7 * state.zoom)}px ui-monospace, monospace`;
     ctx.textAlign = "center";
     ctx.fillText(`${rack.zone}-${pad(rack.id)}`, labelPoint.x, labelPoint.y);
+    ctx.restore();
+
+    rack.slots.forEach((slot) => {
+      if (state.level !== "all" && Number(state.level) !== slot.level) return;
+      const isSelectedTarget = slot.reservedBy === state.selectedId;
+      const isFresh = slot.placedAt !== null && state.elapsed - slot.placedAt < 12;
+      if (!isSelectedTarget && !isFresh) return;
+      drawSlotHighlight(rack, slot, isFresh);
+    });
+  }
+
+  function drawSlotHighlight(rack, slot, fresh) {
+    const geometry = slotGeometry(rack, slot);
+    const frontY = rack.y + rack.depth + 0.02;
+    const points = [
+      project(geometry.x, frontY, geometry.baseZ),
+      project(geometry.x + geometry.width, frontY, geometry.baseZ),
+      project(geometry.x + geometry.width, frontY, geometry.baseZ + geometry.height + 0.05),
+      project(geometry.x, frontY, geometry.baseZ + geometry.height + 0.05),
+    ];
+    const reservedType = robotTypeFor(slot.reservedBy || 1);
+    ctx.save();
+    pathPolygon(points, fresh ? "rgba(201,244,108,0.08)" : "rgba(104,199,255,0.055)", fresh ? COLORS.lime : reservedType.accent, 1.2);
+    const anchor = points[3];
+    const label = fresh ? `${slot.cargoId} ✓` : `目标 C${slot.bay + 1} / L${slot.level}`;
+    ctx.font = `${Math.max(6, 7 * state.zoom)}px ui-monospace, monospace`;
+    const width = ctx.measureText(label).width + 8;
+    ctx.fillStyle = "rgba(8,13,12,0.92)";
+    ctx.fillRect(anchor.x - 2, anchor.y - 13, width, 12);
+    ctx.fillStyle = fresh ? COLORS.lime : reservedType.accent;
+    ctx.textAlign = "left";
+    ctx.fillText(label, anchor.x + 2, anchor.y - 4);
+    ctx.restore();
+  }
+
+  function placementPose(robot) {
+    if (robot.stage !== "placing" || !robot.slot) return null;
+    const geometry = slotGeometry(robot.rack, robot.slot);
+    const progress = clamp(robot.actionTimer / Math.max(0.1, robot.actionDuration), 0, 1);
+    const frontY = robot.rack.y + robot.rack.depth + 0.1;
+    const startX = robot.x - geometry.width / 2;
+    const startY = robot.y - 0.22;
+    let boxX = startX;
+    let boxY = startY;
+    let boxZ = 0.7;
+
+    if (progress < 0.2) {
+      const amount = progress / 0.2;
+      boxX = lerp(startX, geometry.x, amount);
+      boxY = lerp(startY, frontY + 0.18, amount);
+    } else if (progress < 0.72) {
+      const amount = (progress - 0.2) / 0.52;
+      boxX = geometry.x;
+      boxY = lerp(frontY + 0.18, frontY, amount);
+      boxZ = lerp(0.7, geometry.baseZ, amount);
+    } else if (progress < 0.92) {
+      const amount = (progress - 0.72) / 0.2;
+      boxX = geometry.x;
+      boxY = lerp(frontY, geometry.y, amount);
+      boxZ = geometry.baseZ;
+    } else {
+      boxX = geometry.x;
+      boxY = geometry.y;
+      boxZ = geometry.baseZ;
+    }
+
+    return { geometry, progress, boxX, boxY, boxZ };
+  }
+
+  function drawPlacementCargo(robot) {
+    const pose = placementPose(robot);
+    if (!pose) return;
+    const { geometry, progress, boxX, boxY, boxZ } = pose;
+
+    ctx.save();
+    drawPrism(boxX, boxY, geometry.width, geometry.depth, geometry.height, ACTIVE_BOX_PALETTE, robot.type.accent, boxZ);
+    if (robot.id === state.selectedId) {
+      const anchor = project(boxX + geometry.width / 2, boxY + geometry.depth / 2, boxZ + geometry.height + 0.18);
+      const extensionEnvelope = progress < 0.2 ? progress / 0.2 : progress < 0.92 ? 1 : (1 - progress) / 0.08;
+      const label = `${robot.type.key} 伸臂 ${Math.round(robot.type.extension * clamp(extensionEnvelope, 0, 1) * 100)}cm · L${robot.level}`;
+      ctx.font = "7px ui-monospace, monospace";
+      const width = ctx.measureText(label).width + 8;
+      ctx.fillStyle = "rgba(8,13,12,0.9)";
+      ctx.fillRect(anchor.x - width / 2, anchor.y - 10, width, 12);
+      ctx.fillStyle = robot.type.accent;
+      ctx.textAlign = "center";
+      ctx.fillText(label, anchor.x, anchor.y - 2);
+    }
+    ctx.restore();
+  }
+
+  function drawTelescopicArms(robot, point, scale, topView = false) {
+    const pose = placementPose(robot);
+    if (!pose) return;
+    const { geometry, progress, boxX, boxY, boxZ } = pose;
+    const cargoZ = boxZ + geometry.height * (topView ? 0 : 0.52);
+    const gripWorld = [
+      { x: boxX + geometry.width * 0.16, y: boxY + geometry.depth * 0.5, z: cargoZ },
+      { x: boxX + geometry.width * 0.84, y: boxY + geometry.depth * 0.5, z: cargoZ },
+    ];
+    const rawGrips = gripWorld.map((grip) => project(grip.x, grip.y, grip.z));
+    const s = topView ? scale : 0.78 * scale;
+    const shoulders = topView
+      ? [
+          { x: point.x - 2.5 * s, y: point.y - 1.4 * s },
+          { x: point.x + 2.5 * s, y: point.y - 1.4 * s },
+        ]
+      : [
+          { x: point.x - 5 * s, y: point.y - 25 * s },
+          { x: point.x + 5 * s, y: point.y - 25 * s },
+        ];
+    const standby = topView
+      ? [
+          { x: point.x - 7 * s, y: point.y - 5 * s },
+          { x: point.x + 7 * s, y: point.y - 5 * s },
+        ]
+      : [
+          { x: point.x - 8 * s, y: point.y - 15 * s },
+          { x: point.x + 8 * s, y: point.y - 15 * s },
+        ];
+    const retract = clamp((progress - 0.92) / 0.08, 0, 1);
+    const sleeveRatio = clamp(0.68 - robot.type.extension * 0.24, 0.42, 0.64);
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    shoulders.forEach((shoulder, index) => {
+      const side = index === 0 ? -1 : 1;
+      const grip = {
+        x: lerp(rawGrips[index].x, standby[index].x, retract),
+        y: lerp(rawGrips[index].y, standby[index].y, retract),
+      };
+      const dx = grip.x - shoulder.x;
+      const dy = grip.y - shoulder.y;
+      const length = Math.max(1, Math.hypot(dx, dy));
+      const perpendicularX = -dy / length;
+      const perpendicularY = dx / length;
+      const elbow = {
+        x: shoulder.x + dx * sleeveRatio + perpendicularX * side * 2.2 * s * (1 - retract),
+        y: shoulder.y + dy * sleeveRatio + perpendicularY * side * 2.2 * s * (1 - retract),
+      };
+
+      ctx.strokeStyle = "rgba(7,13,12,0.94)";
+      ctx.lineWidth = 5.4 * s;
+      ctx.beginPath();
+      ctx.moveTo(shoulder.x, shoulder.y);
+      ctx.lineTo(elbow.x, elbow.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#879690";
+      ctx.lineWidth = 3.4 * s;
+      ctx.beginPath();
+      ctx.moveTo(shoulder.x, shoulder.y);
+      ctx.lineTo(elbow.x, elbow.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(7,13,12,0.96)";
+      ctx.lineWidth = 4.3 * s;
+      ctx.beginPath();
+      ctx.moveTo(elbow.x, elbow.y);
+      ctx.lineTo(grip.x, grip.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = robot.type.accent;
+      ctx.lineWidth = 2.15 * s;
+      ctx.beginPath();
+      ctx.moveTo(elbow.x, elbow.y);
+      ctx.lineTo(grip.x, grip.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(shoulder.x, shoulder.y, 2.2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = "#d5dfdb";
+      ctx.fill();
+      ctx.strokeStyle = "#23302c";
+      ctx.lineWidth = 0.9 * s;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(elbow.x, elbow.y, 2.65 * s, 0, Math.PI * 2);
+      ctx.fillStyle = "#17221f";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(elbow.x, elbow.y, 1.45 * s, 0, Math.PI * 2);
+      ctx.fillStyle = robot.type.accent;
+      ctx.fill();
+
+      const unitX = dx / length;
+      const unitY = dy / length;
+      ctx.strokeStyle = "#d9e3df";
+      ctx.lineWidth = 1.25 * s;
+      ctx.beginPath();
+      ctx.moveTo(grip.x - unitX * 2.4 * s + perpendicularX * 2.3 * s, grip.y - unitY * 2.4 * s + perpendicularY * 2.3 * s);
+      ctx.lineTo(grip.x, grip.y);
+      ctx.lineTo(grip.x - unitX * 2.4 * s - perpendicularX * 2.3 * s, grip.y - unitY * 2.4 * s - perpendicularY * 2.3 * s);
+      ctx.stroke();
+    });
     ctx.restore();
   }
 
@@ -676,7 +982,8 @@
     const scale = state.view === "top" ? clamp(projectionMetrics().scale / 17, 0.58, 1.1) : clamp(state.zoom, 0.63, 1.25);
     const walk = ["toPick", "toRack", "returning"].includes(robot.stage) ? Math.sin(robot.phase) : 0;
     const actionProgress = robot.actionDuration ? clamp(robot.actionTimer / robot.actionDuration, 0, 1) : 0;
-    const lift = robot.stage === "placing" ? Math.sin(actionProgress * Math.PI) : robot.stage === "picking" ? Math.sin(actionProgress * Math.PI) * 0.65 : 0;
+    const lift = robot.stage === "picking" ? Math.sin(actionProgress * Math.PI) * 0.65 : 0;
+    const showHeldBox = (robot.carrying && robot.stage !== "placing") || robot.stage === "picking";
 
     ctx.save();
     ctx.globalAlpha = filterMatch ? 1 : 0.09;
@@ -693,12 +1000,17 @@
       ctx.strokeStyle = color;
       ctx.lineWidth = selected ? 2.2 : 1.2;
       ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(point.x, point.y - 1.5 * scale, 1.7 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = robot.type.accent;
+      ctx.fill();
       const hx = Math.cos(robot.heading) * 6 * scale;
       const hy = Math.sin(robot.heading) * 6 * scale;
       ctx.beginPath();
       ctx.moveTo(point.x, point.y);
       ctx.lineTo(point.x + hx, point.y + hy);
       ctx.stroke();
+      if (robot.stage === "placing") drawTelescopicArms(robot, point, scale, true);
     } else {
       const s = 0.78 * scale;
       ctx.beginPath();
@@ -725,28 +1037,34 @@
       ctx.strokeStyle = color;
       ctx.lineWidth = 1.1 * s;
       ctx.stroke();
+      ctx.fillStyle = robot.type.accent;
+      ctx.fillRect(point.x - 4 * s, point.y - 22.5 * s, 8 * s, 1.8 * s);
 
       const armY = point.y - 25 * s;
-      const armRaise = lift * 8 * s;
-      ctx.strokeStyle = "#96a39e";
-      ctx.lineWidth = 2.1 * s;
-      ctx.beginPath();
-      if (robot.carrying || robot.stage === "picking" || robot.stage === "placing") {
-        ctx.moveTo(point.x - 5 * s, armY);
-        ctx.lineTo(point.x - 8 * s, armY + 7 * s - armRaise);
-        ctx.lineTo(point.x - 4 * s, armY + 9 * s - armRaise);
-        ctx.moveTo(point.x + 5 * s, armY);
-        ctx.lineTo(point.x + 8 * s, armY + 7 * s - armRaise);
-        ctx.lineTo(point.x + 4 * s, armY + 9 * s - armRaise);
+      const armRaise = lift * 4 * s;
+      if (robot.stage === "placing") {
+        drawTelescopicArms(robot, point, scale);
       } else {
-        ctx.moveTo(point.x - 5 * s, armY);
-        ctx.lineTo(point.x - 7 * s + walk * 1.5 * s, armY + 12 * s);
-        ctx.moveTo(point.x + 5 * s, armY);
-        ctx.lineTo(point.x + 7 * s - walk * 1.5 * s, armY + 12 * s);
+        ctx.strokeStyle = "#96a39e";
+        ctx.lineWidth = 2.1 * s;
+        ctx.beginPath();
+        if (robot.carrying || robot.stage === "picking") {
+          ctx.moveTo(point.x - 5 * s, armY);
+          ctx.lineTo(point.x - 8 * s, armY + 6 * s - armRaise * 0.45);
+          ctx.lineTo(point.x - 4 * s, armY + 9 * s - armRaise);
+          ctx.moveTo(point.x + 5 * s, armY);
+          ctx.lineTo(point.x + 8 * s, armY + 6 * s - armRaise * 0.45);
+          ctx.lineTo(point.x + 4 * s, armY + 9 * s - armRaise);
+        } else {
+          ctx.moveTo(point.x - 5 * s, armY);
+          ctx.lineTo(point.x - 7 * s + walk * 1.5 * s, armY + 12 * s);
+          ctx.moveTo(point.x + 5 * s, armY);
+          ctx.lineTo(point.x + 7 * s - walk * 1.5 * s, armY + 12 * s);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
 
-      if (robot.carrying || robot.stage === "picking" || robot.stage === "placing") {
+      if (showHeldBox) {
         const boxY = point.y - 13 * s - armRaise;
         ctx.fillStyle = "#a87545";
         ctx.fillRect(point.x - 5 * s, boxY - 7 * s, 10 * s, 8 * s);
@@ -780,7 +1098,7 @@
       const labelY = state.view === "top" ? point.y - 15 : point.y - 42 * scale;
       ctx.font = "8px ui-monospace, monospace";
       ctx.textAlign = "center";
-      const label = `${robotCode(robot.id)} · ${stageLabel(robot)}`;
+      const label = `${robotCode(robot.id)} / ${robot.type.key} · ${stageLabel(robot)}`;
       const width = ctx.measureText(label).width + 10;
       ctx.fillStyle = "rgba(8,13,12,0.92)";
       ctx.fillRect(point.x - width / 2, labelY - 10, width, 15);
@@ -800,6 +1118,9 @@
 
     const drawables = [
       ...racks.map((rack) => ({ depth: rack.x + rack.y + rack.depth + 0.5, draw: () => drawRack(rack) })),
+      ...robots
+        .filter((robot) => robot.stage === "placing")
+        .map((robot) => ({ depth: robot.x + robot.y + 0.62, draw: () => drawPlacementCargo(robot) })),
       ...robots.map((robot) => ({ depth: robot.x + robot.y + 0.7, draw: () => drawRobot(robot) })),
     ];
 
@@ -836,7 +1157,11 @@
     portraitCtx.translate(width / 2 - 10, 15);
     const walk = ["toPick", "toRack", "returning"].includes(robot.stage) ? Math.sin(robot.phase) * 4 : 0;
     const actionProgress = clamp(robot.actionTimer / Math.max(0.1, robot.actionDuration), 0, 1);
-    const lift = ["picking", "placing"].includes(robot.stage) ? Math.sin(actionProgress * Math.PI) * 22 : 0;
+    const portraitReach = robot.stage === "placing"
+      ? (actionProgress < 0.2 ? actionProgress / 0.2 : actionProgress < 0.92 ? 1 : (1 - actionProgress) / 0.08)
+      : 0;
+    const lift = robot.stage === "picking" ? Math.sin(actionProgress * Math.PI) * 14 : 0;
+    const portraitHasBox = (robot.carrying && robot.stage !== "placing") || robot.stage === "picking";
     portraitCtx.lineCap = "round";
     portraitCtx.strokeStyle = "#8c9994";
     portraitCtx.lineWidth = 5;
@@ -852,24 +1177,79 @@
     portraitCtx.strokeStyle = color;
     portraitCtx.lineWidth = 2;
     portraitCtx.stroke();
-    portraitCtx.strokeStyle = "#93a09b";
-    portraitCtx.lineWidth = 5;
-    portraitCtx.beginPath();
-    if (robot.carrying || ["picking", "placing"].includes(robot.stage)) {
-      portraitCtx.moveTo(-14, 46);
-      portraitCtx.lineTo(-23, 68 - lift);
-      portraitCtx.lineTo(-10, 69 - lift);
-      portraitCtx.moveTo(14, 46);
-      portraitCtx.lineTo(23, 68 - lift);
-      portraitCtx.lineTo(10, 69 - lift);
+    portraitCtx.fillStyle = robot.type.accent;
+    portraitCtx.fillRect(-11, 55, 22, 4);
+    if (robot.stage === "placing") {
+      const retract = clamp((actionProgress - 0.92) / 0.08, 0, 1);
+      const targetY = lerp(66 - portraitReach * (14 + (robot.level - 1) * 11 + robot.type.extension * 12), 69, retract);
+      const grips = [{ x: -11, y: targetY }, { x: 11, y: targetY }];
+      const shoulders = [{ x: -14, y: 46 }, { x: 14, y: 46 }];
+      shoulders.forEach((shoulder, index) => {
+        const side = index === 0 ? -1 : 1;
+        const grip = grips[index];
+        const elbow = {
+          x: lerp(shoulder.x, grip.x, 0.52) + side * (7 + robot.type.extension * 4),
+          y: lerp(shoulder.y, grip.y, 0.52),
+        };
+        portraitCtx.strokeStyle = "#17211e";
+        portraitCtx.lineWidth = 8;
+        portraitCtx.beginPath();
+        portraitCtx.moveTo(shoulder.x, shoulder.y);
+        portraitCtx.lineTo(elbow.x, elbow.y);
+        portraitCtx.stroke();
+        portraitCtx.strokeStyle = "#8b9994";
+        portraitCtx.lineWidth = 5;
+        portraitCtx.beginPath();
+        portraitCtx.moveTo(shoulder.x, shoulder.y);
+        portraitCtx.lineTo(elbow.x, elbow.y);
+        portraitCtx.stroke();
+        portraitCtx.strokeStyle = "#17211e";
+        portraitCtx.lineWidth = 7;
+        portraitCtx.beginPath();
+        portraitCtx.moveTo(elbow.x, elbow.y);
+        portraitCtx.lineTo(grip.x, grip.y);
+        portraitCtx.stroke();
+        portraitCtx.strokeStyle = robot.type.accent;
+        portraitCtx.lineWidth = 3;
+        portraitCtx.beginPath();
+        portraitCtx.moveTo(elbow.x, elbow.y);
+        portraitCtx.lineTo(grip.x, grip.y);
+        portraitCtx.stroke();
+        portraitCtx.beginPath();
+        portraitCtx.arc(elbow.x, elbow.y, 4, 0, Math.PI * 2);
+        portraitCtx.fillStyle = robot.type.accent;
+        portraitCtx.fill();
+        portraitCtx.strokeStyle = "#17211e";
+        portraitCtx.lineWidth = 1.5;
+        portraitCtx.stroke();
+        portraitCtx.strokeStyle = "#d9e3df";
+        portraitCtx.lineWidth = 2;
+        portraitCtx.beginPath();
+        portraitCtx.moveTo(grip.x + side * 5, grip.y - 3);
+        portraitCtx.lineTo(grip.x, grip.y);
+        portraitCtx.lineTo(grip.x + side * 5, grip.y + 3);
+        portraitCtx.stroke();
+      });
     } else {
-      portraitCtx.moveTo(-14, 46);
-      portraitCtx.lineTo(-21 + walk, 76);
-      portraitCtx.moveTo(14, 46);
-      portraitCtx.lineTo(21 - walk, 76);
+      portraitCtx.strokeStyle = "#93a09b";
+      portraitCtx.lineWidth = 5;
+      portraitCtx.beginPath();
+      if (robot.carrying || robot.stage === "picking") {
+        portraitCtx.moveTo(-14, 46);
+        portraitCtx.lineTo(-23, 66 - lift * 0.45);
+        portraitCtx.lineTo(-10, 69 - lift);
+        portraitCtx.moveTo(14, 46);
+        portraitCtx.lineTo(23, 66 - lift * 0.45);
+        portraitCtx.lineTo(10, 69 - lift);
+      } else {
+        portraitCtx.moveTo(-14, 46);
+        portraitCtx.lineTo(-21 + walk, 76);
+        portraitCtx.moveTo(14, 46);
+        portraitCtx.lineTo(21 - walk, 76);
+      }
+      portraitCtx.stroke();
     }
-    portraitCtx.stroke();
-    if (robot.carrying || ["picking", "placing"].includes(robot.stage)) {
+    if (portraitHasBox) {
       portraitCtx.fillStyle = "#a87545";
       portraitCtx.fillRect(-14, 59 - lift, 28, 22);
       portraitCtx.strokeStyle = "#d5a56e";
@@ -889,7 +1269,7 @@
 
     portraitCtx.fillStyle = "rgba(201,244,108,0.7)";
     portraitCtx.font = "8px ui-monospace, monospace";
-    portraitCtx.fillText(robotCode(robot.id), 8, height - 7);
+    portraitCtx.fillText(`${robotCode(robot.id)} / ${robot.type.key}`, 8, height - 7);
   }
 
   function stageProgress(robot) {
@@ -909,11 +1289,15 @@
     const category = categoryFor(robot);
     const status = $("#selectedStatus");
     const progress = Math.round(stageProgress(robot));
-    const rackLabel = `${robot.rack.zone}区 · 货架 ${pad(robot.rack.id)}`;
+    const rackLabel = `${robot.rack.zone}区 · 货架 ${pad(robot.rack.id)} · 第 ${robot.bay} 列`;
+    const targetHeight = SHELF_LEVELS[robot.level - 1].centerHeight;
 
     $("#robotIdTag").textContent = robotCode(robot.id);
-    $("#selectedRobotName").textContent = `人形搬运单元 ${pad(robot.id, 3)}`;
+    $("#selectedRobotName").textContent = `${robot.type.name} · 单元 ${pad(robot.id, 3)}`;
     $("#selectedRobotPosition").textContent = `坐标 ${robot.x.toFixed(1)}, ${robot.y.toFixed(1)} · 通道 ${pad(Math.max(1, Math.round(robot.y / 2)), 2)}`;
+    $("#selectedRobotType").textContent = robot.type.name;
+    $("#selectedRobotType").style.color = robot.type.accent;
+    $("#selectedReach").textContent = `最高 L${robot.type.maxLevel} · ${robot.type.maxHeight.toFixed(2)}m`;
     status.className = `state-pill ${category}`;
     status.innerHTML = `<i></i>${stageLabel(robot)}`;
     $("#batteryValue").textContent = `${Math.round(robot.battery)}%`;
@@ -921,8 +1305,8 @@
     $("#batteryBar").style.background = robot.battery < 18 ? COLORS.red : COLORS.lime;
     $("#selectedTaskId").textContent = `#${taskCode(robot)}`;
     $("#selectedTaskTitle").textContent = `将货物送至 ${rackLabel}`;
-    $("#selectedCargo").textContent = `${cargoCode(robot)} · 标准箱`;
-    $("#selectedLevel").textContent = `L${robot.level}`;
+    $("#selectedCargo").textContent = `${cargoCode(robot)} · ${robot.type.key} 伸臂放置`;
+    $("#selectedLevel").textContent = `L${robot.level} · ${targetHeight.toFixed(2)}m`;
     $("#selectedAction").textContent = stageLabel(robot);
     $("#selectedProgressText").textContent = `${progress}%`;
     $("#selectedProgressBar").style.width = `${progress}%`;
@@ -989,7 +1373,7 @@
       return `
         <article class="queue-item">
           <i class="queue-priority ${priority}"></i>
-          <div><h4>#${taskCode(robot)} · ${robotCode(robot.id)}</h4><p>入库台 → ${robot.rack.zone}-${pad(robot.rack.id)} / L${robot.level}</p></div>
+          <div><h4>#${taskCode(robot)} · ${robotCode(robot.id)} · ${robot.type.key}</h4><p>入库台 → ${robot.rack.zone}-${pad(robot.rack.id)} / C${robot.bay} / L${robot.level}</p></div>
           <time>${eta}m</time>
         </article>`;
     }).join("");
@@ -1152,8 +1536,8 @@
     $("#priorityTaskButton").addEventListener("click", () => {
       let robot = robots.find((item) => item.stage === "idle");
       if (!robot) robot = robots.find((item) => item.stage === "returning") || robots[0];
-      robot.priority = "high";
       prepareTask(robot);
+      robot.priority = "high";
       setMovingStage(robot, "toPick");
       state.selectedId = robot.id;
       pushEvent(robot, "收到优先任务，正在前往入库台");
@@ -1171,8 +1555,8 @@
 
     $("#exportButton").addEventListener("click", () => {
       const rows = [
-        ["robot_id", "stage", "x", "y", "battery", "task", "cargo", "destination", "level"],
-        ...robots.map((robot) => [robotCode(robot.id), robot.stage, robot.x.toFixed(2), robot.y.toFixed(2), robot.battery.toFixed(1), taskCode(robot), cargoCode(robot), `${robot.rack.zone}-${pad(robot.rack.id)}`, robot.level]),
+        ["robot_id", "robot_type", "max_level", "stage", "x", "y", "battery", "task", "cargo", "rack", "bay", "level", "slot_occupied"],
+        ...robots.map((robot) => [robotCode(robot.id), robot.type.key, robot.type.maxLevel, robot.stage, robot.x.toFixed(2), robot.y.toFixed(2), robot.battery.toFixed(1), taskCode(robot), cargoCode(robot), `${robot.rack.zone}-${pad(robot.rack.id)}`, robot.bay, robot.level, robot.slot?.occupied ? "yes" : "no"]),
       ];
       const csv = rows.map((row) => row.join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
