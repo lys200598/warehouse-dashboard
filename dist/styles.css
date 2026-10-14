@@ -713,12 +713,14 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: grab;
 }
 
-.canvas-stage.dragging { cursor: grabbing; }
+.canvas-stage.dragging,
+.canvas-stage.orbiting { cursor: grabbing; }
 
 #warehouseCanvas {
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
 .canvas-hint {

@@ -33,6 +33,11 @@
   ];
   const SHELF_GAP = 0.54;
   const RACK_HEIGHT = 1.78;
+  const SHELF_COLUMNS = 6;
+  const SHELF_DEPTH_ROWS = 2;
+  const PACKAGE_WIDTH = 0.28;
+  const PACKAGE_DEPTH = 0.24;
+  const PACKAGE_HEIGHT = 0.21;
   const ROBOT_TYPES = [
     { key: "A1", name: "基础型 A1", maxLevel: 1, maxHeight: 0.55, extension: 0.18, accent: "#d6e0dc" },
     { key: "R2", name: "增程型 R2", maxLevel: 2, maxHeight: 1.05, extension: 0.52, accent: "#c9f46c" },
@@ -53,6 +58,8 @@
     zoom: 1,
     panX: 0,
     panY: 0,
+    cameraYaw: Math.PI / 4,
+    cameraPitch: Math.PI / 6,
     filter: "all",
     level: "all",
     routes: true,
@@ -76,7 +83,7 @@
   let toastTimer = 0;
   let isDragging = false;
   let dragMoved = false;
-  let pointerStart = { x: 0, y: 0, panX: 0, panY: 0 };
+  let pointerStart = { x: 0, y: 0, panX: 0, panY: 0, yaw: 0, pitch: 0, mode: "orbit" };
 
   const taskEvents = [
     { time: "08:14:32", robot: "HR-063", text: "已完成 A-08 / L2 上架" },
@@ -102,6 +109,7 @@
   const robotCode = (id) => `HR-${pad(id, 3)}`;
   const taskCode = (robot) => robot.taskId || `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`;
   const cargoCode = (robot) => robot.cargoId || `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`;
+  const shelfRowName = (depthRow = 0) => depthRow === 0 ? "后排" : "前排";
 
   function robotTypeFor(id) {
     const group = id % 10;
@@ -121,8 +129,8 @@
     const labels = {
       toPick: "前往入库台",
       picking: "正在取货",
-      toRack: `前往 ${robot.rack?.zone || "-"}-${pad(robot.rack?.id || 0)} / L${robot.level}`,
-      placing: `${robot.type.name} 伸臂放置至 L${robot.level}`,
+      toRack: `前往 ${robot.rack?.zone || "-"}-${pad(robot.rack?.id || 0)} / L${robot.level} / C${robot.bay} / ${shelfRowName(robot.depthRow)}`,
+      placing: `${robot.type.name} 伸臂放置至 L${robot.level} / C${robot.bay} / ${shelfRowName(robot.depthRow)}`,
       returning: "返回调度区",
       idle: "待命中",
       charging: "充电中",
@@ -138,18 +146,21 @@
       [4.3, 9.4, 14.5].forEach((y, row) => {
         const slots = [];
         for (let level = 1; level <= 3; level += 1) {
-          for (let bay = 0; bay < 3; bay += 1) {
-            const occupied = random() > 0.82;
-            slots.push({
-              rackId,
-              level,
-              bay,
-              occupied,
-              reservedBy: null,
-              cargoId: occupied ? `ST-${pad(rackId)}${level}${bay + 1}` : null,
-              colorIndex: Math.floor(random() * 4),
-              placedAt: null,
-            });
+          for (let depthRow = 0; depthRow < SHELF_DEPTH_ROWS; depthRow += 1) {
+            for (let bay = 0; bay < SHELF_COLUMNS; bay += 1) {
+              const occupied = random() > 0.48;
+              slots.push({
+                rackId,
+                level,
+                bay,
+                depthRow,
+                occupied,
+                reservedBy: null,
+                cargoId: occupied ? `ST-${pad(rackId)}${level}${bay + 1}${depthRow + 1}` : null,
+                colorIndex: Math.floor(random() * 4),
+                placedAt: null,
+              });
+            }
           }
         }
         result.push({
@@ -179,20 +190,32 @@
 
   function rackTarget(robot) {
     const rack = robot.rack;
-    return { x: rack.x + 0.45 + (robot.slot?.bay || 0) * 0.88, y: rack.y + 1.72 };
+    const geometry = slotGeometry(rack, robot.slot);
+    return { x: geometry.x + geometry.width / 2, y: rack.y + 1.72 };
   }
 
   function slotGeometry(rack, slot) {
     const level = SHELF_LEVELS[slot.level - 1];
+    const cellWidth = (rack.width - 0.2) / SHELF_COLUMNS;
+    const depthRow = slot.depthRow || 0;
+    const rowTravel = rack.depth - 0.2 - PACKAGE_DEPTH;
     return {
-      x: rack.x + 0.12 + slot.bay * 0.88,
-      y: rack.y + 0.12,
-      width: 0.66,
-      depth: 0.77,
-      height: 0.36,
+      x: rack.x + 0.1 + slot.bay * cellWidth + (cellWidth - PACKAGE_WIDTH) / 2,
+      y: rack.y + 0.1 + depthRow * rowTravel,
+      width: PACKAGE_WIDTH,
+      depth: PACKAGE_DEPTH,
+      height: PACKAGE_HEIGHT,
       baseZ: level.baseZ,
-      centerHeight: level.centerHeight,
+      centerHeight: level.baseZ + PACKAGE_HEIGHT / 2,
     };
+  }
+
+  function isSlotAvailable(slot) {
+    return !slot.occupied && slot.reservedBy === null;
+  }
+
+  function isSlotRecyclable(slot) {
+    return slot.occupied && slot.reservedBy === null;
   }
 
   function buildRoute(from, destination, kind, id) {
@@ -228,14 +251,14 @@
     }
     robot.taskRound += 1;
     let available = racks.flatMap((rack) => rack.slots
-      .filter((slot) => slot.level <= robot.type.maxLevel && !slot.occupied && slot.reservedBy === null)
+      .filter((slot) => slot.level <= robot.type.maxLevel && isSlotAvailable(slot))
       .map((slot) => ({ rack, slot })));
     const preferredLevelSlots = available.filter(({ slot }) => slot.level === robot.type.maxLevel);
     if (preferredLevelSlots.length) available = preferredLevelSlots;
 
     if (!available.length) {
       const recyclable = racks.flatMap((rack) => rack.slots
-        .filter((slot) => slot.level <= robot.type.maxLevel && slot.occupied && slot.reservedBy === null)
+        .filter((slot) => slot.level <= robot.type.maxLevel && isSlotRecyclable(slot))
         .map((slot) => ({ rack, slot })))
         .sort((a, b) => (a.slot.placedAt ?? -1) - (b.slot.placedAt ?? -1));
       const released = recyclable[0];
@@ -254,6 +277,7 @@
     robot.slot.reservedBy = robot.id;
     robot.level = robot.slot.level;
     robot.bay = robot.slot.bay + 1;
+    robot.depthRow = robot.slot.depthRow || 0;
     robot.taskId = `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`;
     robot.cargoId = `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`;
     robot.priority = pick(["normal", "normal", "normal", "medium"]);
@@ -328,6 +352,7 @@
       taskRound: Math.floor(random() * 9),
       level: 1,
       bay: 1,
+      depthRow: 0,
       rack: racks[0],
       slot: null,
       taskId: null,
@@ -440,7 +465,7 @@
             robot.slot.placedAt = state.elapsed;
           }
           state.completed += 1;
-          pushEvent(robot, `已完成 ${robot.rack.zone}-${pad(robot.rack.id)} / C${robot.bay} / L${robot.level} 伸臂上架`);
+          pushEvent(robot, `已完成 ${robot.rack.zone}-${pad(robot.rack.id)} / C${robot.bay} / ${shelfRowName(robot.depthRow)} / L${robot.level} 伸臂上架`);
           setMovingStage(robot, "returning");
         }
       }
@@ -511,18 +536,25 @@
       };
     }
 
-    const fitWidth = (renderWidth - 50) / ((WORLD.width + WORLD.height) * 0.5);
-    const fitHeight = (renderHeight - 72) / ((WORLD.width + WORLD.height) * 0.25 + 4.6);
-    const tileWidth = Math.min(fitWidth, fitHeight * 2) * state.zoom;
-    const tileHeight = tileWidth * 0.5;
-    const minX = (-WORLD.height * tileWidth) / 2;
-    const maxX = (WORLD.width * tileWidth) / 2;
-    const worldHeight = ((WORLD.width + WORLD.height) * tileHeight) / 2;
+    const cosYaw = Math.cos(state.cameraYaw);
+    const sinYaw = Math.sin(state.cameraYaw);
+    const sinPitch = Math.sin(state.cameraPitch);
+    const cosPitch = Math.cos(state.cameraPitch);
+    const rotatedWidth = Math.abs(WORLD.width * cosYaw) + Math.abs(WORLD.height * sinYaw);
+    const rotatedDepth = Math.abs(WORLD.width * sinYaw) + Math.abs(WORLD.height * cosYaw);
+    const maxSceneZ = 2.2;
+    const fitWidth = (renderWidth - 60) / Math.max(1, rotatedWidth);
+    const fitHeight = (renderHeight - 90) / Math.max(1, rotatedDepth * sinPitch + maxSceneZ * cosPitch * 1.3);
+    const scale = Math.min(fitWidth, fitHeight) * state.zoom;
+    const verticalReserve = maxSceneZ * scale * cosPitch * 1.3;
     return {
-      tileWidth,
-      tileHeight,
-      originX: renderWidth / 2 - (minX + maxX) / 2 + state.panX,
-      originY: Math.max(24, (renderHeight - worldHeight) / 2 + 28) + state.panY,
+      scale,
+      cosYaw,
+      sinYaw,
+      sinPitch,
+      cosPitch,
+      originX: renderWidth / 2 + state.panX,
+      originY: renderHeight / 2 + verticalReserve / 2 + state.panY,
     };
   }
 
@@ -531,10 +563,20 @@
     if (state.view === "top") {
       return { x: metrics.originX + x * metrics.scale, y: metrics.originY + y * metrics.scale };
     }
+    const worldX = x - WORLD.width / 2;
+    const worldY = y - WORLD.height / 2;
+    const viewX = worldX * metrics.cosYaw - worldY * metrics.sinYaw;
+    const viewDepth = worldX * metrics.sinYaw + worldY * metrics.cosYaw;
     return {
-      x: metrics.originX + ((x - y) * metrics.tileWidth) / 2,
-      y: metrics.originY + ((x + y) * metrics.tileHeight) / 2 - z * metrics.tileHeight * 1.58,
+      x: metrics.originX + viewX * metrics.scale,
+      y: metrics.originY + viewDepth * metrics.scale * metrics.sinPitch - z * metrics.scale * metrics.cosPitch * 1.3,
     };
+  }
+
+  function cameraDepth(x, y) {
+    if (state.view === "top") return y;
+    return (x - WORLD.width / 2) * Math.sin(state.cameraYaw)
+      + (y - WORLD.height / 2) * Math.cos(state.cameraYaw);
   }
 
   function pathPolygon(points, fill, stroke, lineWidth = 1) {
@@ -635,8 +677,15 @@
       return;
     }
 
-    pathPolygon([b2, b3, t3, t2], palette.right, stroke, 0.55);
-    pathPolygon([b3, b4, t4, t3], palette.left, stroke, 0.55);
+    const sideFaces = [
+      { points: [b1, b4, t4, t1], fill: palette.right, depth: cameraDepth(x, y + depth / 2) },
+      { points: [b2, b3, t3, t2], fill: palette.right, depth: cameraDepth(x + width, y + depth / 2) },
+      { points: [b1, b2, t2, t1], fill: palette.left, depth: cameraDepth(x + width / 2, y) },
+      { points: [b4, b3, t3, t4], fill: palette.left, depth: cameraDepth(x + width / 2, y + depth) },
+    ];
+    sideFaces.sort((a, b) => a.depth - b.depth).forEach((face) => {
+      pathPolygon(face.points, face.fill, stroke, 0.55);
+    });
     pathPolygon([t1, t2, t3, t4], palette.top, stroke, 0.65);
   }
 
@@ -650,11 +699,18 @@
       ctx.lineWidth = 0.8;
       ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
       ctx.strokeRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-      for (let bay = 1; bay < 3; bay += 1) {
-        const bx = p1.x + ((p2.x - p1.x) * bay) / 3;
+      for (let bay = 1; bay < SHELF_COLUMNS; bay += 1) {
+        const bx = p1.x + ((p2.x - p1.x) * bay) / SHELF_COLUMNS;
         ctx.beginPath();
         ctx.moveTo(bx, p1.y);
         ctx.lineTo(bx, p2.y);
+        ctx.stroke();
+      }
+      for (let depthRow = 1; depthRow < SHELF_DEPTH_ROWS; depthRow += 1) {
+        const rowY = p1.y + ((p2.y - p1.y) * depthRow) / SHELF_DEPTH_ROWS;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, rowY);
+        ctx.lineTo(p2.x, rowY);
         ctx.stroke();
       }
       rack.slots.forEach((slot) => {
@@ -662,19 +718,23 @@
         const isTarget = slot.reservedBy === state.selectedId;
         const isFresh = slot.placedAt !== null && state.elapsed - slot.placedAt < 12;
         if (!slot.occupied && !isTarget) return;
-        const bayWidth = (p2.x - p1.x) / 3;
-        const x = p1.x + slot.bay * bayWidth + 2;
-        const y = p1.y + 2;
+        const bayWidth = (p2.x - p1.x) / SHELF_COLUMNS;
+        const rowHeight = (p2.y - p1.y) / SHELF_DEPTH_ROWS;
+        const inset = 2;
+        const x = p1.x + slot.bay * bayWidth + inset;
+        const y = p1.y + (slot.depthRow || 0) * rowHeight + inset;
+        const width = Math.max(2, bayWidth - inset * 2);
+        const height = Math.max(2, rowHeight - inset * 2);
         ctx.globalAlpha = state.level === "all" ? 0.35 + slot.level * 0.14 : 0.92;
         ctx.fillStyle = slot.occupied
           ? (isFresh ? ACTIVE_BOX_PALETTE.top : BOX_PALETTES[slot.colorIndex].top)
           : "rgba(201,244,108,0.08)";
-        ctx.fillRect(x, y, bayWidth - 4, Math.max(2, p2.y - p1.y - 4));
+        ctx.fillRect(x, y, width, height);
         if (isTarget || isFresh) {
           ctx.globalAlpha = 1;
           ctx.strokeStyle = isFresh ? COLORS.lime : robotTypeFor(slot.reservedBy || 1).accent;
           ctx.lineWidth = 1.3;
-          ctx.strokeRect(x, y, bayWidth - 4, Math.max(2, p2.y - p1.y - 4));
+          ctx.strokeRect(x, y, width, height);
         }
       });
       ctx.restore();
@@ -717,6 +777,17 @@
         ctx.stroke();
       });
     });
+    ctx.globalAlpha = state.level === "all" ? 0.32 : 0.18;
+    ctx.lineWidth = 0.45;
+    for (let bay = 1; bay < SHELF_COLUMNS; bay += 1) {
+      const x = rack.x + (rack.width * bay) / SHELF_COLUMNS;
+      const bottom = project(x, rack.y + rack.depth, 0);
+      const top = project(x, rack.y + rack.depth, RACK_HEIGHT);
+      ctx.beginPath();
+      ctx.moveTo(bottom.x, bottom.y);
+      ctx.lineTo(top.x, top.y);
+      ctx.stroke();
+    }
     for (let level = 0; level <= 3; level += 1) {
       const z = 0.03 + level * SHELF_GAP;
       const points = [
@@ -727,6 +798,13 @@
       ];
       ctx.globalAlpha = state.level === "all" || Number(state.level) === level ? 0.85 : 0.22;
       pathPolygon(points, null, "#60736b", 0.75);
+      const rowGuideStart = project(rack.x, rack.y + rack.depth / 2, z);
+      const rowGuideEnd = project(rack.x + rack.width, rack.y + rack.depth / 2, z);
+      ctx.globalAlpha = state.level === "all" || Number(state.level) === level ? 0.38 : 0.1;
+      ctx.beginPath();
+      ctx.moveTo(rowGuideStart.x, rowGuideStart.y);
+      ctx.lineTo(rowGuideEnd.x, rowGuideEnd.y);
+      ctx.stroke();
     }
     const labelPoint = project(rack.x + rack.width / 2, rack.y + rack.depth, RACK_HEIGHT + 0.18);
     ctx.globalAlpha = 0.72;
@@ -735,6 +813,20 @@
     ctx.textAlign = "center";
     ctx.fillText(`${rack.zone}-${pad(rack.id)}`, labelPoint.x, labelPoint.y);
     ctx.restore();
+
+    const selectedSlot = rack.slots.find((slot) => slot.reservedBy === state.selectedId);
+    if (selectedSlot) {
+      ctx.save();
+      ctx.font = `${Math.max(6, 6.5 * state.zoom)}px ui-monospace, monospace`;
+      ctx.textAlign = "left";
+      [0, 1].forEach((depthRow) => {
+        const rowGeometry = slotGeometry(rack, { ...selectedSlot, depthRow });
+        const marker = project(rack.x + rack.width + 0.06, rowGeometry.y + rowGeometry.depth / 2, rowGeometry.baseZ + 0.03);
+        ctx.fillStyle = depthRow === 0 ? "rgba(104,199,255,0.78)" : "rgba(201,244,108,0.78)";
+        ctx.fillText(shelfRowName(depthRow), marker.x, marker.y);
+      });
+      ctx.restore();
+    }
 
     rack.slots.forEach((slot) => {
       if (state.level !== "all" && Number(state.level) !== slot.level) return;
@@ -758,7 +850,7 @@
     ctx.save();
     pathPolygon(points, fresh ? "rgba(201,244,108,0.08)" : "rgba(104,199,255,0.055)", fresh ? COLORS.lime : reservedType.accent, 1.2);
     const anchor = points[3];
-    const label = fresh ? `${slot.cargoId} ✓` : `目标 C${slot.bay + 1} / L${slot.level}`;
+    const label = fresh ? `${slot.cargoId} ✓` : `目标 C${slot.bay + 1} / ${shelfRowName(slot.depthRow)} / L${slot.level}`;
     ctx.font = `${Math.max(6, 7 * state.zoom)}px ui-monospace, monospace`;
     const width = ctx.measureText(label).width + 8;
     ctx.fillStyle = "rgba(8,13,12,0.92)";
@@ -1117,15 +1209,32 @@
     drawRoutes();
 
     const drawables = [
-      ...racks.map((rack) => ({ depth: rack.x + rack.y + rack.depth + 0.5, draw: () => drawRack(rack) })),
+      ...racks.map((rack) => ({ depth: cameraDepth(rack.x + rack.width / 2, rack.y + rack.depth / 2), draw: () => drawRack(rack) })),
       ...robots
         .filter((robot) => robot.stage === "placing")
-        .map((robot) => ({ depth: robot.x + robot.y + 0.62, draw: () => drawPlacementCargo(robot) })),
-      ...robots.map((robot) => ({ depth: robot.x + robot.y + 0.7, draw: () => drawRobot(robot) })),
+        .map((robot) => ({ depth: cameraDepth(robot.x, robot.y) + 0.02, draw: () => drawPlacementCargo(robot) })),
+      ...robots.map((robot) => ({ depth: cameraDepth(robot.x, robot.y) + 0.04, draw: () => drawRobot(robot) })),
     ];
 
     drawables.sort((a, b) => a.depth - b.depth).forEach((item) => item.draw());
     drawWorldLabels();
+    updateZoneLabels();
+  }
+
+  function updateZoneLabels() {
+    [
+      [".inbound-label", 3.2, 19.9],
+      [".outbound-label", 3.2, 2.35],
+      [".charge-label", 29.3, 19.6],
+    ].forEach(([selector, x, y]) => {
+      const label = $(selector);
+      const point = project(x, y, 0.03);
+      label.style.left = `${point.x}px`;
+      label.style.top = `${point.y}px`;
+      label.style.right = "auto";
+      label.style.bottom = "auto";
+      label.style.transform = "translate(-50%, -50%)";
+    });
   }
 
   function drawWorldLabels() {
@@ -1289,8 +1398,8 @@
     const category = categoryFor(robot);
     const status = $("#selectedStatus");
     const progress = Math.round(stageProgress(robot));
-    const rackLabel = `${robot.rack.zone}区 · 货架 ${pad(robot.rack.id)} · 第 ${robot.bay} 列`;
-    const targetHeight = SHELF_LEVELS[robot.level - 1].centerHeight;
+    const rackLabel = `${robot.rack.zone}区 · 货架 ${pad(robot.rack.id)} · 第 ${robot.bay} 列 · ${shelfRowName(robot.depthRow)}`;
+    const targetHeight = slotGeometry(robot.rack, robot.slot).centerHeight;
 
     $("#robotIdTag").textContent = robotCode(robot.id);
     $("#selectedRobotName").textContent = `${robot.type.name} · 单元 ${pad(robot.id, 3)}`;
@@ -1305,7 +1414,7 @@
     $("#batteryBar").style.background = robot.battery < 18 ? COLORS.red : COLORS.lime;
     $("#selectedTaskId").textContent = `#${taskCode(robot)}`;
     $("#selectedTaskTitle").textContent = `将货物送至 ${rackLabel}`;
-    $("#selectedCargo").textContent = `${cargoCode(robot)} · ${robot.type.key} 伸臂放置`;
+    $("#selectedCargo").textContent = `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置`;
     $("#selectedLevel").textContent = `L${robot.level} · ${targetHeight.toFixed(2)}m`;
     $("#selectedAction").textContent = stageLabel(robot);
     $("#selectedProgressText").textContent = `${progress}%`;
@@ -1373,7 +1482,7 @@
       return `
         <article class="queue-item">
           <i class="queue-priority ${priority}"></i>
-          <div><h4>#${taskCode(robot)} · ${robotCode(robot.id)} · ${robot.type.key}</h4><p>入库台 → ${robot.rack.zone}-${pad(robot.rack.id)} / C${robot.bay} / L${robot.level}</p></div>
+          <div><h4>#${taskCode(robot)} · ${robotCode(robot.id)} · ${robot.type.key}</h4><p>入库台 → ${robot.rack.zone}-${pad(robot.rack.id)} / C${robot.bay} / ${shelfRowName(robot.depthRow)} / L${robot.level}</p></div>
           <time>${eta}m</time>
         </article>`;
     }).join("");
@@ -1434,14 +1543,18 @@
     state.zoom = 1;
     state.panX = 0;
     state.panY = 0;
+    state.cameraYaw = Math.PI / 4;
+    state.cameraPitch = Math.PI / 6;
   }
 
   function changeZoom(amount, centerX = renderWidth / 2, centerY = renderHeight / 2) {
+    const oldMetrics = projectionMetrics();
     const oldZoom = state.zoom;
     state.zoom = clamp(state.zoom * amount, 0.62, 1.9);
     const ratio = state.zoom / oldZoom;
-    state.panX = centerX - (centerX - state.panX) * ratio;
-    state.panY = centerY - (centerY - state.panY) * ratio;
+    const newMetrics = projectionMetrics();
+    state.panX += centerX - (newMetrics.originX + (centerX - oldMetrics.originX) * ratio);
+    state.panY += centerY - (newMetrics.originY + (centerY - oldMetrics.originY) * ratio);
   }
 
   function selectNearestRobot(clientX, clientY) {
@@ -1555,8 +1668,8 @@
 
     $("#exportButton").addEventListener("click", () => {
       const rows = [
-        ["robot_id", "robot_type", "max_level", "stage", "x", "y", "battery", "task", "cargo", "rack", "bay", "level", "slot_occupied"],
-        ...robots.map((robot) => [robotCode(robot.id), robot.type.key, robot.type.maxLevel, robot.stage, robot.x.toFixed(2), robot.y.toFixed(2), robot.battery.toFixed(1), taskCode(robot), cargoCode(robot), `${robot.rack.zone}-${pad(robot.rack.id)}`, robot.bay, robot.level, robot.slot?.occupied ? "yes" : "no"]),
+        ["robot_id", "robot_type", "max_level", "stage", "x", "y", "battery", "task", "cargo", "rack", "bay", "depth_row", "level", "slot_occupied"],
+        ...robots.map((robot) => [robotCode(robot.id), robot.type.key, robot.type.maxLevel, robot.stage, robot.x.toFixed(2), robot.y.toFixed(2), robot.battery.toFixed(1), taskCode(robot), cargoCode(robot), `${robot.rack.zone}-${pad(robot.rack.id)}`, robot.bay, shelfRowName(robot.depthRow), robot.level, robot.slot?.occupied ? "yes" : "no"]),
       ];
       const csv = rows.map((row) => row.join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -1580,11 +1693,21 @@
     }, { passive: false });
 
     canvas.addEventListener("pointerdown", (event) => {
+      if (event.button > 2) return;
       isDragging = true;
       dragMoved = false;
-      pointerStart = { x: event.clientX, y: event.clientY, panX: state.panX, panY: state.panY };
+      const mode = state.view === "iso" && event.button === 0 && !event.shiftKey ? "orbit" : "pan";
+      pointerStart = {
+        x: event.clientX,
+        y: event.clientY,
+        panX: state.panX,
+        panY: state.panY,
+        yaw: state.cameraYaw,
+        pitch: state.cameraPitch,
+        mode,
+      };
       canvas.setPointerCapture(event.pointerId);
-      stage.classList.add("dragging");
+      stage.classList.add(mode === "orbit" ? "orbiting" : "dragging");
     });
 
     canvas.addEventListener("pointermove", (event) => {
@@ -1592,20 +1715,31 @@
       const dx = event.clientX - pointerStart.x;
       const dy = event.clientY - pointerStart.y;
       if (Math.hypot(dx, dy) > 4) dragMoved = true;
-      state.panX = pointerStart.panX + dx;
-      state.panY = pointerStart.panY + dy;
+      if (pointerStart.mode === "orbit") {
+        state.cameraYaw = pointerStart.yaw + dx * 0.009;
+        state.cameraPitch = clamp(pointerStart.pitch - dy * 0.006, 0.16, 1.23);
+      } else {
+        state.panX = pointerStart.panX + dx;
+        state.panY = pointerStart.panY + dy;
+      }
     });
 
     canvas.addEventListener("pointerup", (event) => {
-      if (!dragMoved) selectNearestRobot(event.clientX, event.clientY);
+      if (!dragMoved && event.button === 0 && pointerStart.mode === "orbit") {
+        selectNearestRobot(event.clientX, event.clientY);
+      }
       isDragging = false;
       stage.classList.remove("dragging");
+      stage.classList.remove("orbiting");
     });
 
     canvas.addEventListener("pointercancel", () => {
       isDragging = false;
       stage.classList.remove("dragging");
+      stage.classList.remove("orbiting");
     });
+
+    canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
     window.addEventListener("resize", resizeCanvas);
   }

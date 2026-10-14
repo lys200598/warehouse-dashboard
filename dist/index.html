@@ -9,7 +9,7 @@
       content="100 台轻量人形机器人协同完成取货、搬运和多层货架上架任务的可交互仓储仿真控制台。"
     />
     <title>100台人形机器人仓储调度台</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20261014-3" />
   </head>
   <body>
     <div class="app-shell">
@@ -144,7 +144,7 @@
             <div class="scene-toolbar">
               <div class="scene-title">
                 <span class="live-badge"><i></i>LIVE</span>
-                <div><h2>仓库实时态势</h2><p>32 × 22 单元 · 3 层低位货架 · 100 台设备</p></div>
+                <div><h2>仓库实时态势</h2><p>32 × 22 单元 · 每层平铺 6 列 × 前后 2 排（无上下叠箱）· 100 台设备</p></div>
               </div>
 
               <div class="toolbar-actions">
@@ -168,7 +168,7 @@
 
             <div class="canvas-stage" id="canvasStage">
               <canvas id="warehouseCanvas" aria-label="100 台机器人仓库实时运行画面"></canvas>
-              <div class="canvas-hint"><span>拖拽平移</span><i></i><span>滚轮缩放</span><i></i><span>点击查看机器人</span></div>
+              <div class="canvas-hint"><span>左键旋转</span><i></i><span>Shift / 右键平移</span><i></i><span>滚轮缩放</span><i></i><span>点击查看机器人</span></div>
               <div class="scene-legend">
                 <span><i class="moving-dot"></i>搬运中</span>
                 <span><i class="handling-dot"></i>取放货</span>
@@ -220,10 +220,10 @@
 
             <div class="task-card">
               <div class="task-card-head"><span>当前指令</span><strong id="selectedTaskId">#TK-2094</strong></div>
-              <h3 id="selectedTaskTitle">将货物送至 B区 · 货架 12 · 第2列</h3>
+              <h3 id="selectedTaskTitle">将货物送至 B区 · 货架 12 · 第2列 · 前排</h3>
               <div class="cargo-row">
                 <div class="cargo-cube" aria-hidden="true"><i></i></div>
-                <div><span>搬运货物</span><strong id="selectedCargo">BX-4082 · 标准箱</strong></div>
+                <div><span>搬运货物</span><strong id="selectedCargo">BX-4082 · 小型箱</strong></div>
                 <div class="level-chip" id="selectedLevel">L3 · 1.42m</div>
               </div>
               <div class="task-progress-label"><span id="selectedAction">正在移动至目标货架</span><strong id="selectedProgressText">64%</strong></div>
@@ -264,6 +264,6 @@
       <span id="toastIcon">✓</span><p id="toastText">操作已完成</p>
     </div>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=20261014-3"></script>
   </body>
 </html>
