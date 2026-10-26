@@ -81,6 +81,13 @@
   let domAccumulator = 0;
   let eventAccumulator = 0;
   let toastTimer = 0;
+  let backendConnected = false;
+  let backendAuthoritative = false;
+  let backendSocket = null;
+  let backendReconnectTimer = 0;
+  let backendLatency = null;
+  let backendSnapshotAt = 0;
+  let backendInterpolationDuration = 250;
   let isDragging = false;
   let dragMoved = false;
   let pointerStart = { x: 0, y: 0, panX: 0, panY: 0, yaw: 0, pitch: 0, mode: "orbit" };
@@ -119,13 +126,14 @@
   }
 
   function categoryFor(robot) {
-    if (robot.stage === "warning") return "warning";
+    if (robot.stage === "warning" || robot.blocked) return "warning";
     if (robot.stage === "picking" || robot.stage === "placing") return "handling";
     if (robot.stage === "idle" || robot.stage === "charging") return "idle";
     return "moving";
   }
 
   function stageLabel(robot) {
+    if (robot.blocked && robot.alert) return robot.alert;
     const labels = {
       toPick: "前往入库台",
       picking: "正在取货",
@@ -1441,9 +1449,12 @@
     }, { moving: 0, handling: 0, idle: 0, warning: 0 });
     const active = counts.moving + counts.handling;
     const waiting = Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
-    const utilization = Math.round(active);
+    const robotCount = Math.max(1, robots.length);
+    const utilization = Math.round((active / robotCount) * 100);
+    const movingPercent = (counts.moving / robotCount) * 100;
+    const activePercent = (active / robotCount) * 100;
 
-    $("#onlineCount").textContent = 100 - robots.filter((robot) => robot.alert === "离线").length;
+    $("#onlineCount").textContent = robots.length - robots.filter((robot) => robot.alert === "离线").length;
     $("#activeTaskCount").textContent = active;
     $("#waitingTaskCount").textContent = waiting;
     $("#taskLoadBar").style.width = `${Math.min(100, active)}%`;
@@ -1459,9 +1470,11 @@
     $("#legendIdle").textContent = counts.idle;
     $("#utilizationValue").textContent = `${utilization}%`;
     $("#utilizationDonut").querySelector("span").innerHTML = `${utilization}<small>%</small>`;
-    $("#utilizationDonut").style.background = `conic-gradient(${COLORS.lime} 0 ${counts.moving}%, ${COLORS.blue} ${counts.moving}% ${active}%, #303a37 ${active}% 100%)`;
+    $("#utilizationDonut").style.background = `conic-gradient(${COLORS.lime} 0 ${movingPercent}%, ${COLORS.blue} ${movingPercent}% ${activePercent}%, #303a37 ${activePercent}% 100%)`;
     $("#simClock").textContent = formatClock(state.elapsed);
-    $("#connectionLatency").textContent = `${16 + Math.floor(Math.random() * 6)} ms`;
+    $("#connectionLatency").textContent = backendConnected && backendLatency !== null
+      ? `${backendLatency} ms`
+      : "离线";
     $("#fpsCounter").textContent = `${state.fps} FPS`;
     const shiftProgress = clamp((state.elapsed / (8 * 3600)) * 100, 0, 100);
     $("#timelineProgress").style.width = `${shiftProgress}%`;
@@ -1473,7 +1486,7 @@
     if (!force && queue.dataset.second === String(Math.floor(state.elapsed / 3))) return;
     queue.dataset.second = String(Math.floor(state.elapsed / 3));
     const items = robots
-      .filter((robot) => robot.stage === "toPick" || robot.stage === "idle")
+      .filter((robot) => robot.stage === "toPick" || (!backendAuthoritative && robot.stage === "idle"))
       .sort((a, b) => (a.priority === "high" ? -1 : b.priority === "high" ? 1 : a.id - b.id))
       .slice(0, 4);
     queue.innerHTML = items.map((robot, index) => {
@@ -1489,7 +1502,7 @@
   }
 
   function renderLatestEvent() {
-    const event = taskEvents[0];
+    const event = taskEvents[0] || { time: "--:--:--", robot: "SYSTEM", text: "暂无事件" };
     $("#eventTicker").innerHTML = `<span class="event-time">${event.time}</span><p><strong>${event.robot}</strong> ${event.text}</p>`;
   }
 
@@ -1499,18 +1512,126 @@
     updateTaskQueue(force);
   }
 
+  function applyBackendSnapshot(snapshot) {
+    const receivedAt = performance.now();
+    const previousById = new Map(robots.map((robot) => [robot.id, robot]));
+    if (backendSnapshotAt > 0) {
+      backendInterpolationDuration = clamp(receivedAt - backendSnapshotAt, 80, 500);
+    }
+    backendSnapshotAt = receivedAt;
+    const rackById = new Map();
+    racks = snapshot.racks.map((rack) => {
+      const hydrated = { ...rack, slots: rack.slots.map((slot) => ({ ...slot })) };
+      rackById.set(hydrated.id, hydrated);
+      return hydrated;
+    });
+    robots = snapshot.robots.map((payload) => {
+      const previous = previousById.get(payload.id);
+      const rack = rackById.get(payload.rackId) || racks[0];
+      const slot = rack?.slots.find((item) => item.slotId === payload.slotId) || rack?.slots[0];
+      return {
+        ...payload,
+        x: previous?.x ?? payload.x,
+        y: previous?.y ?? payload.y,
+        renderFromX: previous?.x ?? payload.x,
+        renderFromY: previous?.y ?? payload.y,
+        renderTargetX: payload.x,
+        renderTargetY: payload.y,
+        rack,
+        slot,
+      };
+    });
+    state.running = snapshot.running;
+    state.speed = snapshot.speed;
+    state.elapsed = snapshot.elapsed;
+    state.completed = snapshot.completed;
+    state.flowRate = snapshot.flowRate;
+    if (!robots.some((robot) => robot.id === state.selectedId)) state.selectedId = robots[0]?.id || 1;
+    backendLatency = Math.max(0, Date.now() - snapshot.generatedAtMs);
+    backendConnected = true;
+    backendAuthoritative = true;
+    taskEvents.splice(0, taskEvents.length, ...snapshot.events.map((event) => ({
+      time: event.time,
+      robot: event.robot,
+      text: event.text,
+    })));
+    $("#playIcon").textContent = state.running ? "Ⅱ" : "▶";
+    $("#playButton").setAttribute("aria-label", state.running ? "暂停仿真" : "继续仿真");
+    $$("#speedControl button").forEach((item) => item.classList.toggle("active", Number(item.dataset.speed) === state.speed));
+    $("#flowRange").value = String(state.flowRate);
+    const runtimeMode = $("#runtimeMode");
+    if (runtimeMode) runtimeMode.textContent = `SIMULATION / ${snapshot.backend.toUpperCase()} · ${snapshot.runtime.workerProcessCount} PROCESSES`;
+    updateAllDom(true);
+    renderLatestEvent();
+  }
+
+  async function backendPost(path, payload = null) {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: payload ? { "Content-Type": "application/json" } : undefined,
+      body: payload ? JSON.stringify(payload) : undefined,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async function sendBackendControl(action, value = null) {
+    try {
+      const snapshot = await backendPost("/api/control", { action, value });
+      applyBackendSnapshot(snapshot);
+      return snapshot;
+    } catch (error) {
+      showToast(`后端操作失败：${error.message}`, "!");
+      return null;
+    }
+  }
+
+  function connectBackend() {
+    if (window.location.protocol === "file:") return;
+    clearTimeout(backendReconnectTimer);
+    if (backendSocket && backendSocket.readyState < WebSocket.CLOSING) backendSocket.close();
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    backendSocket = new WebSocket(`${protocol}//${window.location.host}/ws/simulation`);
+    backendSocket.addEventListener("message", (event) => {
+      try {
+        applyBackendSnapshot(JSON.parse(event.data));
+      } catch (error) {
+        console.error("Invalid backend snapshot", error);
+      }
+    });
+    backendSocket.addEventListener("close", () => {
+      backendConnected = false;
+      backendLatency = null;
+      const runtimeMode = $("#runtimeMode");
+      if (runtimeMode) runtimeMode.textContent = "SIMULATION / OFFLINE DEMO";
+      backendReconnectTimer = window.setTimeout(connectBackend, 2000);
+    });
+    backendSocket.addEventListener("error", () => backendSocket.close());
+  }
+
   function animate(timestamp) {
     const rawDelta = Math.min(0.06, Math.max(0, (timestamp - lastTime) / 1000));
     lastTime = timestamp;
-    const delta = state.running ? rawDelta * state.speed : 0;
+    const delta = state.running && !backendAuthoritative ? rawDelta * state.speed : 0;
     if (delta > 0) {
       state.elapsed += delta;
       robots.forEach((robot) => updateRobot(robot, delta));
       domAccumulator += rawDelta;
       eventAccumulator += delta;
     }
+    if (backendConnected) domAccumulator += rawDelta;
+    if (backendAuthoritative) {
+      const interpolation = clamp((timestamp - backendSnapshotAt) / backendInterpolationDuration, 0, 1);
+      robots.forEach((robot) => {
+        robot.x = lerp(robot.renderFromX, robot.renderTargetX, interpolation);
+        robot.y = lerp(robot.renderFromY, robot.renderTargetY, interpolation);
+      });
+    }
 
-    if (domAccumulator > 0.25 || delta === 0) {
+    if (domAccumulator > 0.25 || (!backendConnected && delta === 0)) {
       updateAllDom();
       domAccumulator = 0;
     }
@@ -1579,6 +1700,14 @@
 
   function bindInteractions() {
     $("#playButton").addEventListener("click", () => {
+      if (backendConnected) {
+        const action = state.running ? "pause" : "resume";
+        sendBackendControl(action).then((snapshot) => {
+          if (snapshot) showToast(snapshot.running ? "仿真已继续" : "仿真已暂停", snapshot.running ? "▶" : "Ⅱ");
+        });
+        return;
+      }
+      if (backendAuthoritative) return showToast("后端连接中断，正在重连", "!");
       state.running = !state.running;
       $("#playIcon").textContent = state.running ? "Ⅱ" : "▶";
       $("#playButton").setAttribute("aria-label", state.running ? "暂停仿真" : "继续仿真");
@@ -1587,6 +1716,14 @@
 
     $$("#speedControl button").forEach((button) => {
       button.addEventListener("click", () => {
+        if (backendConnected) {
+          const speed = Number(button.dataset.speed);
+          sendBackendControl("set_speed", speed).then((snapshot) => {
+            if (snapshot) showToast(`仿真速度已切换为 ${snapshot.speed}×`);
+          });
+          return;
+        }
+        if (backendAuthoritative) return showToast("后端连接中断，正在重连", "!");
         state.speed = Number(button.dataset.speed);
         $$("#speedControl button").forEach((item) => item.classList.toggle("active", item === button));
         showToast(`仿真速度已切换为 ${state.speed}×`);
@@ -1630,13 +1767,16 @@
       const label = state.flowRate < 40 ? "平缓" : state.flowRate < 70 ? "中等" : "峰值";
       $("#flowValue").textContent = `${label} · ${state.flowRate} 单/时`;
     });
+    $("#flowRange").addEventListener("change", () => {
+      if (backendConnected) sendBackendControl("set_flow_rate", state.flowRate);
+    });
 
     $("#robotSearch").addEventListener("keydown", (event) => {
       if (event.key !== "Enter") return;
       const match = event.currentTarget.value.match(/\d+/);
-      const id = match ? clamp(Number(match[0]), 1, 100) : NaN;
+      const id = match ? clamp(Number(match[0]), 1, robots.length) : NaN;
       if (!Number.isFinite(id)) {
-        showToast("请输入 1—100 的机器人编号", "!");
+        showToast(`请输入 1—${robots.length} 的机器人编号`, "!");
         return;
       }
       state.selectedId = id;
@@ -1647,6 +1787,18 @@
     });
 
     $("#priorityTaskButton").addEventListener("click", () => {
+      if (backendConnected) {
+        backendPost("/api/tasks/priority").then((result) => {
+          if (result.status === "assigned") {
+            state.selectedId = result.robot_id;
+            showToast(`优先任务已分配给 ${robotCode(result.robot_id)}`);
+          } else {
+            showToast("优先任务已进入等待队列");
+          }
+        }).catch((error) => showToast(`优先任务失败：${error.message}`, "!"));
+        return;
+      }
+      if (backendAuthoritative) return showToast("后端连接中断，正在重连", "!");
       let robot = robots.find((item) => item.stage === "idle");
       if (!robot) robot = robots.find((item) => item.stage === "returning") || robots[0];
       prepareTask(robot);
@@ -1659,6 +1811,16 @@
     });
 
     $("#resetButton").addEventListener("click", () => {
+      if (backendConnected) {
+        sendBackendControl("reset").then((snapshot) => {
+          if (snapshot) {
+            resetView();
+            showToast("仿真场景已重置");
+          }
+        });
+        return;
+      }
+      if (backendAuthoritative) return showToast("后端连接中断，正在重连", "!");
       initializeSimulation();
       resetView();
       state.running = true;
@@ -1749,6 +1911,7 @@
     initializeSimulation();
     bindInteractions();
     renderLatestEvent();
+    connectBackend();
     requestAnimationFrame(animate);
   }
 
