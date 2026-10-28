@@ -1,3 +1,4 @@
 fastapi>=0.110,<1
 uvicorn[standard]>=0.29,<1
 ray[default]>=2.20,<3
+neo4j>=5.26,<6

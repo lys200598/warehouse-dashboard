@@ -15,6 +15,7 @@ from .domain import (
     SHELF_DEPTH_ROWS,
     RobotAgent,
 )
+from .dataset import load_initial_inventory, load_warehouse_tasks
 from .runtime import RobotRuntime
 from .traffic import TrafficManager
 
@@ -27,6 +28,7 @@ class SimulationConfig:
     step_seconds: float = 0.25
     flow_rate: float = 48.0
     traffic_cell_size: float = 0.12
+    dataset_path: str | None = None
 
     def validate(self) -> None:
         if not 1 <= self.robot_count <= 500:
@@ -71,8 +73,32 @@ class SimulationCoordinator:
         ]
         self.runtime.replace(robots)
         self.robot_snapshots = self.runtime.snapshots()
-        self._seed_initial_backlog()
-        self._record_system_event("仿真已启动，初始任务队列已创建")
+        self.dataset_records = (
+            load_warehouse_tasks(self.config.dataset_path) if self.config.dataset_path else []
+        )
+        self.dataset_initial_inventory = load_initial_inventory(self.config.dataset_path) if self.config.dataset_path else []
+        if self.dataset_initial_inventory:
+            self._apply_dataset_initial_inventory(self.dataset_initial_inventory)
+        self.dataset_cursor = 0
+        self.pending_dataset_tasks: list[dict[str, Any]] = []
+        if self.dataset_records:
+            self._record_system_event(f"已加载 CSV 任务集，共 {len(self.dataset_records)} 条")
+        else:
+            self._seed_initial_backlog()
+            self._record_system_event("仿真已启动，初始任务队列已创建")
+
+    def _apply_dataset_initial_inventory(self, inventory: list[dict[str, str]]) -> None:
+        slots = {slot["slot_id"]: slot for rack in self.racks for slot in rack["slots"]}
+        unknown = [row["location_id"] for row in inventory if row["location_id"] not in slots]
+        if unknown:
+            raise ValueError(f"initial inventory refers to unknown simulation slot: {unknown[0]}")
+        for slot in slots.values():
+            slot.update({"occupied": False, "reserved_by": None, "cargo_id": None, "placed_at": None})
+        for row in inventory:
+            slot = slots[row["location_id"]]
+            if slot["occupied"]:
+                raise ValueError(f"duplicate initial inventory slot: {row['location_id']}")
+            slot.update({"occupied": True, "cargo_id": row["goods_id"]})
 
     def _create_racks(self) -> list[dict[str, Any]]:
         rng = random.Random(self.config.seed)
@@ -136,6 +162,7 @@ class SimulationCoordinator:
             float(self.config.robot_count),
             self.task_credit + delta_seconds * self.config.flow_rate / 3600.0,
         )
+        self._release_dataset_tasks()
         self._assign_waiting_robots()
 
         proposals = self.runtime.propose_all(delta_seconds, self.elapsed, self.tick)
@@ -172,6 +199,10 @@ class SimulationCoordinator:
         )
         ready = ready[:capacity]
 
+        if self.dataset_records:
+            self._assign_dataset_tasks(ready)
+            return
+
         while ready and self.pending_priority > 0:
             payload = ready.pop(0)
             if self._assign_task(int(payload["state"]["robot_id"]), priority="high"):
@@ -181,6 +212,94 @@ class SimulationCoordinator:
             payload = ready.pop(0)
             if self._assign_task(int(payload["state"]["robot_id"]), priority="normal"):
                 self.task_credit -= 1.0
+
+    def _release_dataset_tasks(self) -> None:
+        while (
+            self.dataset_cursor < len(self.dataset_records)
+            and self.dataset_records[self.dataset_cursor]["release_offset"] <= self.elapsed
+        ):
+            self.pending_dataset_tasks.append(self.dataset_records[self.dataset_cursor])
+            self.dataset_cursor += 1
+
+    def _assign_dataset_tasks(self, ready: list[dict[str, Any]]) -> None:
+        while ready and self.pending_dataset_tasks:
+            selection: tuple[int, int] | None = None
+            for task_index, record in enumerate(self.pending_dataset_tasks):
+                compatible = [
+                    index for index, payload in enumerate(ready)
+                    if self._robot_can_handle_dataset_task(payload, record)
+                ]
+                if compatible:
+                    preferred = next(
+                        (
+                            index for index in compatible
+                            if f"HR-{int(ready[index]['state']['robot_id']):03d}" == record["robot_id"]
+                        ),
+                        compatible[0],
+                    )
+                    selection = (task_index, preferred)
+                    break
+            if selection is None:
+                return
+            task_index, robot_index = selection
+            record = self.pending_dataset_tasks.pop(task_index)
+            payload = ready.pop(robot_index)
+            if not self._assign_dataset_task(int(payload["state"]["robot_id"]), record):
+                self.pending_dataset_tasks.insert(task_index, record)
+                return
+
+    def _robot_can_handle_dataset_task(self, payload: dict[str, Any], record: dict[str, Any]) -> bool:
+        robot_type = ROBOT_TYPES[payload["state"]["robot_type_key"]]
+        is_outbound = record.get("task_type") == "OUTBOUND"
+        return int(record["level"]) <= int(robot_type["maxLevel"]) and any(
+            slot["occupied"] == is_outbound and slot["reserved_by"] is None and slot["level"] <= robot_type["maxLevel"]
+            for rack in self.racks for slot in rack["slots"]
+        )
+
+    def _assign_dataset_task(self, robot_id: int, record: dict[str, Any]) -> bool:
+        current = self._robot_snapshot(robot_id)
+        if current is None:
+            return False
+        robot_type = ROBOT_TYPES[current["state"]["robot_type_key"]]
+        is_outbound = record.get("task_type") == "OUTBOUND"
+        available = [
+            (rack, slot)
+            for rack in self.racks for slot in rack["slots"]
+            if slot["occupied"] == is_outbound and slot["reserved_by"] is None and slot["level"] <= robot_type["maxLevel"]
+        ]
+        if not available:
+            return False
+        requested = next(
+            (
+                (rack, slot) for rack, slot in available
+                if rack["id"] == record["rack_id"] and slot["slot_id"] == record["slot_id"]
+            ),
+            None,
+        )
+        rack, slot = requested or available[(robot_id + self.task_sequence) % len(available)]
+        self.task_sequence += 1
+        slot["reserved_by"] = robot_id
+        assignment = self._assignment_payload(
+            task_id=record["task_id"], cargo_id=record["cargo_id"], priority=record["priority"], rack=rack, slot=slot,
+        )
+        result = self.runtime.assign(robot_id, assignment)
+        if not result["accepted"]:
+            slot["reserved_by"] = None
+            return False
+        self.tasks[record["task_id"]] = {
+            **assignment, "robot_id": robot_id, "status": "assigned", "created_at": self.elapsed,
+            "task_type": record.get("task_type", "putaway"),
+            "completed_at": None, "source_task": record["source"], "requested_robot_id": record["robot_id"],
+            "requested_rack_id": record["rack_id"], "requested_slot_id": record["slot_id"],
+        }
+        self._replace_robot_snapshot(result["robot"])
+        self._record_event({
+            "id": f"{self.tick}:{robot_id}:dataset_task_assigned:{record['task_id']}", "tick": self.tick,
+            "type": "dataset_task_assigned", "robot_id": robot_id, "task_id": record["task_id"],
+            "cargo_id": record["cargo_id"], "rack_id": rack["id"], "slot_id": slot["slot_id"],
+            "text": "已从 CSV 任务集分配上架任务",
+        })
+        return True
 
     def _assign_task(self, robot_id: int, priority: str) -> bool:
         current = self._robot_snapshot(robot_id)
@@ -284,9 +403,9 @@ class SimulationCoordinator:
             task["completed_at"] = self.elapsed
             slot = self._slot_by_id(task["slot_id"])
             if slot is not None:
-                slot["occupied"] = True
+                slot["occupied"] = task.get("task_type") != "OUTBOUND"
                 slot["reserved_by"] = None
-                slot["cargo_id"] = task["cargo_id"]
+                slot["cargo_id"] = task["cargo_id"] if slot["occupied"] else None
                 slot["color_index"] = (int(task["robot_id"]) + self.task_sequence) % 4
                 slot["placed_at"] = self.elapsed
             self.completed += 1
@@ -352,6 +471,10 @@ class SimulationCoordinator:
             "flowRate": self.config.flow_rate,
             "maxActiveRobots": min(self.config.max_active_robots, self.config.robot_count),
             "trafficSafetyRadius": self.config.traffic_cell_size,
+            "dataset": {
+                "enabled": bool(self.dataset_records), "total": len(self.dataset_records),
+                "released": self.dataset_cursor, "queued": len(self.pending_dataset_tasks),
+            },
             "generatedAtMs": generated_at_ms,
             "robots": robots,
             "racks": [self._public_rack(rack) for rack in self.racks],
@@ -381,6 +504,9 @@ class SimulationCoordinator:
             "tasks": self.tasks,
             "events": self.events,
             "processed_event_ids": sorted(self.processed_event_ids),
+            "dataset_records": self.dataset_records,
+            "dataset_cursor": self.dataset_cursor,
+            "pending_dataset_tasks": self.pending_dataset_tasks,
             "robots": self.runtime.snapshots(),
         }
 
@@ -409,6 +535,11 @@ class SimulationCoordinator:
         self.tasks = payload["tasks"]
         self.events = payload.get("events", [])
         self.processed_event_ids = set(payload.get("processed_event_ids", []))
+        self.dataset_records = payload.get("dataset_records") or (
+            load_warehouse_tasks(self.config.dataset_path) if self.config.dataset_path else []
+        )
+        self.dataset_cursor = int(payload.get("dataset_cursor", 0))
+        self.pending_dataset_tasks = payload.get("pending_dataset_tasks", [])
         self.runtime.replace(payload["robots"])
         self.robot_snapshots = self.runtime.snapshots()
 

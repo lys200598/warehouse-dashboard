@@ -9,7 +9,7 @@
       content="100 台轻量人形机器人协同完成取货、搬运和多层货架上架任务的可交互仓储仿真控制台。"
     />
     <title>100台人形机器人仓储调度台</title>
-    <link rel="stylesheet" href="./styles.css?v=20261014-3" />
+    <link rel="stylesheet" href="./styles.css?v=20261027-kg-5" />
   </head>
   <body>
     <div class="app-shell">
@@ -38,6 +38,7 @@
           <button class="button ghost export-button" id="exportButton" type="button" aria-label="导出机器人状态">
             <span class="download-icon" aria-hidden="true">↓</span> 导出状态
           </button>
+          <a class="button ghost graph-link" href="./kg.html">知识图谱工作台</a>
         </div>
       </header>
 
@@ -62,7 +63,7 @@
           <article class="metric-card accent-orange">
             <div class="metric-head"><span>今日完成</span><span class="metric-index">03</span></div>
             <div class="metric-value"><strong id="completedCount">1,284</strong><small>箱</small></div>
-            <div class="metric-foot positive">↗ <span id="throughputDelta">12.4%</span> 较上一时段</div>
+            <div class="metric-foot positive"><span id="throughputDelta">来自测试数据</span></div>
             <svg class="sparkline orange-line" viewBox="0 0 160 34" preserveAspectRatio="none" aria-hidden="true">
               <path d="M0 28 L18 23 L34 25 L49 17 L66 20 L82 12 L99 14 L115 5 L132 10 L146 4 L160 6" />
             </svg>
@@ -71,7 +72,7 @@
           <article class="metric-card accent-red">
             <div class="metric-head"><span>需关注</span><span class="metric-index">04</span></div>
             <div class="metric-value"><strong id="warningCount">3</strong><small>台</small></div>
-            <div class="metric-foot warning-text">低电量 2 · 路径阻塞 1</div>
+            <div class="metric-foot warning-text" id="warningDetail">等待后端状态</div>
             <div class="warning-dots"><i></i><i></i><i></i><i class="muted"></i><i class="muted"></i></div>
           </article>
         </section>
@@ -264,6 +265,6 @@
       <span id="toastIcon">✓</span><p id="toastText">操作已完成</p>
     </div>
 
-    <script src="./app.js?v=20261014-3"></script>
+    <script src="./app.js?v=20261027-kg-5"></script>
   </body>
 </html>

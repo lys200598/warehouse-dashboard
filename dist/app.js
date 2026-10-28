@@ -1448,7 +1448,7 @@
       return result;
     }, { moving: 0, handling: 0, idle: 0, warning: 0 });
     const active = counts.moving + counts.handling;
-    const waiting = Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
+    const waiting = backendAuthoritative ? 0 : Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
     const robotCount = Math.max(1, robots.length);
     const utilization = Math.round((active / robotCount) * 100);
     const movingPercent = (counts.moving / robotCount) * 100;
@@ -1460,6 +1460,8 @@
     $("#taskLoadBar").style.width = `${Math.min(100, active)}%`;
     $("#completedCount").textContent = state.completed.toLocaleString("zh-CN");
     $("#warningCount").textContent = counts.warning;
+    const lowBattery = robots.filter((robot) => robot.battery < 28).length;
+    $("#warningDetail").textContent = `低电量 ${lowBattery} · 路径阻塞 ${counts.warning}`;
     $("#filterAll").textContent = robots.length;
     $("#filterMoving").textContent = counts.moving;
     $("#filterHandling").textContent = counts.handling;
