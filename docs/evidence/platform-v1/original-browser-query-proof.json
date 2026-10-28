@@ -1,0 +1,63 @@
+{
+  "displayed_robot_count": 100,
+  "request": {
+    "limit": 5,
+    "query_id": "self",
+    "robot_id": 37,
+    "run_id": "wh-live-20261028T092951Z-5f9367ed",
+    "seq": 3919
+  },
+  "response": {
+    "catalog_version": "warehouse-query-catalog-v1",
+    "query_id": "self",
+    "read_only": true,
+    "result": {
+      "context": {
+        "batch_checksum": "94d9f5add5257942d4aeb36d3a1ff586769a241923fc2e2df3746f7dd1f635f2",
+        "graph_committed_seq": 3919,
+        "robots": [
+          {
+            "robot": {
+              "active_seconds": 432,
+              "battery": 55.81420006638221,
+              "cargo_id": null,
+              "carrying": false,
+              "charge_seconds": 0,
+              "completed": 3,
+              "distance": 286.058986148211,
+              "dock_id": null,
+              "home_id": "P037",
+              "last_completed": 12681,
+              "location_id": "P037",
+              "missions": 3,
+              "queue_seconds": 0,
+              "robot_id": 37,
+              "robot_type_key": "X3",
+              "stage": "idle",
+              "task_id": null,
+              "x": 65.25,
+              "y": 2.4
+            },
+            "robot_id": 37,
+            "robot_sha256": "0fb3b454482857abb0db1841e24e9b7058f6af4170c8bf92c6b28d98bc057990",
+            "task": null
+          }
+        ],
+        "run_id": "wh-live-20261028T092951Z-5f9367ed",
+        "seq": 3919
+      },
+      "readiness": {
+        "future_point_used": false,
+        "known_committed_lag_steps": 0,
+        "note": "historical read; live coordinator must recheck current ownership/reservations",
+        "ready_for_live_action": false,
+        "requested_point_present": true
+      }
+    },
+    "run_id": "wh-live-20261028T092951Z-5f9367ed",
+    "seq": 3919,
+    "used_by_live_control": false
+  },
+  "scene": "90 × 76m · 36架 / 1728货位 · 100泊位",
+  "url": "http://127.0.0.1:14186/index.html"
+}

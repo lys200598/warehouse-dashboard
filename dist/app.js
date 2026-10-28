@@ -1,3 +1,6 @@
+import {adaptPlatformFrame,platformControl} from './original-platform.mjs';
+import {acceptsFrame,formatClock as platformClock,exportRows} from './live-model.mjs';
+import {createKnowledgePanel} from './original-knowledge.mjs';
 (() => {
   "use strict";
 
@@ -6,7 +9,8 @@
 
   const canvas = $("#warehouseCanvas");
   const stage = $("#canvasStage");
-  const ctx = canvas.getContext("2d");
+  let ctx = canvas.getContext("2d");
+  const rackSprites=new Map();
   const portraitCanvas = $("#robotPortrait");
   const portraitCtx = portraitCanvas.getContext("2d");
   const WORLD = { width: 32, height: 22 };
@@ -31,9 +35,9 @@
     { level: 2, baseZ: 0.61, centerHeight: 0.82 },
     { level: 3, baseZ: 1.15, centerHeight: 1.36 },
   ];
-  const SHELF_GAP = 0.54;
-  const RACK_HEIGHT = 1.78;
-  const SHELF_COLUMNS = 6;
+  let SHELF_GAP = 0.54;
+  let RACK_HEIGHT = 1.78;
+  let SHELF_COLUMNS = 6;
   const SHELF_DEPTH_ROWS = 2;
   const PACKAGE_WIDTH = 0.28;
   const PACKAGE_DEPTH = 0.24;
@@ -52,7 +56,7 @@
   const ACTIVE_BOX_PALETTE = { top: "#e8c57c", left: "#9d7042", right: "#bd8952" };
 
   const state = {
-    running: true,
+    running: false,
     speed: 1,
     view: "iso",
     zoom: 1,
@@ -65,8 +69,8 @@
     routes: true,
     heat: false,
     selectedId: 37,
-    elapsed: 14 * 60 + 20,
-    completed: 1284,
+    elapsed: 0,
+    completed: 0,
     flowRate: 48,
     fps: 60,
   };
@@ -84,7 +88,10 @@
   let eventAccumulator = 0;
   let toastTimer = 0;
   let backendConnected = false;
-  let backendAuthoritative = false;
+  let backendAuthoritative = window.location.protocol !== "file:";
+  let platformScene=null, platformFrame=null, pendingPlatform=null, platformSceneLoading=null, knowledgePanel=null;
+  const platformTrails=new Map(), retiredInstances=new Set();
+  let controlBusy=false;
   let backendSocket = null;
   let backendReconnectTimer = 0;
   let backendLatency = null;
@@ -96,12 +103,7 @@
   let dragMoved = false;
   let pointerStart = { x: 0, y: 0, panX: 0, panY: 0, yaw: 0, pitch: 0, mode: "orbit" };
 
-  const taskEvents = [
-    { time: "08:14:32", robot: "HR-063", text: "已完成 A-08 / L2 上架" },
-    { time: "08:14:18", robot: "HR-024", text: "抵达入库台，开始识别货物" },
-    { time: "08:13:56", robot: "HR-081", text: "路径已重规划，绕行通道 06" },
-    { time: "08:13:41", robot: "HR-012", text: "已完成 C-15 / L3 上架" },
-  ];
+  const taskEvents = [];
 
   function mulberry32(seed) {
     return function random() {
@@ -131,6 +133,7 @@
   }
 
   function categoryFor(robot) {
+    if(robot.platform)return robot.category;
     if (robot.stage === "warning" || robot.blocked || (robot.battery < 28 && robot.stage !== "charging")) return "warning";
     if (robot.stage === "picking" || robot.stage === "placing") return "handling";
     if (robot.stage === "idle" || robot.stage === "charging" || robot.stage === "queued") return "idle";
@@ -138,6 +141,7 @@
   }
 
   function stageLabel(robot) {
+    if(robot.platform)return robot.label;
     if (robot.blocked && robot.alert) return robot.alert;
     const labels = {
       toQueue: "前往入库等候位",
@@ -211,6 +215,13 @@
 
   function slotGeometry(rack, slot) {
     const level = SHELF_LEVELS[slot.level - 1];
+    if(rack.platform){
+      const spec=platformScene.spec;
+      return {x:rack.x+(slot.bay+.5)*spec.slotPitch-PACKAGE_WIDTH/2,
+        y:slot.depthRow===0?rack.y+.08:rack.y+rack.depth-.08-PACKAGE_DEPTH,
+        width:PACKAGE_WIDTH,depth:PACKAGE_DEPTH,height:PACKAGE_HEIGHT,
+        baseZ:(slot.level-1)*spec.rackHeight/spec.levels+.07,centerHeight:(slot.level-1)*spec.rackHeight/spec.levels+.07+PACKAGE_HEIGHT/2};
+    }
     const cellWidth = (rack.width - 0.2) / SHELF_COLUMNS;
     const depthRow = slot.depthRow || 0;
     const rowTravel = rack.depth - 0.2 - PACKAGE_DEPTH;
@@ -521,6 +532,7 @@
   }
 
   function formatClock(elapsedSeconds) {
+    if(platformFrame||(!backendScene&&backendAuthoritative))return platformClock(elapsedSeconds);
     const base = 8 * 3600 + Math.floor(elapsedSeconds);
     const hours = Math.floor(base / 3600) % 24;
     const minutes = Math.floor((base % 3600) / 60);
@@ -641,6 +653,13 @@
     }
     ctx.restore();
 
+    if(platformScene){
+      for(const z of platformScene.zones){drawFloorZone(z.x,z.y,z.w,z.d,z.id==='inbound'?"rgba(201,244,108,.075)":"rgba(104,199,255,.07)","#456c7b");}
+      const docks=new Map(robots.filter(r=>r.dock_id).map(r=>[r.dock_id,r]));
+      for(const d of platformScene.docks){drawFloorZone(d.x,d.y,d.w,d.d,docks.has(d.id)?"rgba(104,199,255,.22)":"rgba(104,199,255,.055)","#456c7b");}
+      for(const point of platformScene.stations||[])drawFloorZone(point.x-.2,point.y-.2,.4,.4,"rgba(201,244,108,.25)","#91a86b");
+      return;
+    }
     const intake = backendScene?.inbound || {x:0.6,y:18.55,width:5.2,depth:2.7};
     drawFloorZone(intake.x, intake.y, intake.width, intake.depth, "rgba(201,244,108,0.075)", "#617449");
     for (const point of backendScene?.stations || []) {
@@ -665,7 +684,9 @@
 
   function drawHeatmap() {
     if (!state.heat) return;
-    const hotspots = [
+    const density=new Map();
+    if(platformFrame)for(const r of platformFrame.robots){const key=`${Math.floor(r.x/4)},${Math.floor(r.y/4)}`;const cell=density.get(key)||{x:r.x,y:r.y,count:0};cell.count++;density.set(key,cell);}
+    const hotspots = platformFrame ? [...density.values()].map(c=>({x:c.x,y:c.y,size:Math.min(42,12+c.count*5)*projectionMetrics().scale/6,color:`rgba(240,166,90,${Math.min(.35,.07+c.count*.04)})`})) : [
       { x: 4.8, y: 19.4, size: 65, color: "rgba(255,107,100,0.22)" },
       { x: 6.0, y: 11.8, size: 53, color: "rgba(240,166,90,0.18)" },
       { x: 18.3, y: 11.5, size: 58, color: "rgba(240,166,90,0.17)" },
@@ -711,6 +732,24 @@
       pathPolygon(face.points, face.fill, stroke, 0.55);
     });
     pathPolygon([t1, t2, t3, t4], palette.top, stroke, 0.65);
+  }
+
+  function drawRackCached(rack){
+    if(!rack.platform)return drawRack(rack);
+    const key=[state.view,state.zoom,state.panX,state.panY,state.cameraYaw,state.cameraPitch,state.level,
+      renderWidth,renderHeight,state.selectedId,...rack.slots.map(s=>s.occupied?1:0)].join('|');
+    let sprite=rackSprites.get(rack.id);
+    if(sprite?.key!==key){
+      const pts=[0,rack.width].flatMap(dx=>[0,rack.depth].flatMap(dy=>[0,RACK_HEIGHT+.4].map(z=>project(rack.x+dx,rack.y+dy,z))));
+      const x=Math.floor(Math.min(...pts.map(p=>p.x)))-24,y=Math.floor(Math.min(...pts.map(p=>p.y)))-24;
+      const width=Math.ceil(Math.max(...pts.map(p=>p.x)))-x+24,height=Math.ceil(Math.max(...pts.map(p=>p.y)))-y+24;
+      if(width>4096||height>4096)return drawRack(rack);
+      const image=document.createElement('canvas');image.width=width;image.height=height;
+      const main=ctx;ctx=image.getContext('2d');ctx.translate(-x,-y);
+      try{drawRack(rack);}finally{ctx=main;}
+      sprite={key,image,x,y};rackSprites.set(rack.id,sprite);
+    }
+    ctx.drawImage(sprite.image,sprite.x,sprite.y);
   }
 
   function drawRack(rack) {
@@ -1053,6 +1092,14 @@
   function drawRoutes() {
     if (!state.routes) return;
     const selected = robots.find((robot) => robot.id === state.selectedId);
+    if(platformFrame){
+      for(const r of robots.filter(r=>r.id===state.selectedId)){
+        if(r.observedTrail.length<2)continue;
+        const pts=r.observedTrail.map(p=>project(p.x,p.y,.03));ctx.save();ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+        for(const p of pts.slice(1))ctx.lineTo(p.x,p.y);ctx.strokeStyle=COLORS.lime;ctx.lineWidth=1.3;ctx.stroke();ctx.restore();
+      }
+      return;
+    }
     const candidates = robots.filter((robot) => ["toPick", "toRack", "returning"].includes(robot.stage));
     const routeRobots = [...candidates.filter((robot) => robot.id % 13 === 0), selected].filter(Boolean);
     const unique = [...new Map(routeRobots.map((robot) => [robot.id, robot])).values()];
@@ -1095,11 +1142,11 @@
     const filterMatch = state.filter === "all" || state.filter === category;
     const selected = robot.id === state.selectedId;
     const color = category === "moving" ? COLORS.lime : category === "handling" ? COLORS.blue : category === "warning" ? COLORS.red : COLORS.idle;
-    const scale = state.view === "top" ? clamp(projectionMetrics().scale / 17, 0.58, 1.1) : clamp(state.zoom, 0.63, 1.25);
+    const scale = robot.platform ? clamp(projectionMetrics().scale/17,.2,2) : state.view === "top" ? clamp(projectionMetrics().scale / 17, 0.58, 1.1) : clamp(state.zoom, 0.63, 1.25);
     const walk = ["toPick", "toRack", "returning"].includes(robot.stage) ? Math.sin(robot.phase) : 0;
     const actionProgress = robot.actionDuration ? clamp(robot.actionTimer / robot.actionDuration, 0, 1) : 0;
     const lift = robot.stage === "picking" ? Math.sin(actionProgress * Math.PI) * 0.65 : 0;
-    const showHeldBox = (robot.carrying && robot.stage !== "placing") || robot.stage === "picking";
+    const showHeldBox = robot.platform ? robot.carrying : (robot.carrying && robot.stage !== "placing") || robot.stage === "picking";
 
     ctx.save();
     ctx.globalAlpha = filterMatch ? 1 : 0.09;
@@ -1233,7 +1280,7 @@
     drawRoutes();
 
     const drawables = [
-      ...racks.map((rack) => ({ depth: cameraDepth(rack.x + rack.width / 2, rack.y + rack.depth / 2), draw: () => drawRack(rack) })),
+      ...racks.map((rack) => ({ depth: cameraDepth(rack.x + rack.width / 2, rack.y + rack.depth / 2), draw: () => drawRackCached(rack) })),
       ...robots
         .filter((robot) => robot.stage === "placing")
         .map((robot) => ({ depth: cameraDepth(robot.x, robot.y) + 0.02, draw: () => drawPlacementCargo(robot) })),
@@ -1246,6 +1293,14 @@
   }
 
   function updateZoneLabels() {
+    if(platformScene){
+      for(const [selector,id,title] of [[".inbound-label","inbound","INBOUND / 入库 8点"],[".outbound-label","outbound","OUTBOUND / 出库 8点"]]){
+        const z=platformScene.zones.find(z=>z.id===id),el=$(selector),pt=project(z.x+z.w/2,z.y+z.d/2,.03);
+        el.textContent=title;el.style.left=`${pt.x}px`;el.style.top=`${pt.y}px`;el.style.transform="translate(-50%,-50%)";
+      }
+      const el=$(".charge-label"),pt=project(WORLD.width/2,3,.03);el.style.display="";el.textContent=`CHARGE / 南北 ${platformScene.docks.length} 泊位`;
+      el.style.left=`${pt.x}px`;el.style.top=`${pt.y}px`;el.style.transform="translate(-50%,-50%)";return;
+    }
     const inboundLabel = $(".inbound-label");
     if (inboundLabel) inboundLabel.textContent = backendScene?.inboundLayout === "edge" ? "INBOUND / 分布式取货工位" : "INBOUND / 集中入库区";
     $(".outbound-label").textContent = backendAuthoritative ? "DISPATCH / 调度停靠区" : "OUTBOUND / 出库";
@@ -1298,7 +1353,7 @@
       ? (actionProgress < 0.2 ? actionProgress / 0.2 : actionProgress < 0.92 ? 1 : (1 - actionProgress) / 0.08)
       : 0;
     const lift = robot.stage === "picking" ? Math.sin(actionProgress * Math.PI) * 14 : 0;
-    const portraitHasBox = (robot.carrying && robot.stage !== "placing") || robot.stage === "picking";
+    const portraitHasBox = robot.platform ? robot.carrying : (robot.carrying && robot.stage !== "placing") || robot.stage === "picking";
     portraitCtx.lineCap = "round";
     portraitCtx.strokeStyle = "#8c9994";
     portraitCtx.lineWidth = 5;
@@ -1410,6 +1465,7 @@
   }
 
   function stageProgress(robot) {
+    if(robot.platform)return robot.stage==="charging"?robot.battery:null;
     if (["picking", "placing"].includes(robot.stage)) {
       return clamp((robot.actionTimer / robot.actionDuration) * 100, 0, 100);
     }
@@ -1425,13 +1481,14 @@
     if (!robot) return;
     const category = categoryFor(robot);
     const status = $("#selectedStatus");
-    const progress = Math.round(stageProgress(robot));
-    const rackLabel = `${robot.rack.zone}区 · 货架 ${pad(robot.rack.id)} · 第 ${robot.bay} 列 · ${shelfRowName(robot.depthRow)}`;
-    const targetHeight = slotGeometry(robot.rack, robot.slot).centerHeight;
+    const progressValue=stageProgress(robot);
+    const progress = progressValue===null?null:Math.round(progressValue);
+    const rackLabel = robot.rack ? `${robot.rack.zone}区 · 货架 ${pad(robot.rack.id)} · 第 ${robot.bay} 列 · ${shelfRowName(robot.depthRow)}` : "目标位置见任务知识查询";
+    const targetHeight = robot.slot ? slotGeometry(robot.rack, robot.slot).centerHeight : null;
 
     $("#robotIdTag").textContent = robotCode(robot.id);
     $("#selectedRobotName").textContent = `${robot.type.name} · 单元 ${pad(robot.id, 3)}`;
-    $("#selectedRobotPosition").textContent = `坐标 ${robot.x.toFixed(1)}, ${robot.y.toFixed(1)} · 通道 ${pad(Math.max(1, Math.round(robot.y / 2)), 2)}`;
+    $("#selectedRobotPosition").textContent = robot.platform ? `坐标 ${robot.x.toFixed(1)}, ${robot.y.toFixed(1)}m · ${robot.location_id||"移动中"}` : `坐标 ${robot.x.toFixed(1)}, ${robot.y.toFixed(1)} · 通道 ${pad(Math.max(1, Math.round(robot.y / 2)), 2)}`;
     $("#selectedRobotType").textContent = robot.type.name;
     $("#selectedRobotType").style.color = robot.type.accent;
     $("#selectedReach").textContent = `最高 L${robot.type.maxLevel} · ${robot.type.maxHeight.toFixed(2)}m`;
@@ -1442,16 +1499,18 @@
     $("#batteryBar").style.background = robot.battery < 18 ? COLORS.red : COLORS.lime;
     const hasTask = !backendAuthoritative || Boolean(robot.taskId);
     $("#selectedTaskId").textContent = hasTask ? `#${taskCode(robot)}` : "无执行任务";
-    $("#selectedTaskTitle").textContent = hasTask ? (robot.stage === "returning" ? "任务已完成，正在返回" : `将货物送至 ${rackLabel}`) : "等待主进程派单";
-    $("#selectedCargo").textContent = hasTask ? `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置` : "当前未携带执行任务";
-    $("#selectedLevel").textContent = hasTask ? `L${robot.level} · ${targetHeight.toFixed(2)}m` : "—";
+    $("#selectedTaskTitle").textContent = robot.platform ? (hasTask?`${robot.label} · 位置标识 ${robot.location_id||"—"}`:"等待主进程派单 / 待命充电") : hasTask ? (robot.stage === "returning" ? "任务已完成，正在返回" : `将货物送至 ${rackLabel}`) : "等待主进程派单";
+    $("#selectedCargo").textContent = robot.platform ? `${cargoCode(robot)} · 实际载货：${robot.carrying?"是":"否"}` : hasTask ? `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置` : "当前未携带执行任务";
+    $("#selectedLevel").textContent = robot.platform ? "层位见任务查询" : hasTask ? `L${robot.level} · ${targetHeight.toFixed(2)}m` : "—";
     $("#selectedAction").textContent = stageLabel(robot);
-    $("#selectedProgressText").textContent = `${progress}%`;
-    $("#selectedProgressBar").style.width = `${progress}%`;
+    $("#selectedProgressText").textContent = progress===null?"阶段已确认":`${progress}%`;
+    $("#selectedProgressBar").style.width = progress===null?"阶段已确认":`${progress??0}%`;
 
     const steps = $$(".task-steps span");
     steps.forEach((step) => { step.className = ""; });
-    if (["toPick", "picking"].includes(robot.stage)) {
+    if(robot.platform&&!robot.taskId){
+      // No active task: leave all three steps neutral.
+    } else if (["toPick", "picking"].includes(robot.stage)) {
       steps[0].classList.add("active");
     } else if (["toRack", "placing"].includes(robot.stage)) {
       steps[0].classList.add("done");
@@ -1469,7 +1528,7 @@
       return result;
     }, { moving: 0, handling: 0, idle: 0, warning: 0 });
     const active = backendMetrics?.assignedRobots ?? (counts.moving + counts.handling);
-    const waiting = backendAuthoritative ? "—" : Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
+    const waiting = platformFrame ? platformFrame.pending : backendAuthoritative ? "—" : Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
     const robotCount = Math.max(1, robots.length);
     const utilization = Math.round((active / robotCount) * 100);
     const movingPercent = (counts.moving / robotCount) * 100;
@@ -1482,7 +1541,7 @@
     $("#completedCount").textContent = state.completed.toLocaleString("zh-CN");
     $("#warningCount").textContent = counts.warning;
     const blocked = robots.filter(r=>r.blocked).length;
-    const lowBattery = robots.filter(r=>r.battery<28 && r.stage!=="charging").length;
+    const lowBattery = robots.filter(r=>r.platform ? r.category==="warning"&&!r.blocked : r.battery<28 && r.stage!=="charging").length;
     const otherWarning = robots.filter(r=>r.stage==="warning" && !r.blocked).length;
     $("#attentionDetail").textContent = `路径阻塞 ${blocked} · 低电量 ${lowBattery} · 其他 ${otherWarning}`;
     $("#sceneCapacity").textContent = backendMetrics ? `空闲格位 ${backendMetrics.freeSlots} · 已占用 ${backendMetrics.occupiedSlots}（不自动清空）` : "离线演示，无真实任务队列";
@@ -1502,7 +1561,13 @@
       ? (state.running ? `帧龄 ${backendLatency} ms` : "暂停帧")
       : "离线";
     $("#fpsCounter").textContent = `${state.fps} FPS`;
-    const shiftProgress = clamp((state.elapsed / (8 * 3600)) * 100, 0, 100);
+    if(platformFrame){
+      backendLatency=Math.max(0,Date.now()-(platformFrame.capturedAtMs??platformFrame.generatedAtMs));
+      $("#connectionLatency").textContent=backendConnected?`帧龄 ${Math.round(backendLatency)} ms`:"连接中断，画面保留";
+      $("#throughputDelta").textContent=`${platformFrame.unreleased} 项尚未发布`;
+    }
+    const duration=knowledgePanel?.duration(platformFrame?.metadata?.dataset_id);
+    const shiftProgress = clamp((state.elapsed / (platformFrame?(duration||Math.max(1,state.elapsed)):8*3600)) * 100, 0, 100);
     $("#timelineProgress").style.width = `${shiftProgress}%`;
     $("#timelineHandle").style.left = `${shiftProgress}%`;
   }
@@ -1511,6 +1576,13 @@
     const queue = $("#taskQueue");
     if (!force && queue.dataset.second === String(Math.floor(state.elapsed / 3))) return;
     queue.dataset.second = String(Math.floor(state.elapsed / 3));
+    if(platformFrame){
+      const items=robots.filter(r=>r.taskId).slice(0,4);queue.replaceChildren();
+      for(const r of items){const a=document.createElement('article');a.className='queue-item';
+        const d=document.createElement('div'),h=document.createElement('h4'),p=document.createElement('p');
+        h.textContent=`#${r.taskId} · ${robotCode(r.id)}`;p.textContent=`${r.label} · ${r.cargoId||'暂无货物ID'}`;d.append(h,p);a.append(d);queue.append(a);}
+      if(!items.length)queue.textContent='当前无执行中的任务';return;
+    }
     const items = robots
       .filter((robot) => robot.stage === "toPick" || (!backendAuthoritative && robot.stage === "idle"))
       .sort((a, b) => (a.priority === "high" ? -1 : b.priority === "high" ? 1 : a.id - b.id))
@@ -1529,7 +1601,9 @@
 
   function renderLatestEvent() {
     const event = taskEvents[0] || { time: "--:--:--", robot: "SYSTEM", text: "暂无事件" };
-    $("#eventTicker").innerHTML = `<span class="event-time">${event.time}</span><p><strong>${event.robot}</strong> ${event.text}</p>`;
+    const time=document.createElement('span'),p=document.createElement('p'),name=document.createElement('strong');
+    time.className='event-time';time.textContent=event.time;name.textContent=event.robot;p.append(name,document.createTextNode(` ${event.text}`));
+    $("#eventTicker").replaceChildren(time,p);
   }
 
   function updateAllDom(force = false) {
@@ -1539,6 +1613,26 @@
   }
 
   function applyBackendSnapshot(snapshot) {
+    snapshot=snapshot.snapshot||snapshot;
+    if(snapshot.sourceKind==='live_simulation_memory'){
+      if(!platformScene){pendingPlatform=snapshot;loadPlatformScene();return;}
+      if(!acceptsFrame(platformFrame,snapshot,retiredInstances))return;
+      if(platformFrame?.runtimeInstanceId&&platformFrame.runtimeInstanceId!==snapshot.runtimeInstanceId)retiredInstances.add(platformFrame.runtimeInstanceId);
+      const raw=snapshot;snapshot=adaptPlatformFrame(raw,platformScene,platformFrame,platformTrails);platformFrame=raw;
+      WORLD.width=platformScene.spec.width;WORLD.height=platformScene.spec.depth;SHELF_COLUMNS=platformScene.spec.baysPerFace;RACK_HEIGHT=platformScene.spec.rackHeight;SHELF_GAP=RACK_HEIGHT/platformScene.spec.levels;
+      $("#sceneDescription").textContent=`${WORLD.width} × ${WORLD.height}m · ${platformScene.racks.length}架 / ${platformScene.capacity}货位 · ${platformScene.docks.length}泊位`;
+      $("#heatToggle").title="当前帧机器人位置密度（非历史通行统计）";
+      $("#routeToggle").title='显示选中机器人在本页收到的连续真实位置轨迹；跳帧时断开';$("#routeToggle").lastChild.textContent='轨迹';
+      document.body.classList.add('platform-fixed');
+      $("#priorityTaskButton").hidden=true;$("#taskBatchButton").hidden=true;
+      $("#queueMode").textContent="执行中 · 最多4台";
+      $("#playButton").disabled=["failed","complete"].includes(raw.status);
+      $("#platformControls").hidden=false;$("#legacyFlow").hidden=true;$("#resetButton").title='保留旧run，在已暂停时另开所选数据集';
+      $("#timelineLabel").textContent='固定数据集进度';$("#timelineStart").textContent='第1天 00:00';$("#timelineEnd").textContent='输入结束';
+      knowledgePanel?.apply(raw);
+    }
+
+    $("#inspectorPanel").setAttribute("aria-busy","false");
     backendScene = snapshot.scene || null;
     backendMetrics = snapshot.metrics || null;
     $("#sceneName").textContent = backendScene?.name || "WAREHOUSE CONTROL / 后端连接";
@@ -1558,9 +1652,9 @@
       const previous = previousById.get(payload.id);
       // Only interpolate an actual consecutive committed segment. Reconnecting,
       // dropping frames, or changing run must not invent a chord through a rack.
-      const origin = backendFrameOrigin(previous,payload,backendAuthoritative && lastBackendRun===snapshot.runId && snapshot.tick===lastBackendTick+1);
-      const rack = rackById.get(payload.rackId) || racks[0];
-      const slot = rack?.slots.find((item) => item.slotId === payload.slotId) || rack?.slots[0];
+      const origin = backendFrameOrigin(previous,payload,backendAuthoritative && lastBackendRun===snapshot.runId && snapshot.tick===lastBackendTick+1 && (!payload.platform || (snapshot.continuousFrame && previous && (payload.x===previous.renderTargetX || payload.y===previous.renderTargetY))));
+      const rack = rackById.get(payload.rackId) || (payload.platform?null:racks[0]);
+      const slot = rack?.slots.find((item) => item.slotId === payload.slotId) || (payload.platform?null:rack?.slots[0]);
       return {
         ...payload,
         x: origin.x,
@@ -1571,6 +1665,7 @@
         renderTargetY: payload.y,
         rack,
         slot,
+        type:payload.platform?(ROBOT_TYPES.find(t=>t.key===payload.typeKey)||{key:payload.typeKey||"—",name:payload.typeKey||"型号未提供",maxLevel:0,maxHeight:0,extension:0,accent:COLORS.blue}):payload.type,
       };
     });
     lastBackendTick = snapshot.tick;
@@ -1581,7 +1676,7 @@
     state.completed = snapshot.completed;
     state.flowRate = snapshot.flowRate;
     const runStatusText = $("#runStatusText");
-    if (runStatusText) runStatusText.textContent = state.running ? "系统运行中" : "仿真已暂停";
+    if (runStatusText) runStatusText.textContent = platformFrame?.status==="failed"?"运行失败 · 现场保留":platformFrame?.status==="complete"?"运行已完成":state.running ? "系统运行中" : "仿真已暂停";
     if (!robots.some((robot) => robot.id === state.selectedId)) state.selectedId = robots[0]?.id || 1;
     backendLatency = Math.max(0, Date.now() - snapshot.generatedAtMs);
     backendConnected = true;
@@ -1609,20 +1704,30 @@
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || `HTTP ${response.status}`);
+      throw new Error(error.error || error.detail || `HTTP ${response.status}`);
     }
     return response.json();
   }
 
   async function sendBackendControl(action, value = null) {
+    if(controlBusy)return null;
+    controlBusy=true;
     try {
-      const snapshot = await backendPost("/api/control", { action, value });
-      applyBackendSnapshot(snapshot);
-      return snapshot;
-    } catch (error) {
-      showToast(`后端操作失败：${error.message}`, "!");
-      return null;
-    }
+      const payload=platformFrame?platformControl(action,value,platformFrame,$("#datasetSelect").value):{action,value};
+      const response=await backendPost("/api/control",payload);const snapshot=response.snapshot||response;
+      applyBackendSnapshot(snapshot);return snapshot;
+    } catch(error){showToast(`后端操作失败：${error.message}`,"!");return null;}
+    finally{controlBusy=false;}
+  }
+
+  async function loadPlatformScene(){
+    if(platformSceneLoading)return platformSceneLoading;
+    platformSceneLoading=(async()=>{const response=await fetch('/api/scene',{cache:'no-store'});
+      if(!response.ok)throw new Error(`真实场景读取失败 HTTP ${response.status}`);
+      const scene=await response.json();if(!scene.spec)return;
+      platformScene=scene;
+      if(pendingPlatform){const pending=pendingPlatform;pendingPlatform=null;applyBackendSnapshot(pending);}
+    })().catch(e=>showToast(e.message,'!')).finally(()=>{platformSceneLoading=null;});return platformSceneLoading;
   }
 
   function connectBackend() {
@@ -1631,7 +1736,9 @@
     if (backendSocket && backendSocket.readyState < WebSocket.CLOSING) backendSocket.close();
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     backendSocket = new WebSocket(`${protocol}//${window.location.host}/ws/simulation`);
+    const currentSocket=backendSocket;
     backendSocket.addEventListener("message", (event) => {
+      if(backendSocket!==currentSocket)return;
       try {
         applyBackendSnapshot(JSON.parse(event.data));
       } catch (error) {
@@ -1639,10 +1746,11 @@
       }
     });
     backendSocket.addEventListener("close", () => {
+      if(backendSocket!==currentSocket)return;
       backendConnected = false;
       backendLatency = null;
       const runtimeMode = $("#runtimeMode");
-      if (runtimeMode) runtimeMode.textContent = "SIMULATION / OFFLINE DEMO";
+      if (runtimeMode) runtimeMode.textContent = "连接中断 · 保留最后真实帧";
       backendReconnectTimer = window.setTimeout(connectBackend, 2000);
     });
     backendSocket.addEventListener("error", () => backendSocket.close());
@@ -1823,6 +1931,7 @@
     });
 
     $("#taskBatchButton").addEventListener("click", async () => {
+      if(platformFrame)return showToast("固定数据集从CSV发布任务");
       if (!backendConnected) return showToast("批量派单需要连接真实后端", "!");
       try {
         const result=await backendPost("/api/tasks/batch",{count:100});
@@ -1831,6 +1940,7 @@
     });
 
     $("#priorityTaskButton").addEventListener("click", () => {
+      if(platformFrame)return showToast("固定数据集从CSV发布任务");
       if (backendConnected) {
         backendPost("/api/tasks/priority").then((result) => {
           if (result.status === "assigned") {
@@ -1856,10 +1966,12 @@
 
     $("#resetButton").addEventListener("click", () => {
       if (backendConnected) {
+        if(platformFrame?.running)return showToast("请先暂停，再另开新run；旧记录会保留","!");
+        if(platformFrame&&!window.confirm("保留当前运行记录，另开所选数据集的新run？"))return;
         sendBackendControl("reset").then((snapshot) => {
           if (snapshot) {
             resetView();
-            showToast("仿真场景已重置");
+            showToast(platformFrame?"已保留旧记录并另开新run":"仿真场景已重置");
           }
         });
         return;
@@ -1869,10 +1981,13 @@
       resetView();
       state.running = true;
       $("#playIcon").textContent = "Ⅱ";
-      showToast("仿真场景已重置");
+      showToast(platformFrame?"已保留旧记录并另开新run":"仿真场景已重置");
     });
 
     $("#exportButton").addEventListener("click", () => {
+      if(platformFrame){const url=URL.createObjectURL(new Blob(['\ufeff'+exportRows(platformFrame)],{type:'text/csv;charset=utf-8'}));
+        const a=document.createElement('a');a.href=url;a.download=`${platformFrame.runId}-t${platformFrame.tick}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
+
       const rows = [
         ["robot_id", "robot_type", "max_level", "stage", "x", "y", "battery", "task", "cargo", "rack", "bay", "depth_row", "level", "slot_occupied"],
         ...robots.map((robot) => [robotCode(robot.id), robot.type.key, robot.type.maxLevel, robot.stage, robot.x.toFixed(2), robot.y.toFixed(2), robot.battery.toFixed(1), taskCode(robot), cargoCode(robot), `${robot.rack.zone}-${pad(robot.rack.id)}`, robot.bay, shelfRowName(robot.depthRow), robot.level, robot.slot?.occupied ? "yes" : "no"]),
@@ -1952,10 +2067,15 @@
 
   function boot() {
     resizeCanvas();
-    initializeSimulation();
+    if(window.location.protocol==="file:")initializeSimulation();
+    knowledgePanel=createKnowledgePanel({getFrame:()=>platformFrame,getSelected:()=>robots.find(r=>r.id===state.selectedId),control:sendBackendControl,toast:showToast});
     bindInteractions();
     renderLatestEvent();
     connectBackend();
+    if(window.location.protocol!=="file:"){
+      fetch('/api/snapshot',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(f=>{if(f)applyBackendSnapshot(f);}).catch(()=>{});
+      setInterval(()=>{if(!backendConnected||performance.now()-backendSnapshotAt>2500)fetch('/api/snapshot',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();}).then(applyBackendSnapshot).catch(()=>{});},2000);
+    }
     requestAnimationFrame(animate);
   }
 

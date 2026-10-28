@@ -141,12 +141,11 @@ test('export contains only exact returned state and safely quotes IDs',()=>{
 test('multiday clock continues beyond a seven-day calendar boundary',()=>{
   assert.equal(view.formatClock(7*86400+3661),'第8天 01:01:01');
 });
-test('new page preserves legacy files and labels source, cadence, fixed input and actual control',()=>{
-  assert.match(html,/styles\.css/);assert.match(html,/live\.js/);assert.match(html,/固定数据集模式关闭随机/);
-  assert.match(html,/Shift \/ 右键平移/);assert.match(html,/滚轮缩放/);assert.match(html,/单步 1 秒/);
-  assert.match(html,/物理帧来自运行中内存/);assert.match(html,/原控制台与旧回放服务保持独立端口/);
-  assert.doesNotMatch(html,/id="flowRange"|id="taskBatchButton"|id="priorityTaskButton"|1,284/);
+test('old live bookmark redirects to the original dashboard implementation',()=>{
+  assert.match(html,/index\.html/);assert.match(html,/location\.replace/);
+  assert.doesNotMatch(html,/live\.js|liveCanvas/);
 });
+
 test('frontend transports real snapshots; no browser simulation, generated heatmap or chord interpolation',()=>{
   assert.match(source,/new WebSocket/);assert.match(source,/\/api\/snapshot/);assert.match(source,/\/api\/control/);
   assert.match(source,/\/api\/knowledge\/query/);assert.match(source,/pendingDatasetId/);

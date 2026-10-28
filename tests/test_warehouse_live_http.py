@@ -48,7 +48,7 @@ class LiveHTTPTests(unittest.TestCase):
     def setUp(self):
         parent=ROOT/'data/local-check/live-http-tests';parent.mkdir(parents=True,exist_ok=True)
         self.temp=tempfile.TemporaryDirectory(dir=parent);self.addCleanup(self.temp.cleanup)
-        self.root=Path(self.temp.name);(self.root/'live.html').write_text('<h1>live</h1>')
+        self.root=Path(self.temp.name);(self.root/'index.html').write_text('<h1>live</h1>')
         dataset=self.root/'sample';dataset.mkdir()
         for n in ('tasks.csv','initial_inventory.csv'):(dataset/n).write_text('test')
         (dataset/'manifest.json').write_text(json.dumps({'tasks':19,'duration_seconds':3600}))
@@ -60,7 +60,7 @@ class LiveHTTPTests(unittest.TestCase):
             catalog_factory=(lambda:self.query) if graph else None,catalog_description={'queries':{'self':'state'}})
     def test_reads_and_websocket_do_not_advance_or_mutate(self):
         with TestClient(self.app()) as client:
-            self.assertEqual(client.get('/').url.path,'/live.html')
+            self.assertEqual(client.get('/').url.path,'/index.html')
             self.assertEqual(client.get('/api/scene').json()['spec']['width'],90)
             for _ in range(3):self.assertEqual(client.get('/api/snapshot').json()['elapsed'],0)
             with client.websocket_connect('/ws/simulation') as ws:

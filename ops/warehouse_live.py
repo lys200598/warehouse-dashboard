@@ -88,7 +88,7 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
     from starlette.websockets import WebSocketDisconnect
 
     dist=Path(dist).resolve()
-    if not (dist/'live.html').is_file():raise ValueError('live.html is absent from the selected static directory')
+    if not (dist/'index.html').is_file():raise ValueError('index.html is absent from the selected static directory')
     executor=ThreadPoolExecutor(max_workers=4,thread_name_prefix='live-catalog')
     queries=CatalogExecutor(catalog_factory) if catalog_factory else None
     query_slots=asyncio.Semaphore(4)
@@ -114,7 +114,7 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
         return response
 
     @app.get('/')
-    async def index():return RedirectResponse('/live.html')
+    async def index():return RedirectResponse('/index.html')
 
     @app.get('/api/snapshot')
     async def snapshot():return runtime.latest()
