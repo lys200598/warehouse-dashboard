@@ -31,7 +31,7 @@ def read_json(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
 
 
-def rows(path, fields):
+def rows(path, fields, max_rows=None):
     with Path(path).open(encoding='utf-8', newline='') as stream:
         reader = csv.reader(stream)
         require(next(reader, None) == fields, f'{path}: exact CSV header mismatch')
@@ -40,6 +40,8 @@ def rows(path, fields):
             if not row:
                 continue
             require(len(row) == len(fields), f'{path}:{number}: incorrect field count')
+            require(max_rows is None or len(result) < max_rows,
+                    f'{path}: exceeds configured row resource budget')
             result.append(dict(zip(fields, row)))
     return result
 
@@ -51,7 +53,7 @@ def finite(value):
 
 
 def identifier(value):
-    require(isinstance(value, str) and value and value.strip() == value and
+    require(isinstance(value, str) and 1 <= len(value) <= 128 and value.strip() == value and
             not any(ord(c) < 32 for c in value), 'empty/whitespace/control identifier')
 
 
@@ -189,20 +191,35 @@ def scene_contract(root=ROOT):
     return scene, slots, stations, contract
 
 
-def validate_dataset(directory, scene, slots, stations, scene_sha):
+def time_bucket_report(duration, bucket_seconds, counts):
+    """Dense short reports stay compatible; long empty periods cost no arrays."""
+    bucket_count = (duration+bucket_seconds-1)//bucket_seconds
+    if bucket_count <= 4096:
+        return [counts.get(index, 0) for index in range(bucket_count)]
+    return {'format': 'sparse-v1', 'bucket_seconds': bucket_seconds,
+            'bucket_count': bucket_count, 'zero_buckets_omitted': True,
+            'nonzero': [{'bucket': index, 'tasks': tasks}
+                        for index, tasks in sorted(counts.items())]}
+
+
+def validate_dataset(directory, scene, slots, stations, scene_sha, *, max_tasks=None):
     directory = Path(directory)
     manifest = read_json(directory/'manifest.json')
     duration = manifest['duration_seconds']
-    require(not isinstance(duration, bool) and isinstance(duration, int) and 1 <= duration <= 7*86400,
-            'duration must be integer seconds in (0, 7 days]')
+    require(not isinstance(duration, bool) and isinstance(duration, int) and duration >= 1,
+            'duration must be a positive integer number of seconds; no fixed calendar-duration cap')
+    if max_tasks is not None:
+        require(type(max_tasks) is int and max_tasks >= 1, 'max_tasks must be a positive row resource budget')
     start = timestamp(manifest['start'])
     require(manifest['scene_sha256'] == scene_sha, 'dataset scene SHA mismatch')
     require(manifest['capacity'] == len(slots), 'dataset capacity mismatch')
     require(set(manifest['files']) == {'tasks.csv', 'initial_inventory.csv'}, 'unexpected manifest input files')
     for filename, expected in manifest['files'].items():
         require(sha(directory/filename) == expected, f'dataset file SHA mismatch: {filename}')
-    initial = rows(directory/'initial_inventory.csv', ['goods_id', 'location_id'])
-    tasks = rows(directory/'tasks.csv', TASK_FIELDS)
+    require(max_tasks is None or (type(manifest['tasks']) is int and manifest['tasks'] <= max_tasks),
+            'dataset exceeds configured max_tasks resource budget')
+    initial = rows(directory/'initial_inventory.csv', ['goods_id', 'location_id'], max_rows=len(slots))
+    tasks = rows(directory/'tasks.csv', TASK_FIELDS, max_rows=max_tasks)
     expected_counts = {'tasks': len(tasks), 'inbound': sum(t['task_type'] == 'INBOUND' for t in tasks),
                        'outbound': sum(t['task_type'] == 'OUTBOUND' for t in tasks), 'initial_inventory': len(initial)}
     require(all(manifest[k] == v and isinstance(manifest[k], int) and not isinstance(manifest[k], bool)
@@ -229,7 +246,7 @@ def validate_dataset(directory, scene, slots, stations, scene_sha):
         second = (released-start).total_seconds()
         require(0 <= second < duration and due > released, 'invalid release/due timestamp range')
         timed.append((int(second), task))
-    daily = [0]*math.ceil(duration/86400)
+    daily = Counter()
     for second, task in sorted(timed, key=lambda pair: (pair[0], pair[1]['task_id'])):
         daily[second//86400] += 1
         goods, source, target = (task[k] for k in ['goods_id', 'source_id', 'target_id'])
@@ -248,7 +265,8 @@ def validate_dataset(directory, scene, slots, stations, scene_sha):
             raise ValueError('unknown task type')
         low, high = min(low, len(stock)), max(high, len(stock))
         require(len(stock) <= len(slots), 'reference capacity exceeded')
-    return {'path': str(directory), **expected_counts, 'duration_seconds': duration, 'daily_tasks': daily,
+    return {'path': str(directory), **expected_counts, 'duration_seconds': duration,
+            'daily_tasks': time_bucket_report(duration, 86400, daily),
             'planned_min_inventory': low, 'planned_max_inventory': high, 'planned_final_inventory': len(stock),
             'reference_valid': True, 'runtime_feasibility_claim': False}
 
@@ -262,6 +280,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dataset', type=Path, help='add an external colleague dataset to the reference validation')
     parser.add_argument('--write-manifest', action='store_true')
+    parser.add_argument('--max-tasks', type=int,
+                        help='optional validated task-row resource budget, independent of duration')
     args = parser.parse_args()
     if args.write_manifest:
         files = {p.relative_to(ROOT).as_posix(): sha(p) for p in package_files(ROOT)}
@@ -278,7 +298,8 @@ def main():
     datasets = [ROOT/'sample-input'] + sorted(p.parent for p in (ROOT/'supplement-inputs').glob('*/manifest.json'))
     if args.dataset:
         datasets.append(args.dataset.resolve())
-    reports = [validate_dataset(p, scene, slots, stations, layout['scene_sha256']) for p in datasets]
+    reports = [validate_dataset(p, scene, slots, stations, layout['scene_sha256'], max_tasks=args.max_tasks)
+               for p in datasets]
     acceptance = read_json(ROOT/'contract/acceptance-status.json')
     print(json.dumps({'package_valid': True, 'hashed_files': len(manifest), 'physical_bays': len(scene['docks']),
                       'storage_slots': len(slots), 'task_locations': 1744, 'all_named_locations': 1944,

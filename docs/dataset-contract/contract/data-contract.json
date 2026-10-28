@@ -1,5 +1,5 @@
 {
-  "contract_version": "warehouse-boundary-task-contract-v5-handoff-1",
+  "contract_version": "warehouse-boundary-task-contract-unbounded-duration-v2",
   "task_file": "tasks.csv",
   "task_fields": [
     "task_id",
@@ -33,7 +33,7 @@
     "release_range": "0 <= release-start < duration_seconds",
     "due_rule": "due_time > release_time; may cross midnight"
   },
-  "maximum_duration_seconds": 604800,
+  "maximum_duration_seconds": null,
   "endpoints": {
     "INBOUND": [
       "inbound point",
@@ -94,7 +94,7 @@
     "inbound/outbound tidal balance",
     "mixed high-load and recovery"
   ],
-  "seven_variations_composer_implemented": false,
+  "seven_variations_composer_implemented": true,
   "continuous_multiday_state_resets": false,
   "deadline_provenance": "declare reference distance, handling, slack and speed; never fill input deadline from measured completion; do not alter original acceptance-case deadlines",
   "LaDe_relation": {
@@ -120,5 +120,29 @@
     "declared deadline rule and expected overload labeling",
     "reference validation plus separately recorded actual-run results"
   ],
-  "runtime_acceptance_is_separate": true
+  "runtime_acceptance_is_separate": true,
+  "duration_policy": {
+    "type": "positive_integer_seconds",
+    "fixed_calendar_cap": false,
+    "timestamp_requirements": "Actual manifest start, release_time and due_time must be valid timezone-aware ISO8601 datetimes with integer-second precision.",
+    "runtime_ingestion": "fixed files remain materialized in memory; no streaming-runtime claim"
+  },
+  "resource_budget": {
+    "generator_default_max_tasks": 250000,
+    "generator_parameter": "max_tasks / --max-tasks",
+    "validator_parameter": "optional max_tasks / --max-tasks",
+    "calendar_duration_limit": false,
+    "large_reports": "At most 4096 dense hourly/daily buckets; longer dimensions use explicit sparse-v1 nonzero buckets with bucket_count and implicit zeros."
+  },
+  "implemented_multiday_profiles": {
+    "uniform": "uniform hourly intensity with stratified jitter",
+    "fixed_peak": "fixed three peak arrival windows",
+    "local_hotspot": "70 percent spatial hotspot preference",
+    "batch_pulses": "48 tasks per pulse in fixed windows",
+    "moving_hotspot": "hotspot changes at midday",
+    "tidal": "outbound then inbound inventory tide",
+    "mixed_recovery": "25 percent higher volume plus hot period and recovery valley"
+  },
+  "multiday_generator_entrypoint": "python -m backend.warehouse generate --kind multiday --days N --output NEW_DIRECTORY",
+  "identifier_maximum_length": 128
 }

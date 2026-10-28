@@ -43,6 +43,8 @@ def generate_scenario(scene_path, output, *, scenario="uniform", duration_second
     ``active_slots`` restricts which storage slots receive tasks, NOT the actual
     1728-slot capacity or the unchanged 864-item initial stock. Turnover is a
     release-plan parameter, not a promise the fleet can sustain this demand.
+    Duration has no fixed calendar cap. ``max_tasks`` is a configurable resource
+    budget; actual release/due timestamps must fit ISO8601 datetime arithmetic.
     """
     if scenario not in SCENARIOS:
         raise ValueError("unknown warehouse scenario")
@@ -76,9 +78,14 @@ def generate_scenario(scene_path, output, *, scenario="uniform", duration_second
     hot_count = max(1, math.ceil(len(active) * .2)) if scenario == "hotspot" else 0
     hot_slots = set(by_distance[:hot_count])
     min_interval = max(1, slot_interval_seconds // hotspot_multiplier) if hot_slots else slot_interval_seconds
-    if math.ceil(duration_seconds / min_interval) * len(active) > max_tasks:
+    if ((duration_seconds + min_interval - 1) // min_interval) * len(active) > max_tasks:
         raise ValueError("scenario exceeds configured bounded task budget")
-    start = datetime.fromisoformat(date + "T00:00:00+08:00")
+    try:
+        if not isinstance(date, str):
+            raise ValueError("date must be an ISO8601 calendar date")
+        start = datetime.fromisoformat(date + "T00:00:00+08:00")
+    except (TypeError, ValueError) as error:
+        raise ValueError("date must be an ISO8601 calendar date") from error
     stations = {station["id"]: station for station in scene["stations"]}
     initial, tasks, serial = [], [], 0
     for index, (key, slot) in enumerate(slots.items()):
@@ -92,7 +99,10 @@ def generate_scenario(scene_path, output, *, scenario="uniform", duration_second
         nominal = rng.randrange(0, interval)
         previous, incoming = -1, 0
         while nominal < duration_seconds:
-            release = _peak_time(nominal, duration_seconds) if scenario == "peak" else nominal
+            try:
+                release = _peak_time(nominal, duration_seconds) if scenario == "peak" else nominal
+            except (OverflowError, ValueError) as error:
+                raise ValueError("generated task exceeds supported ISO8601 datetime range") from error
             release = max(previous + 1, release)
             if release >= duration_seconds:
                 break
@@ -106,9 +116,14 @@ def generate_scenario(scene_path, output, *, scenario="uniform", duration_second
             source, target = (key, station["id"]) if occupied else (station["id"], key)
             reference = (abs(slot["x"] - station["x"]) + abs(slot["y"] - station["y"]) + scene["spec"]["width"] + scene["spec"]["depth"]) / .8 + 22
             due = release + math.ceil(reference) + deadline_slack_seconds
+            try:
+                released_at = (start + timedelta(seconds=release)).isoformat()
+                due_at = (start + timedelta(seconds=due)).isoformat()
+            except (OverflowError, ValueError) as error:
+                raise ValueError("generated task exceeds supported ISO8601 datetime range") from error
             tasks.append({"task_id": f"V3-T-{serial:07d}", "task_type": kind, "goods_id": goods,
-                          "release_time": (start + timedelta(seconds=release)).isoformat(),
-                          "due_time": (start + timedelta(seconds=due)).isoformat(),
+                          "release_time": released_at,
+                          "due_time": due_at,
                           "source_id": source, "target_id": target})
             occupied = not occupied
             if scenario == "continuous":
@@ -146,12 +161,13 @@ def generate_scenario(scene_path, output, *, scenario="uniform", duration_second
             "continuous": "Independent exponential interarrival per slot after random initial phase; minimum 1 second.",
             "admission": "Runtime separately enforces occupied/reserved target slots, total inside goods and six boxes per inbound port.",
             "deadline": "Manhattan reference plus (width+depth)m deadhead at 0.8m/s, 22s handling and configurable slack; not guaranteed fleet feasibility.",
-            "duration": "At most seven days under the isolated wide-layout validator; original day1 contract remains unchanged.",
+            "duration": "No fixed calendar-duration cap; positive integer seconds with valid ISO8601 task timestamps. Fixed files remain materialized, not streamed.",
+            "resource_budget": f"At most {max_tasks} generated task rows; caller-configurable max_tasks, independent of duration.",
         },
         "files": {filename: sha(output / filename) for filename in ["tasks.csv", "initial_inventory.csv"]},
     }
     (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    report = validate_dataset(scene_path, output)
+    report = validate_dataset(scene_path, output, max_tasks=max_tasks)
     report.update(scenario=scenario, duration_seconds=duration_seconds, runtime_feasibility_claim=False)
     (output / "validation.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return manifest, report
@@ -166,7 +182,9 @@ if __name__ == "__main__":
     parser.add_argument("--slot-interval-seconds", type=int, default=21600)
     parser.add_argument("--active-slots", type=int)
     parser.add_argument("--seed", type=int, default=20261027)
+    parser.add_argument("--max-tasks", type=int, default=250000,
+                        help="explicit generated-row resource budget, not a calendar-duration cap")
     args = parser.parse_args()
     print(json.dumps(generate_scenario(args.scene, args.output, scenario=args.scenario,
           duration_seconds=args.duration_seconds, slot_interval_seconds=args.slot_interval_seconds,
-          active_slots=args.active_slots, seed=args.seed), ensure_ascii=False, indent=2))
+          active_slots=args.active_slots, seed=args.seed, max_tasks=args.max_tasks), ensure_ascii=False, indent=2))

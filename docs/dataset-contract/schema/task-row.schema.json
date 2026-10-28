@@ -15,7 +15,8 @@
   "properties": {
     "task_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 128
     },
     "task_type": {
       "enum": [
@@ -25,7 +26,8 @@
     },
     "goods_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 128
     },
     "release_time": {
       "type": "string",
@@ -41,11 +43,13 @@
     },
     "source_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 128
     },
     "target_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 128
     }
   },
   "additionalProperties": false,

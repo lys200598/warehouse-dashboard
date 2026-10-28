@@ -1,12 +1,13 @@
 """Wide-layout data contract and explicit immutable dataset migration.
 
-The strict seven-day validator below is an isolated snapshot of v3's proven
-contract with this module's loader. Old modules and their globals are untouched.
+The validator retains v3's proven integrity/capacity checks with this module's
+loader, without a fixed calendar-duration cap. Old modules are untouched.
 P and C names are compatible aliases of ONE capacity-one physical bay.
 """
 from __future__ import annotations
 
 from copy import deepcopy
+from collections import Counter
 import csv
 from datetime import datetime, timedelta
 import json
@@ -235,8 +236,28 @@ def migrate_dataset(old_scene, new_scene, source, output, *, deadline_policy="pr
 
 # Strict contract snapshot follows; its only layout dependency is load_scene.
 
-MAX_DURATION_SECONDS = 7 * 86400
+# Compatibility export: None means no artificial fixed-duration limit. Actual
+# timestamps still need to be valid ISO8601 datetimes and tasks remain bounded
+# by the caller's explicit resource budget, not a number of calendar days.
+MAX_DURATION_SECONDS = None
+MAX_DENSE_REPORT_BUCKETS = 4096
 _INPUT_FILES = {"tasks.csv", "initial_inventory.csv"}
+
+
+def _time_bucket_report(duration, bucket_seconds, counts):
+    """Preserve old short lists, but never allocate a list proportional to years.
+
+    Sparse nonzero buckets are relative to manifest start, just like the old
+    dense lists. All zero buckets are implicit, including an empty workload.
+    Integer ceil also works for large positive durations without float overflow.
+    """
+    buckets = (duration + bucket_seconds - 1) // bucket_seconds
+    if buckets <= MAX_DENSE_REPORT_BUCKETS:
+        return [counts.get(index, 0) for index in range(buckets)]
+    return {"format": "sparse-v1", "bucket_seconds": bucket_seconds,
+            "bucket_count": buckets, "zero_buckets_omitted": True,
+            "nonzero": [{"bucket": index, "tasks": value}
+                        for index, value in sorted(counts.items())]}
 
 
 def _count(value, name, maximum=None):
@@ -262,7 +283,7 @@ def _timestamp(value, name, *, reference_offset=None):
 
 
 def _identifier(value, name):
-    if not isinstance(value, str) or not value or value.strip() != value or any(ord(char) < 32 for char in value):
+    if not isinstance(value, str) or not 1 <= len(value) <= 128 or value.strip() != value or any(ord(char) < 32 for char in value):
         raise ValueError(f"invalid {name}")
     return value
 
@@ -283,13 +304,15 @@ def _rows(path, fields):
         raise ValueError(f"cannot read {path.name}: {type(error).__name__}") from error
 
 
-def validate_dataset(scene_path, directory):
-    """Validate <=7 days of seven-field tasks and return a reference report.
+def validate_dataset(scene_path, directory, *, max_tasks=None):
+    """Validate fixed seven-field tasks without a fixed calendar-duration cap.
 
     File hashes, scene identity, counts and physical ID references are checked
     before the inventory replay. A workload may pass this contract but exceed
     the fleet's service capacity: runtime must still enforce actual admission,
     inventory, per-port buffering, traffic safety and deadline measurements.
+    ``max_tasks`` is an optional positive row budget, not a duration restriction.
+    Fixed-file loading remains in memory; this is not a streaming runtime API.
     """
     directory = Path(directory)
     try:
@@ -298,6 +321,8 @@ def validate_dataset(scene_path, directory):
         raise ValueError("invalid or missing dataset manifest") from error
     if not isinstance(manifest, dict):
         raise ValueError("manifest must be an object")
+    if max_tasks is not None:
+        _positive_int(max_tasks, "max_tasks resource budget")
     duration = _count(manifest.get("duration_seconds"), "duration_seconds", MAX_DURATION_SECONDS)
     if duration < 1:
         raise ValueError("manifest duration_seconds must be positive")
@@ -326,9 +351,15 @@ def validate_dataset(scene_path, directory):
         raise ValueError("manifest inbound/outbound counts do not sum to tasks")
     if expected_counts["initial_inventory"] > capacity:
         raise ValueError("initial inventory exceeds physical capacity")
+    if max_tasks is not None and expected_counts["tasks"] > max_tasks:
+        raise ValueError("dataset exceeds configured max_tasks resource budget")
 
     # Validate raw ISO timestamps BEFORE read_dataset's integer conversion.
-    raw_tasks = list(_rows(directory / "tasks.csv", FIELDS))
+    raw_tasks = []
+    for row in _rows(directory / "tasks.csv", FIELDS):
+        if max_tasks is not None and len(raw_tasks) >= max_tasks:
+            raise ValueError("dataset exceeds configured max_tasks resource budget")
+        raw_tasks.append(row)
     initial = list(_rows(directory / "initial_inventory.csv", ["goods_id", "location_id"]))
     ids = set()
     for task in raw_tasks:
@@ -361,8 +392,7 @@ def validate_dataset(scene_path, directory):
         ever_seen.add(goods)
     ports = {station["id"]: station["kind"] for station in scene["stations"]}
     low = high = len(stock)
-    hourly = [0] * math.ceil(duration / 3600)
-    daily = [0] * math.ceil(duration / 86400)
+    hourly, daily = Counter(), Counter()
     for task in sorted(tasks, key=lambda row: (row["release_second"], row["task_id"])):
         second = task["release_second"]
         hourly[second // 3600] += 1
@@ -389,7 +419,9 @@ def validate_dataset(scene_path, directory):
         "valid": True, **actual_counts, "initial": len(initial), "duration_seconds": duration,
         "capacity": capacity, "start": start.isoformat(), "timezone_offset_seconds": int(start.utcoffset().total_seconds()),
         "planned_min_inventory": low, "planned_max_inventory": high, "planned_final_inventory": len(stock),
-        "hourly_tasks": hourly, "daily_tasks": daily, "reference_order": ["release_second", "task_id"],
+        "hourly_tasks": _time_bucket_report(duration, 3600, hourly),
+        "daily_tasks": _time_bucket_report(duration, 86400, daily),
+        "reference_order": ["release_second", "task_id"],
         "hashes_verified": True, "runtime_feasibility_claim": False,
         "note": "Reference release-order inventory/dependency replay only; does not prove runtime timely completion, traffic safety or actual admission capacity.",
     }

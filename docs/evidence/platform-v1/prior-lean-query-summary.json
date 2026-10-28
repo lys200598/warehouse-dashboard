@@ -1,0 +1,124 @@
+{
+  "status": "passed",
+  "scope": "synthetic mixed lean API pressure, not physical concurrent handoffs",
+  "requests": 3000,
+  "not_part_of_full_context_42000": true,
+  "per_round": [
+    {
+      "round": 1,
+      "requests": 1000,
+      "failures": 0,
+      "service": {
+        "count": 1000,
+        "mean_ms": 19.222435524,
+        "p50_ms": 16.131973,
+        "p95_ms": 41.399617,
+        "p99_ms": 61.128084,
+        "max_ms": 109.127194,
+        "over_200ms": 0,
+        "over_500ms": 0
+      },
+      "peak_active_service_requests": 100,
+      "release_ns": 1793156255251505110,
+      "global_query_finished_ns": 1793156255540379960,
+      "process_errors": [],
+      "no_validation_during_any_query": true,
+      "all_clients_ready": true
+    },
+    {
+      "round": 2,
+      "requests": 1000,
+      "failures": 0,
+      "service": {
+        "count": 1000,
+        "mean_ms": 22.005501521,
+        "p50_ms": 19.777975,
+        "p95_ms": 47.089482,
+        "p99_ms": 69.867869,
+        "max_ms": 105.410572,
+        "over_200ms": 0,
+        "over_500ms": 0
+      },
+      "peak_active_service_requests": 100,
+      "release_ns": 1793156256758705589,
+      "global_query_finished_ns": 1793156257034787444,
+      "process_errors": [],
+      "no_validation_during_any_query": true,
+      "all_clients_ready": true
+    },
+    {
+      "round": 3,
+      "requests": 1000,
+      "failures": 0,
+      "service": {
+        "count": 1000,
+        "mean_ms": 22.16872526,
+        "p50_ms": 19.764049,
+        "p95_ms": 47.176853,
+        "p99_ms": 67.949429,
+        "max_ms": 101.947254,
+        "over_200ms": 0,
+        "over_500ms": 0
+      },
+      "peak_active_service_requests": 100,
+      "release_ns": 1793156258264143871,
+      "global_query_finished_ns": 1793156258543623553,
+      "process_errors": [],
+      "no_validation_during_any_query": true,
+      "all_clients_ready": true
+    }
+  ],
+  "combined": {
+    "count": 3000,
+    "mean_ms": 21.132220768333333,
+    "p50_ms": 18.644324,
+    "p95_ms": 44.977375,
+    "p99_ms": 66.183871,
+    "max_ms": 109.127194,
+    "over_200ms": 0,
+    "over_500ms": 0
+  },
+  "by_kind": {
+    "robot_context": {
+      "requests": 1485,
+      "service": {
+        "count": 1485,
+        "mean_ms": 20.804490704377105,
+        "p50_ms": 18.546697,
+        "p95_ms": 43.707442,
+        "p99_ms": 65.758954,
+        "max_ms": 109.127194,
+        "over_200ms": 0,
+        "over_500ms": 0
+      }
+    },
+    "cooperation_context": {
+      "requests": 1515,
+      "service": {
+        "count": 1515,
+        "mean_ms": 21.453461128052805,
+        "p50_ms": 18.802854,
+        "p95_ms": 46.320456,
+        "p99_ms": 68.912775,
+        "max_ms": 105.410572,
+        "over_200ms": 0,
+        "over_500ms": 0
+      }
+    }
+  },
+  "all_34_posthoc_checks_passed": true,
+  "all_complete_responses_locally_fingerprinted": true,
+  "source_unchanged": true,
+  "inputs_unchanged": true,
+  "head_unchanged": true,
+  "nonempty_cooperation_histories": 36,
+  "cargo_handoff_returned_requests": 24,
+  "nonempty_goods_histories": 1515,
+  "package": {
+    "archive": "/data/workspace/wz/warehouse-lean-concurrency-20261028/lean-concurrency-evidence.zip",
+    "bytes": 2235916,
+    "sha256": "b8fcd0b8938489977ce5273f69bbac35d1685a57d6a6a895fa3237686939c562",
+    "hashed_files": 63,
+    "all_member_sha_and_crc_passed": true
+  }
+}

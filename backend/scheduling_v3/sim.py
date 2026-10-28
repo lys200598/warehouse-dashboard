@@ -706,6 +706,12 @@ class Simulation(V2Simulation):
         self.metrics['recovery_rejections'] += 1
         return False
 
+    def _assistance_helpers(self, donor, task):
+        """Overridable candidate source; live feasibility stays authoritative."""
+        return sorted((r for i, r in self.robots.items() if i != donor['robot_id'] and i not in self.jobs and
+            i not in self.faults and not r['carrying'] and r['battery'] > self.config.charge_request_soc),
+            key=lambda r: (math.hypot(r['x']-donor['x'], r['y']-donor['y']), r['robot_id']))
+
     def request_assistance(self, donor_id, reason='low_energy'):
         """Physically adjacent, reserved handoff; donor then recharges safely.
 
@@ -717,9 +723,7 @@ class Simulation(V2Simulation):
         if not donor['carrying'] or donor_id in self.assists:
             return False
         task = self.tasks[donor['task_id']]
-        helpers = sorted((r for i, r in self.robots.items() if i != donor_id and i not in self.jobs and
-            i not in self.faults and not r['carrying'] and r['battery'] > self.config.charge_request_soc),
-            key=lambda r: (math.hypot(r['x']-donor['x'], r['y']-donor['y']), r['robot_id']))
+        helpers = self._assistance_helpers(donor, task)
         self.metrics['assistance_requests'] += 1
         failures = Counter()
         self.event('assistance_requested', donor_id, task['task_id'], reason=reason, battery=donor['battery'])

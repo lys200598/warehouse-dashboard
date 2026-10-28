@@ -1,0 +1,4 @@
+# Current V5 platform, temporal graph queries and bounded exact vector evaluation.
+# The optional original FastAPI/Ray console keeps requirements.txt separately.
+neo4j>=5.26,<7
+numpy>=1.26,<3

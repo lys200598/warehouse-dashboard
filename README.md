@@ -1,59 +1,56 @@
-# 100机器人仓库仿真与调度
+# 100机器人仓库与共享时序知识实验平台
 
-本分支交付一套可重复运行的 **V5 仓库实验环境**：90×76米仓库、36架1728货位、100台机器人、100个充电兼待命泊位，以及入库、出库、充电、低电交接、避碰、恢复与网页回放。
+本分支提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口为 **`python -m backend.warehouse`**，中央V5协调器推进100个真实仿真机器人，保留能量、交通、库存和恢复门禁。
 
-## 从这里开始
+## 阅读路线
 
-- **完整设计说明**：[仓库布局、调度与仿真指南](docs/WAREHOUSE_DESIGN_GUIDE.md)。从货物怎样进出仓库讲到算法、源码和数据对接，适合第一次接触项目的计算机专业同学。
-- **数据生成同学**：[输入契约、位置表和独立校验器](docs/dataset-contract/README.md)。任务使用七字段CSV，机器人电量和调度策略单独配置。
-- **验证结果**：[五类场景与100台同时作业证据](docs/evidence/warehouse-v5/README.md)。五场景任务全部完成，迟到和安全失败记录均为0；高峰取得100台同时搬运/取放的实际状态。
-- **原交互控制台**：[FastAPI、WebSocket与Ray入口说明](docs/LEGACY_CONTROL_PANEL.md)。这些入口继续保留，方便逐步合并。
+- **整体实现与运行**：[平台指南](docs/WAREHOUSE_PLATFORM_GUIDE.md)
+- **数据生成同学 lys**：[对接说明](docs/LYS_DATASET_HANDOFF.md)、[地图与输入契约](docs/dataset-contract/README.md)
+- **布局与调度**：[仓库设计指南](docs/WAREHOUSE_DESIGN_GUIDE.md)
+- **仓库查询与KG对应**：[查询指南](docs/WAREHOUSE_QUERY_GUIDE.md)
+- **历史控制**：[实际控制链](docs/HISTORY_RUNTIME.md)
+- **连续多日生成**：[生成规则](docs/MULTIDAY_DATASET.md)
+- **向量用途、算法与验证**：[检索指南](docs/VECTOR_RETRIEVAL_GUIDE.md)
+- **原实时控制台与Ray**：[保留入口](docs/LEGACY_CONTROL_PANEL.md)
 
-## 先运行19条任务的小例子
+## 最小运行
 
-从仓库根目录执行，Python建议3.10及以上。V5中央仿真和回放使用Python标准库；需要原交互控制台或Neo4j时，再安装`requirements.txt`。
-
-```bash
-python ops/warehouse_v5_release.py status
-
-python ops/warehouse_v5_release.py run -- \
-  --scene data/layouts/warehouse100-wide-v2.json \
-  --dataset data/examples/warehouse-v5 \
-  --output data/local-runs/first-v5-run \
-  --run-id first-v5-run \
-  --frames --knowledge-backend journal
-
-python -m backend.scheduling_v5.web \
-  --output data/local-runs/first-v5-run --dist dist/v5 --port 14183
-```
-
-然后访问 <http://127.0.0.1:14183/>。在远程服务器运行时，将此端口通过SSH转发到本机。网页读取刚才生成的实际轨迹，支持时间轴、机器人选择及回放。
-
-每次新实验使用新的`output`与`run-id`，这样结果可以保留并相互比较。已有运行可按指南使用`--resume`恢复。
-
-## 默认方案与目录
-
-默认选择保存在[`config/v5-selected.json`](config/v5-selected.json)：`port-guard + original-sipp`。调度先保证可行分配数量，再保护紧急/久等任务并优化成本；路径采用安全时间区间搜索，泊位和停止机器人持续参与空间预约。
-
-|目录|阅读重点|
-|---|---|
-|`data/layouts/`|最终仓库几何、货位和物理泊位|
-|`data/examples/`|19条上手样例和五种原始合成回归输入|
-|`backend/day1/`、`backend/wide/`|库存、能量、任务、事件和空间模型|
-|`backend/scheduling_v2/`至`v5/`|匹配、路径、安全事务、缓存及最终调度|
-|`ops/warehouse_v5_release.py`|统一选定方案的启动入口|
-|`dist/v5/`|最终布局的轨迹回放页面|
-|`tests/`|库存、避碰、恢复、调度等自动测试|
-
-V5采用中央进程推进100个机器人实体，便于确定性实验。原Ray交互入口保留独立使用。仓库布局和调度已形成通过回归的知识实验载体；知识查询访问层的后续优化单独对照、单独提交。
-
-## 测试
+使用Python3.10以上环境。平台安装`requirements-platform.txt`；原FastAPI/Ray控制台依赖保留在`requirements.txt`。Pro6000可用已有环境；`./run_in_lade.sh`支持`LADE_ENV_DIR`指定环境目录。
 
 ```bash
-python -m unittest discover -s tests -v
-python docs/dataset-contract/validate_package.py
+python -m backend.warehouse status
+python -m backend.warehouse validate --dataset data/examples/warehouse-v5
+python -m backend.warehouse run --mode rules --knowledge-backend journal \
+  --dataset data/examples/warehouse-v5 --output data/runs/my-smoke \
+  --run-id my-smoke --frames
+python -m backend.warehouse serve --output data/runs/my-smoke --port 14183
 ```
 
-需要原交互服务相关测试时，先安装项目依赖。真实数据库集成使用显式测试开关和独立实验身份。
+输出目录、run-id使用新的唯一值，同一次暂停运行用`--resume`继续。网页读取实际保存帧，保留相机交互。
 
-算法方法与来源：[独立实现的匹配与SIPP说明](docs/scheduler_v2_sources.md)。
+## 真实图谱与历史控制
+
+配置已有Neo4j的`NEO4J_URI`、`NEO4J_USER`、`NEO4J_PASSWORD`，可选`NEO4J_DATABASE`，然后：
+
+```bash
+python -m backend.warehouse run --dataset data/examples/warehouse-v5 \
+  --output data/runs/my-history --run-id my-history --frames
+python -m backend.warehouse query --catalog
+python -m backend.warehouse query --request-json my-query.json
+```
+
+run默认`--mode required --knowledge-backend neo4j --commit-seconds 5`，历史参与接力规划与实际交接前授权；图谱不一致或读失败会停止并保留现场。`--mode rules`为明确的规则对照。旧冻结版本及输出保留；跨源码/配置/模式恢复会拒绝，避免混用。
+
+## 连续多日输入
+
+```bash
+python -m backend.warehouse generate --kind multiday --days 7 \
+  --seed 20261028 --output data/datasets/my-seven-days
+python -m backend.warehouse validate --dataset data/datasets/my-seven-days
+```
+
+默认七种代表性日共50,112任务，跨日库存与货物身份连续。固定CSV无人为日数上限；`--max-tasks`是显式条数预算。电量、故障和受控低电扰动放在运行配置。
+
+长运行可显式设`--commit-seconds 300`：全部业务事件保留，100机器人状态按此间隔和关键协作边界提交。5秒与300秒结果分别计量。大输入设置合适的`--max-wall-seconds`和存储预算，长任务不默认保存巨大网页帧。
+
+原Ray控制台保留；新版中央执行器的100机器人实体、100客户端查询、100独立Actor分别记录。LLM不在本分支交付范围。运行与性能结论均应关联相应输入、源码及验收记录。

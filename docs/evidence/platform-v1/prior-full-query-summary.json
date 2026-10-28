@@ -1,0 +1,81 @@
+{
+  "status": "tail_optimized_average_and_p99_not_all_requests_under_500",
+  "formal_full_requests": 24000,
+  "pool_full_requests": 18000,
+  "total_verified_full_requests": 42000,
+  "matched_comparison": {
+    "fragments": {
+      "requests": 12000,
+      "successes": 12000,
+      "mean_ms": 98.98010415125,
+      "p95_ms": 209.952077,
+      "p99_ms": 329.640191,
+      "max_ms": 650.950956,
+      "over_500ms": 6,
+      "paths": {
+        "ann100": 11194,
+        "ann1000_after_underfilled100": 794,
+        "exact_after_underfilled1000": 12
+      },
+      "phase_mean_ms": {
+        "query_bolt_ms": 83.38862289775473,
+        "decode_assemble_ms": 5.671565592444192,
+        "json_roundtrip_ms": 9.20073702892599
+      }
+    },
+    "tail": {
+      "requests": 12000,
+      "successes": 12000,
+      "mean_ms": 86.84728326175,
+      "p95_ms": 162.401957,
+      "p99_ms": 205.60693,
+      "max_ms": 507.271265,
+      "over_500ms": 1,
+      "paths": {
+        "ann100": 11194,
+        "ann1000_after_underfilled100": 794,
+        "exact_after_underfilled1000": 12
+      },
+      "phase_mean_ms": {
+        "query_bolt_ms": 77.28915849584155,
+        "decode_assemble_ms": 0.2714621265574048,
+        "json_roundtrip_ms": 8.859501639769102
+      }
+    }
+  },
+  "selected_pool_size": 120,
+  "selected_tail_all_18000_requests": {
+    "requests": 18000,
+    "errors": 0,
+    "mean_ms": 87.98271016444444,
+    "p95_ms": 163.91557,
+    "p99_ms": 208.41374,
+    "max_ms": 526.024131,
+    "over_500ms": 2,
+    "paths": {
+      "ann100": 16791,
+      "ann1000_after_underfilled100": 1191,
+      "exact_after_underfilled1000": 18
+    }
+  },
+  "all_requests_under_500ms": false,
+  "local_source_zip_sha_and_crc_valid": true,
+  "source_files": 142,
+  "source_zip_sha256": "7c052520a8d88d9eeb47050ed1cf8bb3ce4832a55a06b0bdfcaaaf5f3bb0f124",
+  "remote_evidence_packets": [
+    {
+      "archive": "/data/workspace/wz/warehouse-query-tail-20261028/query-tail-v3-evidence.zip",
+      "sha256": "c5385381438057d5d1cadea3b7ab2c1cc20a8fd2d9a5b76f1d3274f2c9642427",
+      "bytes": 294433011,
+      "hashed_files": 249,
+      "all_member_hashes_and_crc_valid": true
+    },
+    {
+      "archive": "/data/workspace/wz/warehouse-query-tail-20261028/query-tail-pool-evidence.zip",
+      "sha256": "b48913b7141c7a2ae396795d6a9e75f100b367fb514fdf2172fc1a7d09bfaf9c",
+      "bytes": 220892379,
+      "hashed_files": 193,
+      "all_member_hashes_and_crc_valid": true
+    }
+  ]
+}

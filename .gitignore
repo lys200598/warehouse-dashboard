@@ -23,3 +23,7 @@ id_ed25519*
 !/data/local-check/
 /data/local-check/*
 !/data/local-check/.gitkeep
+
+# Local experiments and temporary test data remain outside source delivery.
+/research/
+/tests/tmp*/

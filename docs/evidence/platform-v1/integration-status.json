@@ -1,0 +1,21 @@
+{
+  "scope": "implementation integration; full-week joint regression still in progress",
+  "source_zip_sha256": "6f049ddbfaf16575ad2867ec0fa0fff427a447df3f11589a5361304d3531fc0a",
+  "git_tree_regression": {
+    "total": 569,
+    "passed": 562,
+    "optional_skipped": 7
+  },
+  "actual_smoke": {
+    "run_id": "wh-platform-smoke-v2-20261028",
+    "tasks": 19,
+    "completed": 19,
+    "handoffs": 1,
+    "history_queries": 2,
+    "commit_seconds": 300,
+    "critical_boundaries": true
+  },
+  "new_seven_day_csv_sha256": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
+  "full_week_joint_complete": false,
+  "old_commit_preserved": "52c9206c8b285eb906c2aaf03a2ecbffd1a4a259"
+}

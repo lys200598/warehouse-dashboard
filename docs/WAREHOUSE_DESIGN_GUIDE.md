@@ -350,7 +350,11 @@ bash run_in_lade.sh python docs/dataset-contract/validate_package.py \
 
 `active_slots`控制哪些货位产生任务，仓库总容量仍为1728。热点默认取活跃货位中空间上最近的20%，以4倍频率周转，因此热点场景的任务总量也可能增加。
 
-支持的数据时长最长为7天。可以进一步设计批次脉冲、热点迁移、进出潮汐等代表性日；多日连跑沿用前一天的库存、积压和电量。
+固定数据集不再设7天上限，`duration_seconds`可使用任意正整数；实际任务的ISO8601时间戳仍需合法。生成器默认保留`max_tasks=250000`任务条数预算，可通过`--max-tasks`明确调整，这属于内存/生成规模保护，与允许多少天无关。超过4096个小时或日统计桶时，校验报告对应字段使用`sparse-v1`非零桶格式，避免为长期空白区间分配巨大数组；原有短数据的列表格式保持兼容。
+
+以上为当前`wide`／V5运行入口及独立对接校验器。历史V3比较入口和已发布冻结快照保留原契约，长期输入使用当前入口。
+
+连续多日生成器已提供均匀、固定峰值、局部热点、批次脉冲、热点迁移、进出潮汐和混合恢复七种代表性日，默认示例共50,112条任务，跨午夜沿用同一库存与货物身份。详见[MULTIDAY_DATASET.md](MULTIDAY_DATASET.md)。多日仿真沿用前一天的库存、积压和电量。本阶段仍使用固定文件加载与校验；流式任务接入核心单独推进。已发布的冻结对接快照保留不变，更新后的本地独立校验器与契约在`docs/dataset-contract/`。
 
 ## 6. 调度如何选择机器人
 
@@ -441,7 +445,7 @@ SIPP全称Safe Interval Path Planning，可理解为“按安全时间区间找�
 
 `journal`模式将记录保存在本地SQLite，适合先验证仓库和调度；`neo4j`模式可将同一运行的状态与事件同步到图谱。图谱按运行、任务、机器人、货物及时间提交组织记录，货物交接能关联双方参与者。
 
-历史知识能够用于新决策。例如低电接管时，查询此前是否已交接、原持有者是谁，再结合当前货权决定是否继续运输。后续的按需知识接口接入可以独立开展。
+历史知识已通过独立的`backend.knowledge_runtime.runner`接入接力规划与实际交接前复核。例如低电接管时，查询此前是否已交接、原持有者是谁，再结合当前货权与物理预约决定接力。详细调用链、运行模式和失败恢复见[HISTORY_RUNTIME.md](HISTORY_RUNTIME.md)。
 
 **当前查询优化通过独立访问层和压测工具完成，已验收布局、七字段任务格式和V5调度可以保持稳定，无需为这轮查询优化重做仓库。**
 
@@ -539,9 +543,9 @@ bash run_in_lade.sh python ops/warehouse_v5_release.py status
 python3 -m venv .venv
 export LADE_ENV_DIR="$PWD/.venv"
 bash run_in_lade.sh python --version
+# 使用原FastAPI/Ray/Neo4j功能时安装项目依赖
+bash run_in_lade.sh python -m pip install -r requirements.txt
 ```
-
-运行原FastAPI/Ray服务或连接Neo4j时，再执行`bash run_in_lade.sh python -m pip install -r requirements.txt`。
 
 `status`打印实际policy、planner、参数和当前源码身份，运行前先核对输出。
 
@@ -661,8 +665,6 @@ bash run_in_lade.sh python -m unittest \
 bash run_in_lade.sh python -m unittest discover -s tests -v
 ```
 
-如果已经安装Node.js，还可以执行`node --test tests/*.test.mjs`，验证地图构建、相机交互、显示插值和回放等51项前端检查。
-
 数据库集成测试使用显式测试环境开关和独立运行身份。普通仓库/journal验证可以先完成，再分别安排图谱集成实验。
 
 ## 11. 已经怎样验证这套仓库
@@ -729,7 +731,7 @@ picking：   8台，正在取货
 
 目前仓库布局、容量规则、能量准入、任务分配、交通与恢复已经形成通过回归的实验载体。继续优化查询时，主要工作是请求触发、访问接口、数据库读取和计时拆分。
 
-本次仓库分支聚焦已经验收的仓库设计、调度、仿真及其文档。新的查询访问层和压测代码可以单独提交、单独对照；按需知识接口真正接入运行决策时，再作为有明确调用链和对照结果的一项工作开展。
+已推送的仓库分支聚焦当时验收的仓库设计、调度、仿真及其文档。本轮新增查询访问层、连续多日输入与历史控制入口在独立版本中继续验证；低电协作按需读取知识，保留调用链和规则对照。合并时分别检查各自的源码身份、测试与运行证据。
 
 ### 12.3 交接检查清单
 
