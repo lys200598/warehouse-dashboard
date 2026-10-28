@@ -661,6 +661,8 @@ bash run_in_lade.sh python -m unittest \
 bash run_in_lade.sh python -m unittest discover -s tests -v
 ```
 
+如果已经安装Node.js，还可以执行`node --test tests/*.test.mjs`，验证地图构建、相机交互、显示插值和回放等51项前端检查。
+
 数据库集成测试使用显式测试环境开关和独立运行身份。普通仓库/journal验证可以先完成，再分别安排图谱集成实验。
 
 ## 11. 已经怎样验证这套仓库
