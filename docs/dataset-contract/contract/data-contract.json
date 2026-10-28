@@ -1,0 +1,124 @@
+{
+  "contract_version": "warehouse-boundary-task-contract-v5-handoff-1",
+  "task_file": "tasks.csv",
+  "task_fields": [
+    "task_id",
+    "task_type",
+    "goods_id",
+    "release_time",
+    "due_time",
+    "source_id",
+    "target_id"
+  ],
+  "initial_inventory_fields": [
+    "goods_id",
+    "location_id"
+  ],
+  "required_files": [
+    "tasks.csv",
+    "initial_inventory.csv",
+    "manifest.json"
+  ],
+  "optional_report_file": "validation.json",
+  "task_types": [
+    "INBOUND",
+    "OUTBOUND"
+  ],
+  "task_quantity": 1,
+  "task_id_scope": "unique across entire dataset including all dates",
+  "goods_identity": "one stable ID across receipt/storage/transport/handoff/shipment; at most one inbound and one outbound in current reference contract",
+  "timestamps": {
+    "format": "ISO8601 with explicit numeric offset (e.g. +08:00) and integer-second precision",
+    "same_offset_as_manifest_start": true,
+    "release_range": "0 <= release-start < duration_seconds",
+    "due_rule": "due_time > release_time; may cross midnight"
+  },
+  "maximum_duration_seconds": 604800,
+  "endpoints": {
+    "INBOUND": [
+      "inbound point",
+      "slot"
+    ],
+    "OUTBOUND": [
+      "slot",
+      "outbound point"
+    ],
+    "canonical_bays_or_aliases_are_valid_task_endpoints": false
+  },
+  "capacity": {
+    "total_inside_max": 1728,
+    "per_slot_occupied_plus_inbound_reservation_max": 1,
+    "overflow_allowance": 0,
+    "inside_formula": "initial + received - shipped",
+    "inside_includes": [
+      "stored",
+      "received at inbound",
+      "carried or in transfer"
+    ],
+    "outbound_pick_releases_total_capacity": false,
+    "outbound_drop_confirmation_releases_total_capacity": true,
+    "admission_wait_behavior": "keep original release, preserve waiting demand outside received inventory; no deleting demand, fictitious placement or map expansion"
+  },
+  "reference_validation": {
+    "ordering": [
+      "release_second",
+      "task_id"
+    ],
+    "scope": "logical release-order per-slot inventory/dependency plan; does not prove actual runtime timely feasibility",
+    "runtime_outbound_after_actual_placement": true
+  },
+  "dataset_algorithm_separation": {
+    "not_in_task_csv": [
+      "robot_id",
+      "SOC/charge thresholds",
+      "dispatch policy",
+      "mandatory helper/relay",
+      "actual assigned/picked/completed timestamps",
+      "failure recovery decisions"
+    ],
+    "runtime_parameters_file": "separate explicit experiment config, not task input",
+    "same_input_for_policy_comparisons": true
+  },
+  "implemented_generator_profiles": {
+    "uniform": "independent fixed initial phase per active slot and periodic turnover",
+    "peak": "monotone compression into three waves",
+    "hotspot": "nearest physical 20% active slots have 4x default turnover; total is not matched to uniform",
+    "continuous": "exponential interarrival after initial random phase; one-second minimum"
+  },
+  "suggested_seven_day_variations": [
+    "uniform",
+    "fixed-time peaks",
+    "fixed spatial hotspot",
+    "batch pulses",
+    "moving hotspot",
+    "inbound/outbound tidal balance",
+    "mixed high-load and recovery"
+  ],
+  "seven_variations_composer_implemented": false,
+  "continuous_multiday_state_resets": false,
+  "deadline_provenance": "declare reference distance, handling, slack and speed; never fill input deadline from measured completion; do not alter original acceptance-case deadlines",
+  "LaDe_relation": {
+    "inspiration": "CSV organization with date/time/spatial task information, as used by LaDe/KG_Embodied",
+    "not_claims": [
+      "not a 17-column Jilin raw CSV adapter",
+      "not observed warehouse receipts",
+      "not actual Jilin warehouse ground truth",
+      "city delivery counts are not identical warehouse inbound volume"
+    ],
+    "if_real_curve_is_used": "declare source dates, scaling factor and semantic mapping in manifest"
+  },
+  "sample_input": {
+    "path": "sample-input",
+    "tasks": 19,
+    "role": "small interface/reference-validation sample only, not a successful simulation report"
+  },
+  "colleague_delivery_checklist": [
+    "manifest version/seed/start/duration and scene SHA",
+    "exact seven-field tasks.csv and two-field initial_inventory.csv",
+    "counts and complete file SHA-256",
+    "scenario/time/spatial distributions and synthetic assumptions",
+    "declared deadline rule and expected overload labeling",
+    "reference validation plus separately recorded actual-run results"
+  ],
+  "runtime_acceptance_is_separate": true
+}

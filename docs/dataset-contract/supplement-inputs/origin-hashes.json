@@ -1,0 +1,72 @@
+[
+  {
+    "name": "hotspot-2h",
+    "scenario": "hotspot",
+    "duration_seconds": 7200,
+    "active_slots": 576,
+    "slot_interval_seconds": 7200,
+    "seed": 20261028,
+    "tasks": 924,
+    "inbound": 473,
+    "outbound": 451,
+    "reference_valid": true,
+    "runtime_feasibility_claim": false,
+    "daily_tasks": [
+      924
+    ],
+    "files": {
+      "tasks.csv": "67cabc7ff3a9f19915ad4565b7a2a0858259d40705a74611b57356124991d13d",
+      "initial_inventory.csv": "4c8cc6334adcff39e7ef99cb71f9c6022d7f123874a62da3dc2d7162182ec350"
+    },
+    "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+    "manifest_sha256": "6e30a1bcafdb93f5babba12f75958f044b7182f17221bbcbd7df7b577552535e",
+    "path": "supplement-inputs/hotspot-2h"
+  },
+  {
+    "name": "peak-2h",
+    "scenario": "peak",
+    "duration_seconds": 7200,
+    "active_slots": 768,
+    "slot_interval_seconds": 7200,
+    "seed": 20261029,
+    "tasks": 768,
+    "inbound": 373,
+    "outbound": 395,
+    "reference_valid": true,
+    "runtime_feasibility_claim": false,
+    "daily_tasks": [
+      768
+    ],
+    "files": {
+      "tasks.csv": "a8943ae059e6ff00b0acedeb7d2ed1ddb9c5a0b270267b528fd2e9c35e1e8e43",
+      "initial_inventory.csv": "c052472aa456e956414279ae3897c8436c8d3f31a083784fc7778e1a33a06506"
+    },
+    "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+    "manifest_sha256": "fcd50fb2f73c812b92324cfb184a26cb96dc3db2834ea6a2a7306a8dac77eff4",
+    "path": "supplement-inputs/peak-2h"
+  },
+  {
+    "name": "continuous-2d",
+    "scenario": "continuous",
+    "duration_seconds": 172800,
+    "active_slots": 128,
+    "slot_interval_seconds": 21600,
+    "seed": 20261030,
+    "tasks": 1034,
+    "inbound": 518,
+    "outbound": 516,
+    "reference_valid": true,
+    "runtime_feasibility_claim": false,
+    "daily_tasks": [
+      572,
+      462
+    ],
+    "files": {
+      "tasks.csv": "45d9ce8c3e64657776e9094e28d2db885d330c9dd776d22a6c5859a561efdd76",
+      "initial_inventory.csv": "97999ff08c773e2e454c0286b5587bf4f08eb429a5ee842ef7b92f2f33b94318"
+    },
+    "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+    "manifest_sha256": "2407af1f9e2edddff1452ccf61d5e155a9959f7fef58c9f38c19ad4723600c0f",
+    "path": "supplement-inputs/continuous-2d"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "status": "passed_with_opt_in_database_skips",
+  "tests_run": 268,
+  "passed": 263,
+  "skipped": 5,
+  "wall_seconds": 227.433,
+  "skip_scope": "opt-in real database integration, not counted as real KG acceptance",
+  "log_sha256": "617dd225444c5e891c4102928b8b2aa765771f3475e55b0989d695b336da25fb",
+  "scope": "frozen warehouse V5 checkout; later real_scale implementation is not part of this suite"
+}

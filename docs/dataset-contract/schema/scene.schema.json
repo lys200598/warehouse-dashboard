@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:warehouse:wide-scene:handoff-v5-1",
+  "title": "Warehouse wide-v2 scene as consumed by wide/V5 adapter",
+  "type": "object",
+  "required": [
+    "spec",
+    "capacity",
+    "racks",
+    "stations",
+    "docks",
+    "homes"
+  ],
+  "properties": {
+    "capacity": {
+      "const": 1728
+    },
+    "spec": {
+      "type": "object",
+      "required": [
+        "version",
+        "width",
+        "depth",
+        "unit",
+        "robotCount",
+        "chargerCount",
+        "levels",
+        "baysPerFace",
+        "faces",
+        "slotPitch",
+        "robotRadius"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "unit": {
+          "const": "m"
+        },
+        "width": {
+          "const": 90
+        },
+        "depth": {
+          "const": 76
+        },
+        "robotCount": {
+          "const": 100
+        },
+        "chargerCount": {
+          "const": 100
+        },
+        "levels": {
+          "const": 3
+        },
+        "baysPerFace": {
+          "const": 8
+        },
+        "faces": {
+          "const": 2
+        },
+        "slotPitch": {
+          "const": 1.2
+        },
+        "robotRadius": {
+          "const": 0.55
+        }
+      },
+      "additionalProperties": true
+    },
+    "racks": {
+      "type": "array",
+      "minItems": 36,
+      "maxItems": 36,
+      "items": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "x",
+              "y",
+              "w",
+              "d"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "w": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "d": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "capacity"
+            ],
+            "properties": {
+              "capacity": {
+                "const": 48
+              }
+            }
+          }
+        ]
+      }
+    },
+    "stations": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "x",
+          "y"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "inbound",
+              "outbound"
+            ]
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "docks": {
+      "type": "array",
+      "minItems": 100,
+      "maxItems": 100,
+      "items": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "x",
+              "y",
+              "w",
+              "d"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "w": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "d": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "point",
+              "gate",
+              "capacity",
+              "staticCollision"
+            ],
+            "properties": {
+              "point": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": true
+              },
+              "gate": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": true
+              },
+              "capacity": {
+                "const": 1
+              },
+              "staticCollision": {
+                "const": false
+              }
+            }
+          }
+        ]
+      }
+    },
+    "homes": {
+      "type": "array",
+      "minItems": 100,
+      "maxItems": 100,
+      "items": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "x",
+              "y",
+              "w",
+              "d"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "w": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "d": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "required": [
+              "point",
+              "alias_of"
+            ],
+            "properties": {
+              "point": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": true
+              },
+              "alias_of": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$comment": "Schema covers structure of this fixed scene; exact SHA, canonical aliases, coordinates and reference inventory are checked by validate_package.py. Not a topology/traffic proof."
+}

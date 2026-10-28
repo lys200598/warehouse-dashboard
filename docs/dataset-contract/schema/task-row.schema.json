@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:warehouse:task-row:handoff-v5-1",
+  "title": "CSV row represented as a JSON object",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_type",
+    "goods_id",
+    "release_time",
+    "due_time",
+    "source_id",
+    "target_id"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_type": {
+      "enum": [
+        "INBOUND",
+        "OUTBOUND"
+      ]
+    },
+    "goods_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "release_time": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$"
+    },
+    "due_time": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "CSV itself is checked by validate_package.py; do not replace CSV with JSON."
+}

@@ -1,0 +1,6 @@
+{
+  "wait_limit": 300,
+  "deadline_guard": 120.0,
+  "port_pressure_weight": 1.0,
+  "port_queue_cap": 6
+}

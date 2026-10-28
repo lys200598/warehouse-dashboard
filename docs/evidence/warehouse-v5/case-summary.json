@@ -1,0 +1,227 @@
+{
+  "peak": {
+    "run_id": "wh-v5-final-peak",
+    "tasks": 1728,
+    "completed": 1728,
+    "late": 0,
+    "flow_seconds": {
+      "mean_completed_only": 380.6828703703704,
+      "p95": 752,
+      "p99": 888,
+      "max": 957
+    },
+    "max_dispatch_wait_seconds": 422,
+    "mean_dispatch_wait_seconds": 123.171875,
+    "metrics": {
+      "unsafe_events": 0,
+      "min_soc": 33.330574699690736,
+      "min_separation_m": 1.0999999999999943,
+      "max_active_business": 100,
+      "handoffs": 0,
+      "planning_seconds": 362.38173940964043,
+      "empty_distance_m": 108478.7553894029,
+      "loaded_distance_m": 96337.66758773559
+    },
+    "registered_robots": 100,
+    "robots_completed_tasks": 100,
+    "wall_seconds": 433.3013160498813,
+    "elapsed": 4179,
+    "input_identity": {
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "tasks_sha256": "20a2fd09bbd675834fffb723f0c484e2ffca79378cbea83f2ee4f3137626ed5b",
+      "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+      "manifest_sha256": "20c741365bedfb477ae2c5a1f976bf4a72549e462cf190714c91980f7e4c5070"
+    },
+    "quiescence": {
+      "status": "passed",
+      "steps_advanced": 93,
+      "before_elapsed": 4179,
+      "after_elapsed": 4272,
+      "parked": 76,
+      "charging_at_home": 24,
+      "nonfault_robots": 100,
+      "faulted": [],
+      "source_checkpoint_unchanged": true
+    }
+  },
+  "day": {
+    "run_id": "wh-v5-final-day",
+    "tasks": 6912,
+    "completed": 6912,
+    "late": 0,
+    "flow_seconds": {
+      "mean_completed_only": 128.49291087962962,
+      "p95": 172,
+      "p99": 184,
+      "max": 293
+    },
+    "max_dispatch_wait_seconds": 5,
+    "mean_dispatch_wait_seconds": 0.0011574074074074073,
+    "metrics": {
+      "unsafe_events": 0,
+      "min_soc": 23.62361111111118,
+      "min_separation_m": 1.0999999999999943,
+      "max_active_business": 22,
+      "handoffs": 2,
+      "planning_seconds": 208.07575110066682,
+      "empty_distance_m": 653321.817929395,
+      "loaded_distance_m": 375794.99657424923
+    },
+    "registered_robots": 100,
+    "robots_completed_tasks": 96,
+    "wall_seconds": 956.1930826175958,
+    "elapsed": 86549,
+    "input_identity": {
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "tasks_sha256": "eee6de79c842c026b938174f06a481ce33c08f7b70396db1496ba700c97d916d",
+      "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+      "manifest_sha256": "83f5b089e145879d73bef13fa76ad9dd2ffa2f3b4b5526eb19bf88b19c551a5c"
+    },
+    "quiescence": {
+      "status": "passed",
+      "steps_advanced": 133,
+      "before_elapsed": 86549,
+      "after_elapsed": 86682,
+      "parked": 93,
+      "charging_at_home": 7,
+      "nonfault_robots": 100,
+      "faulted": [],
+      "source_checkpoint_unchanged": true
+    }
+  },
+  "hotspot-2h": {
+    "run_id": "wh-v5-final-hotspot-2h",
+    "tasks": 924,
+    "completed": 924,
+    "late": 0,
+    "flow_seconds": {
+      "mean_completed_only": 131.44372294372295,
+      "p95": 178,
+      "p99": 191,
+      "max": 211
+    },
+    "max_dispatch_wait_seconds": 0,
+    "mean_dispatch_wait_seconds": 0.0,
+    "metrics": {
+      "unsafe_events": 0,
+      "min_soc": 34.37051449779942,
+      "min_separation_m": 1.1000000000000014,
+      "max_active_business": 26,
+      "handoffs": 0,
+      "planning_seconds": 29.46860136743635,
+      "empty_distance_m": 86087.76109712916,
+      "loaded_distance_m": 50386.87750231189
+    },
+    "registered_robots": 100,
+    "robots_completed_tasks": 87,
+    "wall_seconds": 63.45694208238274,
+    "elapsed": 7321,
+    "input_identity": {
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "tasks_sha256": "67cabc7ff3a9f19915ad4565b7a2a0858259d40705a74611b57356124991d13d",
+      "initial_inventory_sha256": "4c8cc6334adcff39e7ef99cb71f9c6022d7f123874a62da3dc2d7162182ec350",
+      "manifest_sha256": "6e30a1bcafdb93f5babba12f75958f044b7182f17221bbcbd7df7b577552535e"
+    },
+    "quiescence": {
+      "status": "passed",
+      "steps_advanced": 98,
+      "before_elapsed": 7321,
+      "after_elapsed": 7419,
+      "parked": 95,
+      "charging_at_home": 5,
+      "nonfault_robots": 100,
+      "faulted": [],
+      "source_checkpoint_unchanged": true
+    }
+  },
+  "peak-2h": {
+    "run_id": "wh-v5-final-peak-2h",
+    "tasks": 768,
+    "completed": 768,
+    "late": 0,
+    "flow_seconds": {
+      "mean_completed_only": 140.68489583333334,
+      "p95": 190,
+      "p99": 215,
+      "max": 275
+    },
+    "max_dispatch_wait_seconds": 2,
+    "mean_dispatch_wait_seconds": 0.00390625,
+    "metrics": {
+      "unsafe_events": 0,
+      "min_soc": 35.952976648378865,
+      "min_separation_m": 1.0999999999999943,
+      "max_active_business": 48,
+      "handoffs": 0,
+      "planning_seconds": 38.08434150647372,
+      "empty_distance_m": 71229.27628325953,
+      "loaded_distance_m": 42773.50969097142
+    },
+    "registered_robots": 100,
+    "robots_completed_tasks": 90,
+    "wall_seconds": 71.3286470239982,
+    "elapsed": 7200,
+    "input_identity": {
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "tasks_sha256": "a8943ae059e6ff00b0acedeb7d2ed1ddb9c5a0b270267b528fd2e9c35e1e8e43",
+      "initial_inventory_sha256": "c052472aa456e956414279ae3897c8436c8d3f31a083784fc7778e1a33a06506",
+      "manifest_sha256": "fcd50fb2f73c812b92324cfb184a26cb96dc3db2834ea6a2a7306a8dac77eff4"
+    },
+    "quiescence": {
+      "status": "passed",
+      "steps_advanced": 0,
+      "before_elapsed": 7200,
+      "after_elapsed": 7200,
+      "parked": 93,
+      "charging_at_home": 7,
+      "nonfault_robots": 100,
+      "faulted": [],
+      "source_checkpoint_unchanged": true
+    }
+  },
+  "continuous-2d": {
+    "run_id": "wh-v5-final-continuous-2d",
+    "tasks": 1034,
+    "completed": 1034,
+    "late": 0,
+    "flow_seconds": {
+      "mean_completed_only": 126.28239845261122,
+      "p95": 169,
+      "p99": 179,
+      "max": 187
+    },
+    "max_dispatch_wait_seconds": 0,
+    "mean_dispatch_wait_seconds": 0.0,
+    "metrics": {
+      "unsafe_events": 0,
+      "min_soc": 38.27745894224695,
+      "min_separation_m": 1.1023977952066153,
+      "max_active_business": 9,
+      "handoffs": 0,
+      "planning_seconds": 18.773248911835253,
+      "empty_distance_m": 100712.77358939471,
+      "loaded_distance_m": 55041.64923325357
+    },
+    "registered_robots": 100,
+    "robots_completed_tasks": 69,
+    "wall_seconds": 284.760364334099,
+    "elapsed": 172800,
+    "input_identity": {
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "tasks_sha256": "45d9ce8c3e64657776e9094e28d2db885d330c9dd776d22a6c5859a561efdd76",
+      "initial_inventory_sha256": "97999ff08c773e2e454c0286b5587bf4f08eb429a5ee842ef7b92f2f33b94318",
+      "manifest_sha256": "2407af1f9e2edddff1452ccf61d5e155a9959f7fef58c9f38c19ad4723600c0f"
+    },
+    "quiescence": {
+      "status": "passed",
+      "steps_advanced": 57,
+      "before_elapsed": 172800,
+      "after_elapsed": 172857,
+      "parked": 98,
+      "charging_at_home": 2,
+      "nonfault_robots": 100,
+      "faulted": [],
+      "source_checkpoint_unchanged": true
+    }
+  }
+}

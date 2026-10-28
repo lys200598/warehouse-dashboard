@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "checks": {
+    "frozen_150_bytes_identical": true,
+    "runtime_identity_identical": true,
+    "small_sample_completed": true,
+    "recorded_frames_integrity": true,
+    "actual_scene_90_76_100_bays": true,
+    "frames_contain_100_robots": true,
+    "http_routes_succeeded": true,
+    "owned_ephemeral_server_stopped": true
+  },
+  "runtime_identity": {
+    "release": "warehouse-scheduler-v5.0.0",
+    "policy": "port-guard",
+    "parameters": {
+      "wait_limit": 300,
+      "deadline_guard": 120.0,
+      "port_pressure_weight": 1.0,
+      "port_queue_cap": 6
+    },
+    "planner": "original-sipp",
+    "source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+    "engine_release": "warehouse-scheduler-v4.0.0",
+    "features": [
+      "v4-motion-engine",
+      "strong-inventory-invariant",
+      "max-cardinality-guarded-cost"
+    ],
+    "execution_sha256": "afcead96fe0d8589e7f4567b8e0083c4204cdc58396728af060b5400bd1b7d86"
+  },
+  "sample": {
+    "completed": 19,
+    "late": 0,
+    "unsafe_events": 0,
+    "frames": 199
+  },
+  "routes": {
+    "/wide.html": {
+      "status": 200,
+      "bytes": 7412,
+      "sha256": "f630f1af18c2c818cc2820bbd7a48fa26726293c664e24c6b53cf9d94fe67790"
+    },
+    "/api/health": {
+      "status": 200,
+      "bytes": 5553,
+      "sha256": "f40e5a787fb580d907d06994523ef57384b7fef2f943dba101808a7f0edd85ce"
+    },
+    "/api/scene": {
+      "status": 200,
+      "bytes": 62434,
+      "sha256": "ae22a4286e485aebdbf536c27a9c03a8a6624e8c44e6aa35573ffc97360e59c1"
+    },
+    "/api/frame?second=0": {
+      "status": 200,
+      "bytes": 51395,
+      "sha256": "cc194d1357871213f2e9a2c9cd6061568f765796f1d50fc8cf934c53537f2109"
+    },
+    "/api/frame?second=1800": {
+      "status": 200,
+      "bytes": 52033,
+      "sha256": "ce0a48337157b6ffaef458d6a115624b46ae88a6ff30b0cd7fd59120ef2c608e"
+    }
+  },
+  "errors": [],
+  "python_no_site_packages": true
+}

@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "files_verified": 150,
+  "source_zip_sha256": "1d25052aedc0ae64d80324e9302358f6c458152a6278a420d824475ab18161d4",
+  "aggregate_backend_source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+  "execution_identity": {
+    "release": "warehouse-scheduler-v5.0.0",
+    "policy": "port-guard",
+    "parameters": {
+      "wait_limit": 300,
+      "deadline_guard": 120.0,
+      "port_pressure_weight": 1.0,
+      "port_queue_cap": 6
+    },
+    "planner": "original-sipp",
+    "source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+    "engine_release": "warehouse-scheduler-v4.0.0",
+    "features": [
+      "v4-motion-engine",
+      "strong-inventory-invariant",
+      "max-cardinality-guarded-cost"
+    ],
+    "execution_sha256": "afcead96fe0d8589e7f4567b8e0083c4204cdc58396728af060b5400bd1b7d86"
+  },
+  "scope": "frozen release ZIP; current working-tree backend not imported"
+}

@@ -1,0 +1,204 @@
+{
+  "source_archive_sha256": "1d25052aedc0ae64d80324e9302358f6c458152a6278a420d824475ab18161d4",
+  "runtime_source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+  "frozen_source_files": 150,
+  "original_files_preserved_byte_for_byte": true,
+  "published_files": {
+    "docs/dataset-contract/contract/acceptance-status.json": {
+      "handoff_entry": "contract/acceptance-status.json",
+      "original_sha256": "4559ba85a416ec7b7166635619fccc9e9a9d667dbcb671367b03bfff9c35b008"
+    },
+    "docs/dataset-contract/contract/data-contract.json": {
+      "handoff_entry": "contract/data-contract.json",
+      "original_sha256": "a99e0a95a78ff85636fc6ff87fdf9927456e54ffcc856505d319bb1923a81f57"
+    },
+    "docs/dataset-contract/contract/layout-contract.json": {
+      "handoff_entry": "contract/layout-contract.json",
+      "original_sha256": "8d71def940b7afb53c9ef29557f916bf9c23459608d8e8653a8039461c31532b"
+    },
+    "docs/dataset-contract/layout/all-locations.csv": {
+      "handoff_entry": "layout/all-locations.csv",
+      "original_sha256": "cfd32361848e7f4a61fe12cebbcd5f921ea0e8a77b459853b101241f8e3a85e9"
+    },
+    "docs/dataset-contract/layout/physical-bays.csv": {
+      "handoff_entry": "layout/physical-bays.csv",
+      "original_sha256": "9afabe0c48d2272dbcccb56a900fe4a6bc9d32fe426d21ee3ac312031bc050ad"
+    },
+    "docs/dataset-contract/layout/task-locations.csv": {
+      "handoff_entry": "layout/task-locations.csv",
+      "original_sha256": "fb7e4f3f87b717346c8ff8c06136e8cbf8cddc804030a3c88bb32282ee6a96e4"
+    },
+    "docs/dataset-contract/layout/warehouse100-wide-v2.json": {
+      "handoff_entry": "layout/warehouse100-wide-v2.json",
+      "original_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24"
+    },
+    "docs/dataset-contract/sample-input/initial_inventory.csv": {
+      "handoff_entry": "sample-input/initial_inventory.csv",
+      "original_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40"
+    },
+    "docs/dataset-contract/sample-input/manifest.json": {
+      "handoff_entry": "sample-input/manifest.json",
+      "original_sha256": "cbeae88707cc679c706267602fc90964c755846eeb09308b0eaa5e22b6b7c2b1"
+    },
+    "docs/dataset-contract/sample-input/tasks.csv": {
+      "handoff_entry": "sample-input/tasks.csv",
+      "original_sha256": "1b69ee561d55cd6af36f5e9d8647d2a63d23afde16a0268ca35f0bcad4f128ee"
+    },
+    "docs/dataset-contract/sample-input/validation.json": {
+      "handoff_entry": "sample-input/validation.json",
+      "original_sha256": "00e050903512e9ceb698e41b93d74f6d9d95ed2182dc8e12638e5e5bb7758b40"
+    },
+    "docs/dataset-contract/schema/scene.schema.json": {
+      "handoff_entry": "schema/scene.schema.json",
+      "original_sha256": "500e00dd7690cc151a355add32044be46ff5446347ad40edff4c46174c92ce92"
+    },
+    "docs/dataset-contract/schema/task-row.schema.json": {
+      "handoff_entry": "schema/task-row.schema.json",
+      "original_sha256": "f6c68c1ec06e4d74020bec60350aaf442d96f8a656dd97fbde71d2edceb04c79"
+    },
+    "docs/dataset-contract/supplement-inputs/continuous-2d/initial_inventory.csv": {
+      "handoff_entry": "supplement-inputs/continuous-2d/initial_inventory.csv",
+      "original_sha256": "97999ff08c773e2e454c0286b5587bf4f08eb429a5ee842ef7b92f2f33b94318"
+    },
+    "docs/dataset-contract/supplement-inputs/continuous-2d/manifest.json": {
+      "handoff_entry": "supplement-inputs/continuous-2d/manifest.json",
+      "original_sha256": "2407af1f9e2edddff1452ccf61d5e155a9959f7fef58c9f38c19ad4723600c0f"
+    },
+    "docs/dataset-contract/supplement-inputs/continuous-2d/tasks.csv": {
+      "handoff_entry": "supplement-inputs/continuous-2d/tasks.csv",
+      "original_sha256": "45d9ce8c3e64657776e9094e28d2db885d330c9dd776d22a6c5859a561efdd76"
+    },
+    "docs/dataset-contract/supplement-inputs/continuous-2d/validation.json": {
+      "handoff_entry": "supplement-inputs/continuous-2d/validation.json",
+      "original_sha256": "985ae2d1ea076b5175be55f416515369f8ae2103116ef6d9fdfcfc844fe047ed"
+    },
+    "docs/dataset-contract/supplement-inputs/hotspot-2h/initial_inventory.csv": {
+      "handoff_entry": "supplement-inputs/hotspot-2h/initial_inventory.csv",
+      "original_sha256": "4c8cc6334adcff39e7ef99cb71f9c6022d7f123874a62da3dc2d7162182ec350"
+    },
+    "docs/dataset-contract/supplement-inputs/hotspot-2h/manifest.json": {
+      "handoff_entry": "supplement-inputs/hotspot-2h/manifest.json",
+      "original_sha256": "6e30a1bcafdb93f5babba12f75958f044b7182f17221bbcbd7df7b577552535e"
+    },
+    "docs/dataset-contract/supplement-inputs/hotspot-2h/tasks.csv": {
+      "handoff_entry": "supplement-inputs/hotspot-2h/tasks.csv",
+      "original_sha256": "67cabc7ff3a9f19915ad4565b7a2a0858259d40705a74611b57356124991d13d"
+    },
+    "docs/dataset-contract/supplement-inputs/hotspot-2h/validation.json": {
+      "handoff_entry": "supplement-inputs/hotspot-2h/validation.json",
+      "original_sha256": "e4b84eb3b974cc63d8bbd61d948b21feba1ffeeb1f98b4c4070fe10ef0e4c1b9"
+    },
+    "docs/dataset-contract/supplement-inputs/origin-hashes.json": {
+      "handoff_entry": "supplement-inputs/origin-hashes.json",
+      "original_sha256": "e6bc51702944594b2a86fb86257b8d25caeb1f95e4957ab51a5ca3ba3191c392"
+    },
+    "docs/dataset-contract/supplement-inputs/peak-2h/initial_inventory.csv": {
+      "handoff_entry": "supplement-inputs/peak-2h/initial_inventory.csv",
+      "original_sha256": "c052472aa456e956414279ae3897c8436c8d3f31a083784fc7778e1a33a06506"
+    },
+    "docs/dataset-contract/supplement-inputs/peak-2h/manifest.json": {
+      "handoff_entry": "supplement-inputs/peak-2h/manifest.json",
+      "original_sha256": "fcd50fb2f73c812b92324cfb184a26cb96dc3db2834ea6a2a7306a8dac77eff4"
+    },
+    "docs/dataset-contract/supplement-inputs/peak-2h/tasks.csv": {
+      "handoff_entry": "supplement-inputs/peak-2h/tasks.csv",
+      "original_sha256": "a8943ae059e6ff00b0acedeb7d2ed1ddb9c5a0b270267b528fd2e9c35e1e8e43"
+    },
+    "docs/dataset-contract/supplement-inputs/peak-2h/validation.json": {
+      "handoff_entry": "supplement-inputs/peak-2h/validation.json",
+      "original_sha256": "d7880037089984da3dd8289845736d3b7b71eca6861bd4a2f2bc72145f49d180"
+    },
+    "docs/dataset-contract/validate_package.py": {
+      "handoff_entry": "validate_package.py",
+      "original_sha256": "ca414c9c80823ecd1ea3a4078573101406c02badde9316dcc4c7e27fb9651943"
+    },
+    "docs/evidence/warehouse-v5/case-summary.json": {
+      "handoff_entry": "evidence/case-summary.json",
+      "original_sha256": "5d41ee70c98c7cf6d37b1e8e59f21c4de2e3151b7f102cfb11a0c325c3a2160f"
+    },
+    "docs/evidence/warehouse-v5/frozen-release-identity.json": {
+      "handoff_entry": "evidence/frozen-release-identity.json",
+      "original_sha256": "229930b98f3720bd2031724729ad818587749e43d6a34539c21c51b4a9c05509"
+    },
+    "docs/evidence/warehouse-v5/full-regression-summary.json": {
+      "handoff_entry": "evidence/full-regression-summary.json",
+      "original_sha256": "c112715f537fb0cbd2b2ae5f71aeebe6a65881403a13fa836eac563274e2a004"
+    },
+    "docs/evidence/warehouse-v5/quiescence-independent-RAM-check.json": {
+      "handoff_entry": "evidence/quiescence-independent-RAM-check.json",
+      "original_sha256": "f3a005b484ea1fed546d7effbdec6a2a97fb896f94d564b4132bdf017b2e66ab"
+    },
+    "docs/evidence/warehouse-v5/warehouse-phase1-gate.json": {
+      "handoff_entry": "evidence/warehouse-phase1-gate.json",
+      "original_sha256": "561324787076310ef45a7027e60c3704d813adaaeca0f7dd0c663ed33e2033a8"
+    },
+    "docs/evidence/warehouse-v5/hundred-active-replay/hundred-active-replay-frame.json": {
+      "handoff_entry": "evidence/hundred-active-replay/hundred-active-replay-frame.json",
+      "original_sha256": "f0b372cd70e9c4dc3639d6eac37545856a9afbf6d9b8e91338486f667a90929e"
+    },
+    "docs/evidence/warehouse-v5/hundred-active-replay/independent-all-pairs-motion-check.json": {
+      "handoff_entry": "evidence/hundred-active-replay/independent-all-pairs-motion-check.json",
+      "original_sha256": "07ad1af7b7c89ffd8eae9fa92701a3862f38a8bcd0bc7d3d3c74f3578ae1d453"
+    },
+    "docs/evidence/warehouse-v5/hundred-active-replay/motion-audit.json": {
+      "handoff_entry": "evidence/hundred-active-replay/motion-audit.json",
+      "original_sha256": "6c911eca9beeb99e5ce63265e79c7541fb1734b65c33e9f9c5a8d59013f51599"
+    },
+    "docs/evidence/warehouse-v5/hundred-active-replay/trajectory-sample-comparisons.json": {
+      "handoff_entry": "evidence/hundred-active-replay/trajectory-sample-comparisons.json",
+      "original_sha256": "9479043766b5e329784e9b24887ffc5a41ea76659055b2704eb80114237b51e5"
+    },
+    "docs/evidence/warehouse-v5/hundred-active-replay/verification.json": {
+      "handoff_entry": "evidence/hundred-active-replay/verification.json",
+      "original_sha256": "7aa8dd0432157ebfa63afa672ea3c4cef12e078d7665c34e83cddc316b8b72ce"
+    },
+    "data/examples/regression/day/initial_inventory.csv": {
+      "original_input_entry": "day/initial_inventory.csv",
+      "original_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40"
+    },
+    "data/examples/regression/day/manifest.json": {
+      "original_input_entry": "day/manifest.json",
+      "original_sha256": "83f5b089e145879d73bef13fa76ad9dd2ffa2f3b4b5526eb19bf88b19c551a5c"
+    },
+    "data/examples/regression/day/tasks.csv": {
+      "original_input_entry": "day/tasks.csv",
+      "original_sha256": "eee6de79c842c026b938174f06a481ce33c08f7b70396db1496ba700c97d916d"
+    },
+    "data/examples/regression/day/validation.json": {
+      "original_input_entry": "day/validation.json",
+      "original_sha256": "8fd79f6184f865363a0ca18afe54c0725343b0b110c90bd3ef1d65105d5b35d4"
+    },
+    "data/examples/regression/day/config.json": {
+      "original_input_entry": "day-config.json",
+      "original_sha256": "1cab5130493ae78c2462ce265c7d577b2cb2550ad21e2b44b55267744cbed062"
+    },
+    "data/examples/regression/day/disturbances.json": {
+      "original_input_entry": "day-disturbances.json",
+      "original_sha256": "9adf3fa84040d9a6151fd686e06c58cbdc19949ec22defc3025160a4a3651cd1"
+    },
+    "data/examples/regression/peak/initial_inventory.csv": {
+      "original_input_entry": "peak/initial_inventory.csv",
+      "original_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40"
+    },
+    "data/examples/regression/peak/manifest.json": {
+      "original_input_entry": "peak/manifest.json",
+      "original_sha256": "20c741365bedfb477ae2c5a1f976bf4a72549e462cf190714c91980f7e4c5070"
+    },
+    "data/examples/regression/peak/tasks.csv": {
+      "original_input_entry": "peak/tasks.csv",
+      "original_sha256": "20a2fd09bbd675834fffb723f0c484e2ffca79378cbea83f2ee4f3137626ed5b"
+    },
+    "data/examples/regression/peak/validation.json": {
+      "original_input_entry": "peak/validation.json",
+      "original_sha256": "d1cfab0fb3f63be418b63b845ea8054bee32605d075838aea43388682773b1c0"
+    },
+    "data/examples/regression/peak/config.json": {
+      "original_input_entry": "peak-config.json",
+      "original_sha256": "1a9078000226a168e251122fd93ac91237619996fd630b34745c2cbe9a95bc82"
+    },
+    "data/examples/regression/peak/disturbances.json": {
+      "original_input_entry": "peak-disturbances.json",
+      "original_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from copy import deepcopy
 from datetime import datetime, timezone
 import random
 import time
@@ -14,6 +15,8 @@ from .domain import (
     SHELF_COLUMNS,
     SHELF_DEPTH_ROWS,
     RobotAgent,
+    pickup_point,
+    inbound_queue_point,
 )
 from .runtime import RobotRuntime
 from .traffic import TrafficManager
@@ -27,6 +30,8 @@ class SimulationConfig:
     step_seconds: float = 0.25
     flow_rate: float = 48.0
     traffic_cell_size: float = 0.12
+    inbound_layout: str = 'edge'
+    initial_occupancy: float = .52
 
     def validate(self) -> None:
         if not 1 <= self.robot_count <= 500:
@@ -37,6 +42,10 @@ class SimulationConfig:
             raise ValueError("step_seconds must be in (0, 5]")
         if self.flow_rate < 0:
             raise ValueError("flow_rate cannot be negative")
+        if self.inbound_layout not in {'edge','corner'}:
+            raise ValueError('inbound_layout must be edge or corner')
+        if not 0 <= self.initial_occupancy <= 1:
+            raise ValueError('initial_occupancy must be in 0..1')
 
 
 class SimulationCoordinator:
@@ -44,15 +53,32 @@ class SimulationCoordinator:
 
     CHECKPOINT_SCHEMA_VERSION = 1
 
-    def __init__(self, runtime: RobotRuntime, config: SimulationConfig | None = None):
+    def __init__(self, runtime: RobotRuntime, config: SimulationConfig | None = None, *, knowledge_store=None, initialize=True, run_id=None, metadata=None):
         self.runtime = runtime
+        self.knowledge_store = knowledge_store
+        self.requested_run_id = run_id
+        self.metadata = metadata or {}
         self.config = config or SimulationConfig()
         self.config.validate()
         self.traffic = TrafficManager(self.config.traffic_cell_size)
-        self._initialize_new_run()
+        if initialize:
+            self._initialize_new_run()
 
     def _initialize_new_run(self) -> None:
-        self.run_id = f"warehouse-{uuid4().hex[:12]}"
+        self.run_id = self.requested_run_id or f"warehouse-{uuid4().hex[:12]}"
+        self.requested_run_id = None
+        self.knowledge_seq = 0
+        self.event_sequence = 0
+        self.pending_events = []
+        if self.knowledge_store is not None:
+            from .knowledge import source_fingerprint
+            self.run_metadata = {"source_sha256": source_fingerprint(), "domain": "warehouse-inbound",
+                                 "time_unit": "simulated_seconds", "coordinate_unit": "dashboard-unit",
+                                 "schema_version": 1, "dataset_origin": "live-simulation"}
+            self.run_metadata['initial_backend']=self.runtime.name
+            self.run_metadata.update(self.metadata)
+        else:
+            self.run_metadata = {}
         self.tick = 0
         self.elapsed = 0.0
         self.completed = 0
@@ -73,6 +99,7 @@ class SimulationCoordinator:
         self.robot_snapshots = self.runtime.snapshots()
         self._seed_initial_backlog()
         self._record_system_event("仿真已启动，初始任务队列已创建")
+        self.persist_knowledge()
 
     def _create_racks(self) -> list[dict[str, Any]]:
         rng = random.Random(self.config.seed)
@@ -84,7 +111,7 @@ class SimulationCoordinator:
                 for level in range(1, 4):
                     for depth_row in range(SHELF_DEPTH_ROWS):
                         for bay in range(SHELF_COLUMNS):
-                            occupied = rng.random() > 0.48
+                            occupied = rng.random() > 1.-self.config.initial_occupancy
                             slot_id = f"R{rack_id:02d}-L{level}-C{bay + 1}-D{depth_row + 1}"
                             slots.append(
                                 {
@@ -137,9 +164,29 @@ class SimulationCoordinator:
             self.task_credit + delta_seconds * self.config.flow_rate / 3600.0,
         )
         self._assign_waiting_robots()
+        self._admit_pickups()
+
+        unroutable = self._reroute_blocked()
 
         proposals = self.runtime.propose_all(delta_seconds, self.elapsed, self.tick)
         traffic_decision = self.traffic.resolve(proposals)
+        for robot_id in unroutable:
+            traffic_decision.accepted[robot_id] = False
+        if unroutable:
+            # Propagate new stationary reservations after fail-closed route failures.
+            stopped = [p for p in proposals if not traffic_decision.accepted[p['robot_id']]]
+            from .traffic import swept_distance
+            changed = True
+            while changed:
+                changed = False
+                for p in proposals:
+                    if p['moving'] and traffic_decision.accepted[p['robot_id']] and any(
+                        p['robot_id'] != q['robot_id'] and swept_distance(p['from'],p['to'],q['from'],q['from']) < self.config.traffic_cell_size-1e-9
+                        for q in stopped):
+                        traffic_decision.accepted[p['robot_id']] = False
+                        stopped.append(p)
+                        changed = True
+            traffic_decision.blocked_robot_ids = sorted(k for k,v in traffic_decision.accepted.items() if not v)
         results = self.runtime.commit_all(proposals, traffic_decision.accepted)
         self.robot_snapshots = [result["robot"] for result in results]
 
@@ -147,7 +194,59 @@ class SimulationCoordinator:
             for event in result["events"]:
                 self._process_robot_event(event)
 
+        self.persist_knowledge()
         return self.snapshot(blocked_robot_ids=traffic_decision.blocked_robot_ids)
+
+    def _reroute_blocked(self):
+        from .routing import detour
+        states = [p["state"] for p in self.robot_snapshots]
+        paths = {}
+        initial = [s for s in states if s['stage'] in {'toQueue','toPick','toRack','returning'} and not s.get('route_planned')]
+        candidates = sorted((s for s in states if s.get('route_planned') and s["stage"] in {"toQueue","toPick","toRack","returning"}
+                             and s["blocked_steps"] >= 4 and (s["blocked_steps"]-4)%8 == 0),
+                            key=lambda s:(-s["blocked_steps"],s["robot_id"]))[:8]
+        boxes = [(r['x'],r['y'],r['x']+r['width'],r['y']+r['depth']) for r in self.racks]
+        failed = set()
+        for state in initial+candidates:
+            obstacles = [(s["x"],s["y"]) for s in states if s["robot_id"] != state["robot_id"]]
+            goal = state["path"][-1]
+            path = detour((state["x"],state["y"]),(goal["x"],goal["y"]),
+                          [] if not state.get('route_planned') else obstacles,
+                          self.config.traffic_cell_size,boxes=boxes)
+            if path:
+                paths[state["robot_id"]] = path
+            elif not state.get('route_planned'):
+                failed.add(state['robot_id'])
+        if paths:
+            for replacement in self.runtime.reroute_many(paths):
+                self._replace_robot_snapshot(replacement)
+        return failed
+
+    def _admit_pickups(self):
+        if self.config.inbound_layout != 'corner':
+            return
+        import math
+        states=[p['state'] for p in self.robot_snapshots]
+        admitted=[]
+        occupied=set()
+        for s in sorted(states,key=lambda s:s['robot_id']):
+            if s['stage'] != 'queued':
+                continue
+            station=(s['pickup_x'],s['pickup_y'])
+            if station in occupied:
+                continue
+            if any(o['robot_id'] != s['robot_id'] and (
+                (o['stage'] in {'toPick','picking'} and (o['pickup_x'],o['pickup_y'])==station)
+                or math.hypot(o['x']-station[0],o['y']-station[1])<.65) for o in states):
+                continue
+            admitted.append(s['robot_id']);occupied.add(station)
+        if admitted:
+            for replacement in self.runtime.admit_pickups(admitted):
+                self._replace_robot_snapshot(replacement)
+                s=replacement['state']
+                self._record_event({'id':f'{self.tick}:{s["robot_id"]}:pickup_admitted:{s["task_id"]}',
+                    'tick':self.tick,'type':'pickup_admitted','robot_id':s['robot_id'],'task_id':s['task_id'],
+                    'cargo_id':s['cargo_id'],'slot_id':s['slot_id'],'text':'主进程准入入库工位'})
 
     def _assign_waiting_robots(self) -> None:
         ready = [
@@ -210,6 +309,7 @@ class SimulationCoordinator:
         cargo_id = f"BX-{4000 + self.task_sequence:06d}"
         slot["reserved_by"] = robot_id
         assignment = self._assignment_payload(
+            robot_id=robot_id,
             task_id=task_id,
             cargo_id=cargo_id,
             priority=priority,
@@ -247,6 +347,7 @@ class SimulationCoordinator:
     def _assignment_payload(
         self,
         *,
+        robot_id: int,
         task_id: str,
         cargo_id: str,
         priority: str,
@@ -257,6 +358,8 @@ class SimulationCoordinator:
         slot_x = rack["x"] + 0.1 + slot["bay"] * cell_width + (cell_width - PACKAGE_WIDTH) / 2
         return {
             "task_id": task_id,
+            "pickup": pickup_point(robot_id, self.config.inbound_layout),
+            "queue": inbound_queue_point(robot_id) if self.config.inbound_layout == 'corner' else None,
             "cargo_id": cargo_id,
             "priority": priority,
             "rack_id": rack["id"],
@@ -307,12 +410,25 @@ class SimulationCoordinator:
             None,
         )
         if assigned:
+            self.persist_knowledge()
             return {
                 "status": "assigned",
                 "task_id": assigned["task_id"],
                 "robot_id": assigned["robot_id"],
             }
+        self.persist_knowledge()
         return {"status": "queued", "pending_priority": self.pending_priority}
+
+    def inject_task_batch(self,count=100):
+        if type(count) is not int or not 1<=count<=100:
+            raise ValueError('batch count must be an integer in 1..100')
+        previous=set(self.tasks)
+        self.pending_priority+=count
+        self._assign_waiting_robots()
+        assigned=[t['task_id'] for key,t in self.tasks.items() if key not in previous]
+        self._record_system_event(f'新增 {count} 项入库请求，已派发 {len(assigned)} 项')
+        self.persist_knowledge()
+        return {'requested':count,'assigned':len(assigned),'task_ids':assigned,'pending_priority':self.pending_priority}
 
     def control(self, action: str, value: float | None = None) -> dict[str, Any]:
         if action == "pause":
@@ -330,10 +446,13 @@ class SimulationCoordinator:
             if value is None or not 0 <= value <= 1000:
                 raise ValueError("flow rate must be between 0 and 1000")
             self.config.flow_rate = float(value)
+            self._record_system_event(f"任务流量已切换为 {self.config.flow_rate:g} 单/时")
         elif action == "reset":
             self._initialize_new_run()
         else:
             raise ValueError(f"unsupported control action: {action}")
+        if action != "reset":
+            self.persist_knowledge()
         return self.snapshot()
 
     def snapshot(self, blocked_robot_ids: list[int] | None = None) -> dict[str, Any]:
@@ -342,6 +461,25 @@ class SimulationCoordinator:
         worker_pids = sorted({int(payload.get("worker_pid", 0)) for payload in self.robot_snapshots})
         return {
             "schemaVersion": 1,
+            "scene": {
+                "inboundLayout": self.config.inbound_layout,
+                "name": "角落集中入库 · 8 工位" if self.config.inbound_layout == 'corner' else "长边分布入库 · 100 工位",
+                "model": "2d-kinematic-with-shelf-obstacles",
+                "inbound": ({"x":.6,"y":18.55,"width":5.2,"depth":2.7} if self.config.inbound_layout == 'corner'
+                            else {"x":.6,"y":18.55,"width":30.8,"depth":2.7}),
+                "stations": [dict(id=i,**pickup_point(i,self.config.inbound_layout))
+                             for i in range(1,9 if self.config.inbound_layout == 'corner' else self.config.robot_count+1)],
+                "queueArea": {'x':.6,'y':12.7,'width':5.2,'depth':5.2} if self.config.inbound_layout=='corner' else None,
+                "queuePoints": [dict(id=i,**inbound_queue_point(i)) for i in range(1,self.config.robot_count+1)] if self.config.inbound_layout=='corner' else [],
+            },
+            "metrics": {
+                "assignedRobots": sum(p['state']['task_id'] is not None and self.tasks.get(p['state']['task_id'],{}).get('status') != 'completed' for p in self.robot_snapshots),
+                "inProgressTasks": sum(t['status'] != 'completed' for t in self.tasks.values()),
+                "occupiedSlots": sum(s['occupied'] for r in self.racks for s in r['slots']),
+                "freeSlots": sum(not s['occupied'] and s['reserved_by'] is None for r in self.racks for s in r['slots']),
+                "blockedRobots": sum(p['state']['blocked_steps'] > 0 for p in self.robot_snapshots),
+                "completedRobotIds": sorted({t['robot_id'] for t in self.tasks.values() if t['status'] == 'completed'}),
+            },
             "runId": self.run_id,
             "backend": self.runtime.name,
             "tick": self.tick,
@@ -361,11 +499,15 @@ class SimulationCoordinator:
                 "workerProcessCount": len(worker_pids),
                 "workerPids": worker_pids,
             },
+            "knowledge": self.knowledge_status(),
         }
 
     def checkpoint_payload(self) -> dict[str, Any]:
         return {
             "schema_version": self.CHECKPOINT_SCHEMA_VERSION,
+            "knowledge_seq": self.knowledge_seq,
+            "event_sequence": self.event_sequence,
+            "run_metadata": self.run_metadata,
             "saved_at": datetime.now(timezone.utc).isoformat(),
             "run_id": self.run_id,
             "config": asdict(self.config),
@@ -381,7 +523,10 @@ class SimulationCoordinator:
             "tasks": self.tasks,
             "events": self.events,
             "processed_event_ids": sorted(self.processed_event_ids),
-            "robots": self.runtime.snapshots(),
+            # These are the successful barrier results, including every accepted
+            # assignment/reroute. Do not issue a third 100-Actor RPC barrier merely
+            # to re-read the exact same committed state at each journal commit.
+            "robots": deepcopy(self.robot_snapshots),
         }
 
     def restore_checkpoint(self, payload: dict[str, Any]) -> None:
@@ -397,6 +542,10 @@ class SimulationCoordinator:
         self.config = saved_config
         self.traffic = TrafficManager(self.config.traffic_cell_size)
         self.run_id = payload["run_id"]
+        self.knowledge_seq = int(payload.get("knowledge_seq", 0))
+        self.event_sequence = int(payload.get("event_sequence", 0))
+        self.run_metadata = payload.get("run_metadata", {})
+        self.pending_events = []
         self.tick = int(payload["tick"])
         self.elapsed = float(payload["elapsed"])
         self.completed = int(payload["completed"])
@@ -414,6 +563,21 @@ class SimulationCoordinator:
 
     def close(self) -> None:
         self.runtime.close()
+
+    def knowledge_status(self):
+        return self.knowledge_store.status(self.run_id) if self.knowledge_store else {"backend": "none"}
+
+    def persist_knowledge(self):
+        if self.knowledge_store is None:
+            self.pending_events.clear()
+            return
+        self.knowledge_seq += 1
+        try:
+            self.knowledge_store.append(self.checkpoint_payload(), self.pending_events)
+        except Exception:
+            self.knowledge_seq -= 1
+            raise
+        self.pending_events.clear()
 
     def record_system_event(self, text: str) -> None:
         self._record_system_event(text)
@@ -499,13 +663,20 @@ class SimulationCoordinator:
         if event_id in self.processed_event_ids:
             return
         self.processed_event_ids.add(event_id)
+        self.event_sequence += 1
         robot_id = event.get("robot_id")
         enriched = {
             **event,
+            "event_id": f"{self.run_id}:{self.event_sequence}",
+            "event_seq": self.event_sequence,
+            "run_id": self.run_id,
+            "sim_time": self.elapsed,
             "time": self._format_clock(self.elapsed),
             "robot": f"HR-{int(robot_id):03d}" if robot_id else "SYSTEM",
         }
         self.events.insert(0, enriched)
+        if self.knowledge_store is not None:
+            self.pending_events.append(enriched)
         del self.events[100:]
         if len(self.processed_event_ids) > 1000:
             self.processed_event_ids = {item["id"] for item in self.events}
@@ -513,7 +684,7 @@ class SimulationCoordinator:
     def _record_system_event(self, text: str) -> None:
         self._record_event(
             {
-                "id": f"{self.run_id}:{self.tick}:system:{len(self.events)}",
+                "id": f"{self.run_id}:{self.tick}:system:{self.event_sequence + 1}",
                 "tick": self.tick,
                 "type": "system",
                 "robot_id": None,

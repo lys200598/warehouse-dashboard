@@ -73,6 +73,8 @@
 
   let robots = [];
   let racks = [];
+  let backendScene = null;
+  let backendMetrics = null;
   let renderWidth = 0;
   let renderHeight = 0;
   let frameCount = 0;
@@ -88,6 +90,8 @@
   let backendLatency = null;
   let backendSnapshotAt = 0;
   let backendInterpolationDuration = 250;
+  let lastBackendTick = null;
+  let lastBackendRun = null;
   let isDragging = false;
   let dragMoved = false;
   let pointerStart = { x: 0, y: 0, panX: 0, panY: 0, yaw: 0, pitch: 0, mode: "orbit" };
@@ -114,8 +118,9 @@
   const lerp = (from, to, amount) => from + (to - from) * clamp(amount, 0, 1);
   const pad = (value, size = 2) => String(value).padStart(size, "0");
   const robotCode = (id) => `HR-${pad(id, 3)}`;
-  const taskCode = (robot) => robot.taskId || `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`;
-  const cargoCode = (robot) => robot.cargoId || `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`;
+  const taskCode = (robot) => robot.taskId || (backendAuthoritative ? "—" : `TK-${2000 + ((robot.id * 37 + robot.taskRound * 11) % 780)}`);
+  const cargoCode = (robot) => robot.cargoId || (backendAuthoritative ? "—" : `BX-${4000 + ((robot.id * 83 + robot.taskRound * 17) % 890)}`);
+  const backendFrameOrigin = (previous, payload, continuous) => continuous && previous ? {x: previous.renderTargetX ?? previous.x, y: previous.renderTargetY ?? previous.y} : {x: payload.x, y: payload.y};
   const shelfRowName = (depthRow = 0) => depthRow === 0 ? "后排" : "前排";
 
   function robotTypeFor(id) {
@@ -126,15 +131,17 @@
   }
 
   function categoryFor(robot) {
-    if (robot.stage === "warning" || robot.blocked) return "warning";
+    if (robot.stage === "warning" || robot.blocked || (robot.battery < 28 && robot.stage !== "charging")) return "warning";
     if (robot.stage === "picking" || robot.stage === "placing") return "handling";
-    if (robot.stage === "idle" || robot.stage === "charging") return "idle";
+    if (robot.stage === "idle" || robot.stage === "charging" || robot.stage === "queued") return "idle";
     return "moving";
   }
 
   function stageLabel(robot) {
     if (robot.blocked && robot.alert) return robot.alert;
     const labels = {
+      toQueue: "前往入库等候位",
+      queued: "入库排队 · 等待工位准入",
       toPick: "前往入库台",
       picking: "正在取货",
       toRack: `前往 ${robot.rack?.zone || "-"}-${pad(robot.rack?.id || 0)} / L${robot.level} / C${robot.bay} / ${shelfRowName(robot.depthRow)}`,
@@ -634,9 +641,18 @@
     }
     ctx.restore();
 
-    drawFloorZone(0.6, 18.55, 5.2, 2.7, "rgba(201,244,108,0.075)", "#617449");
-    drawFloorZone(0.6, 1.1, 5.2, 2.5, "rgba(240,166,90,0.07)", "#7f5c3e");
-    drawFloorZone(27.3, 18.2, 4.0, 2.8, "rgba(104,199,255,0.07)", "#456c7b");
+    const intake = backendScene?.inbound || {x:0.6,y:18.55,width:5.2,depth:2.7};
+    drawFloorZone(intake.x, intake.y, intake.width, intake.depth, "rgba(201,244,108,0.075)", "#617449");
+    for (const point of backendScene?.stations || []) {
+      drawFloorZone(point.x-.12,point.y-.12,.24,.24,"rgba(201,244,108,0.15)","#91a86b");
+    }
+    if (backendScene?.queueArea) {
+      const q=backendScene.queueArea;
+      drawFloorZone(q.x,q.y,q.width,q.depth,"rgba(104,199,255,0.045)","#456c7b");
+      for(const point of backendScene.queuePoints || []) drawFloorZone(point.x-.09,point.y-.09,.18,.18,"rgba(104,199,255,0.04)","#456c7b");
+    }
+    drawFloorZone(0.6, 0.5, 30.8, 2.7, "rgba(240,166,90,0.07)", "#7f5c3e");
+    if (!backendAuthoritative) drawFloorZone(27.3, 18.2, 4.0, 2.8, "rgba(104,199,255,0.07)", "#456c7b");
   }
 
   function drawFloorZone(x, y, width, depth, fill, stroke) {
@@ -1230,8 +1246,12 @@
   }
 
   function updateZoneLabels() {
+    const inboundLabel = $(".inbound-label");
+    if (inboundLabel) inboundLabel.textContent = backendScene?.inboundLayout === "edge" ? "INBOUND / 分布式取货工位" : "INBOUND / 集中入库区";
+    $(".outbound-label").textContent = backendAuthoritative ? "DISPATCH / 调度停靠区" : "OUTBOUND / 出库";
+    $(".charge-label").style.display = backendAuthoritative ? "none" : "";
     [
-      [".inbound-label", 3.2, 19.9],
+      [".inbound-label", backendScene?.inboundLayout === "edge" ? 15.9 : 3.2, 21.25],
       [".outbound-label", 3.2, 2.35],
       [".charge-label", 29.3, 19.6],
     ].forEach(([selector, x, y]) => {
@@ -1420,10 +1440,11 @@
     $("#batteryValue").textContent = `${Math.round(robot.battery)}%`;
     $("#batteryBar").style.width = `${robot.battery}%`;
     $("#batteryBar").style.background = robot.battery < 18 ? COLORS.red : COLORS.lime;
-    $("#selectedTaskId").textContent = `#${taskCode(robot)}`;
-    $("#selectedTaskTitle").textContent = `将货物送至 ${rackLabel}`;
-    $("#selectedCargo").textContent = `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置`;
-    $("#selectedLevel").textContent = `L${robot.level} · ${targetHeight.toFixed(2)}m`;
+    const hasTask = !backendAuthoritative || Boolean(robot.taskId);
+    $("#selectedTaskId").textContent = hasTask ? `#${taskCode(robot)}` : "无执行任务";
+    $("#selectedTaskTitle").textContent = hasTask ? (robot.stage === "returning" ? "任务已完成，正在返回" : `将货物送至 ${rackLabel}`) : "等待主进程派单";
+    $("#selectedCargo").textContent = hasTask ? `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置` : "当前未携带执行任务";
+    $("#selectedLevel").textContent = hasTask ? `L${robot.level} · ${targetHeight.toFixed(2)}m` : "—";
     $("#selectedAction").textContent = stageLabel(robot);
     $("#selectedProgressText").textContent = `${progress}%`;
     $("#selectedProgressBar").style.width = `${progress}%`;
@@ -1447,8 +1468,8 @@
       result[categoryFor(robot)] += 1;
       return result;
     }, { moving: 0, handling: 0, idle: 0, warning: 0 });
-    const active = counts.moving + counts.handling;
-    const waiting = Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
+    const active = backendMetrics?.assignedRobots ?? (counts.moving + counts.handling);
+    const waiting = backendAuthoritative ? "—" : Math.max(3, Math.round(state.flowRate * 0.31 - counts.idle * 0.35));
     const robotCount = Math.max(1, robots.length);
     const utilization = Math.round((active / robotCount) * 100);
     const movingPercent = (counts.moving / robotCount) * 100;
@@ -1460,6 +1481,11 @@
     $("#taskLoadBar").style.width = `${Math.min(100, active)}%`;
     $("#completedCount").textContent = state.completed.toLocaleString("zh-CN");
     $("#warningCount").textContent = counts.warning;
+    const blocked = robots.filter(r=>r.blocked).length;
+    const lowBattery = robots.filter(r=>r.battery<28 && r.stage!=="charging").length;
+    const otherWarning = robots.filter(r=>r.stage==="warning" && !r.blocked).length;
+    $("#attentionDetail").textContent = `路径阻塞 ${blocked} · 低电量 ${lowBattery} · 其他 ${otherWarning}`;
+    $("#sceneCapacity").textContent = backendMetrics ? `空闲格位 ${backendMetrics.freeSlots} · 已占用 ${backendMetrics.occupiedSlots}（不自动清空）` : "离线演示，无真实任务队列";
     $("#filterAll").textContent = robots.length;
     $("#filterMoving").textContent = counts.moving;
     $("#filterHandling").textContent = counts.handling;
@@ -1473,7 +1499,7 @@
     $("#utilizationDonut").style.background = `conic-gradient(${COLORS.lime} 0 ${movingPercent}%, ${COLORS.blue} ${movingPercent}% ${activePercent}%, #303a37 ${activePercent}% 100%)`;
     $("#simClock").textContent = formatClock(state.elapsed);
     $("#connectionLatency").textContent = backendConnected && backendLatency !== null
-      ? `${backendLatency} ms`
+      ? (state.running ? `帧龄 ${backendLatency} ms` : "暂停帧")
       : "离线";
     $("#fpsCounter").textContent = `${state.fps} FPS`;
     const shiftProgress = clamp((state.elapsed / (8 * 3600)) * 100, 0, 100);
@@ -1513,6 +1539,9 @@
   }
 
   function applyBackendSnapshot(snapshot) {
+    backendScene = snapshot.scene || null;
+    backendMetrics = snapshot.metrics || null;
+    $("#sceneName").textContent = backendScene?.name || "WAREHOUSE CONTROL / 后端连接";
     const receivedAt = performance.now();
     const previousById = new Map(robots.map((robot) => [robot.id, robot]));
     if (backendSnapshotAt > 0) {
@@ -1527,25 +1556,32 @@
     });
     robots = snapshot.robots.map((payload) => {
       const previous = previousById.get(payload.id);
+      // Only interpolate an actual consecutive committed segment. Reconnecting,
+      // dropping frames, or changing run must not invent a chord through a rack.
+      const origin = backendFrameOrigin(previous,payload,backendAuthoritative && lastBackendRun===snapshot.runId && snapshot.tick===lastBackendTick+1);
       const rack = rackById.get(payload.rackId) || racks[0];
       const slot = rack?.slots.find((item) => item.slotId === payload.slotId) || rack?.slots[0];
       return {
         ...payload,
-        x: previous?.x ?? payload.x,
-        y: previous?.y ?? payload.y,
-        renderFromX: previous?.x ?? payload.x,
-        renderFromY: previous?.y ?? payload.y,
+        x: origin.x,
+        y: origin.y,
+        renderFromX: origin.x,
+        renderFromY: origin.y,
         renderTargetX: payload.x,
         renderTargetY: payload.y,
         rack,
         slot,
       };
     });
+    lastBackendTick = snapshot.tick;
+    lastBackendRun = snapshot.runId;
     state.running = snapshot.running;
     state.speed = snapshot.speed;
     state.elapsed = snapshot.elapsed;
     state.completed = snapshot.completed;
     state.flowRate = snapshot.flowRate;
+    const runStatusText = $("#runStatusText");
+    if (runStatusText) runStatusText.textContent = state.running ? "系统运行中" : "仿真已暂停";
     if (!robots.some((robot) => robot.id === state.selectedId)) state.selectedId = robots[0]?.id || 1;
     backendLatency = Math.max(0, Date.now() - snapshot.generatedAtMs);
     backendConnected = true;
@@ -1784,6 +1820,14 @@
       $$("#filterList [data-filter]").forEach((item) => item.classList.toggle("active", item.dataset.filter === "all"));
       updateSelectedRobot();
       showToast(`已定位 ${robotCode(id)}`);
+    });
+
+    $("#taskBatchButton").addEventListener("click", async () => {
+      if (!backendConnected) return showToast("批量派单需要连接真实后端", "!");
+      try {
+        const result=await backendPost("/api/tasks/batch",{count:100});
+        showToast(`新增 ${result.requested} 单，已派发 ${result.assigned} 单，待分配 ${result.pending_priority} 单`);
+      } catch(error) {showToast(`派单失败：${error.message}`,"!");}
     });
 
     $("#priorityTaskButton").addEventListener("click", () => {

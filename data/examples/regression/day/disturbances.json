@@ -1,0 +1,23 @@
+[
+  {
+    "at": 900,
+    "kind": "stop",
+    "seconds": 90,
+    "handoff": true
+  },
+  {
+    "at": 15000,
+    "kind": "delay",
+    "seconds": 30
+  },
+  {
+    "at": 30000,
+    "kind": "soc",
+    "soc": 24
+  },
+  {
+    "at": 65000,
+    "kind": "stop",
+    "seconds": 120
+  }
+]

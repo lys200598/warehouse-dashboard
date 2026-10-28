@@ -9,7 +9,7 @@
       content="100 台轻量人形机器人协同完成取货、搬运和多层货架上架任务的可交互仓储仿真控制台。"
     />
     <title>100台人形机器人仓储调度台</title>
-    <link rel="stylesheet" href="./styles.css?v=20261014-3" />
+    <link rel="stylesheet" href="./styles.css?v=20261026-joint2" />
   </head>
   <body>
     <div class="app-shell">
@@ -19,7 +19,7 @@
             <span></span><span></span><span></span>
           </div>
           <div>
-            <div class="eyebrow">WAREHOUSE CONTROL / DEMO 01</div>
+            <div class="eyebrow" id="sceneName">WAREHOUSE CONTROL / 等待后端</div>
             <h1>群体机器人调度台</h1>
           </div>
         </div>
@@ -27,9 +27,9 @@
         <div class="topbar-meta">
           <div class="system-health">
             <span class="pulse-dot"></span>
-            <span>系统运行中</span>
+            <span id="runStatusText">系统运行中</span>
             <span class="health-divider"></span>
-            <strong id="connectionLatency">18 ms</strong>
+            <strong id="connectionLatency" title="数据帧年龄，不是知识查询延迟">等待数据帧</strong>
           </div>
           <div class="clock-block">
             <span>仿真时钟</span>
@@ -53,7 +53,7 @@
           </article>
 
           <article class="metric-card accent-blue">
-            <div class="metric-head"><span>执行中任务</span><span class="metric-index">02</span></div>
+            <div class="metric-head"><span>已派发任务</span><span class="metric-index">02</span></div>
             <div class="metric-value"><strong id="activeTaskCount">86</strong><small>项</small></div>
             <div class="metric-foot"><span id="waitingTaskCount">14</span> 项等待分配</div>
             <div class="mini-bar"><i id="taskLoadBar" style="width: 86%"></i></div>
@@ -71,7 +71,7 @@
           <article class="metric-card accent-red">
             <div class="metric-head"><span>需关注</span><span class="metric-index">04</span></div>
             <div class="metric-value"><strong id="warningCount">3</strong><small>台</small></div>
-            <div class="metric-foot warning-text">低电量 2 · 路径阻塞 1</div>
+            <div class="metric-foot warning-text" id="attentionDetail">等待后端状态</div>
             <div class="warning-dots"><i></i><i></i><i></i><i class="muted"></i><i class="muted"></i></div>
           </article>
         </section>
@@ -131,13 +131,15 @@
 
             <div class="flow-control">
               <div class="control-label"><span>任务流入速度</span><strong id="flowValue">中等 · 48 单/时</strong></div>
-              <input id="flowRange" type="range" min="20" max="100" value="48" aria-label="任务流入速度" />
+              <input id="flowRange" type="range" min="0" max="1000" value="48" aria-label="任务流入速度" />
               <div class="range-labels"><span>平缓</span><span>峰值</span></div>
             </div>
 
             <button class="button primary wide" id="priorityTaskButton" type="button">
               <span>＋</span> 插入优先任务
             </button>
+            <button class="button ghost wide" id="taskBatchButton" type="button">＋ 新增 100 单入库请求</button>
+            <p id="sceneCapacity" style="font-size:11px;color:#9baa9f">格位容量等待后端</p>
           </aside>
 
           <section class="scene-panel panel" aria-label="仓库实时仿真">
@@ -264,6 +266,6 @@
       <span id="toastIcon">✓</span><p id="toastText">操作已完成</p>
     </div>
 
-    <script src="./app.js?v=20261014-3"></script>
+    <script src="./app.js?v=20261026-joint2"></script>
   </body>
 </html>

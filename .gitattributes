@@ -1,0 +1,13 @@
+# Runtime and dataset hashes are byte identities. Preserve validated line endings.
+backend/** -text
+config/** -text
+data/** -text
+dist/** -text
+ops/** -text
+scripts/** -text
+tests/** -text
+run_in_lade.sh -text
+requirements*.txt -text
+*.csv -text
+*.json -text
+*.md text eol=lf

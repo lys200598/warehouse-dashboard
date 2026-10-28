@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warehouse · 时序知识查询</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#182c32;font:15px system-ui,sans-serif}
+main{max-width:1100px;margin:40px auto;padding:0 24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}
+h1{font-size:30px;margin:0 0 8px}a{color:#245f64}section{background:white;border:1px solid #dce5e7;border-radius:14px;padding:24px;margin:20px 0}
+.muted{color:#657b80}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}label{display:flex;flex-direction:column;gap:7px}
+input,select,button{font:inherit;border:1px solid #bfced1;border-radius:7px;padding:10px;background:white}button{cursor:pointer;background:#245f64;color:white;border:0;padding:12px 22px}
+button:disabled{opacity:.5}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px ui-monospace,monospace;line-height:1.5;max-height:650px;overflow:auto}
+#notice{color:#657b80;line-height:1.6}#error{color:#ac2c35}
+</style><main>
+<header><div><h1>Warehouse 时序知识查询</h1><div class="muted">Run 隔离 · 事件档案 · 历史状态 · 无 LLM</div></div><a href="/">返回实时仓储台 →</a></header>
+<section><strong>持久化状态</strong><p id="status">正在读取…</p><div id="notice">查询只读 Neo4j 已提交的数据；durable_seq 是日志水位，mirrored_seq 是图谱水位。两者不一致时不能把图谱当成最新运行状态。</div></section>
+<section><form id="form"><div class="grid">
+<label>查询类型<select id="kind"><option value="context">机器人上下文</option><option value="robot_history">机器人历史</option><option value="events">过程事件</option><option value="task">任务历史状态</option><option value="slot">格位历史状态</option><option value="step">提交步骤摘要</option></select></label>
+<label>Run ID<input id="run" required></label><label>Robot ID<input id="robot" type="number" min="1" max="500" value="1"></label>
+<label>截止 tick（空 = 最新）<input id="tick" type="number" min="0" placeholder="例如 100"></label>
+<label>Task ID<input id="task" value="TK-000001"></label><label>Slot ID<input id="slot" value="R01-L1-C1-D1"></label>
+</div><p><button id="submit">查询已提交知识</button></p></form><div id="error"></div></section>
+<section><strong id="caption">查询结果</strong><pre id="result">选择机器人和时间，查询当前或历史状态。刷新页面不会重启仿真。</pre></section>
+</main><script type="module">
+const $=id=>document.getElementById(id);
+async function status(){try{const h=await fetch('/api/health').then(r=>r.json());$('run').value||=h.runId;
+const k=await fetch('/api/knowledge/status').then(r=>r.json());$('status').textContent=JSON.stringify(k);}
+catch(e){$('status').textContent='服务未连接';}}
+$('form').addEventListener('submit',async e=>{e.preventDefault();$('error').textContent='';$('submit').disabled=true;
+const p={query_id:$('kind').value,run_id:$('run').value,robot_id:Number($('robot').value),limit:50};
+if($('tick').value!=='')p.as_of_tick=Number($('tick').value);
+if(p.query_id==='task')p.task_id=$('task').value;if(p.query_id==='slot')p.slot_id=$('slot').value;
+try{const r=await fetch('/api/knowledge/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});const d=await r.json();
+if(!r.ok)throw Error(d.detail||r.statusText);$('caption').textContent=`${d.catalog_version} · tick ${d.as_of_tick} · seq ${d.as_of_seq} · ${d.client_ms} ms`;
+$('result').textContent=JSON.stringify(d,null,2);}catch(e){$('error').textContent=e.message;}finally{$('submit').disabled=false;}});
+status();setInterval(status,5000);
+</script></html>

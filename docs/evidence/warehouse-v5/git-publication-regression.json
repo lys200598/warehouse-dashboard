@@ -1,0 +1,17 @@
+{
+  "scope": "fresh Git-delivery checkout full regression",
+  "tests": 268,
+  "seconds": 223.198,
+  "passed": 263,
+  "skipped": 5,
+  "failures": 0,
+  "exit_code": 0,
+  "source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+  "frontend": {
+    "runtime": "Node.js v25.8.1",
+    "tests": 13,
+    "passed": 13,
+    "failures": 0,
+    "scope": "backend display, layout preview controls, wide playback"
+  }
+}

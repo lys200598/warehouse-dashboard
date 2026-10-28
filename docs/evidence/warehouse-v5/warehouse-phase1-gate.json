@@ -1,0 +1,128 @@
+{
+  "status": "passed",
+  "selected": {
+    "profile": "balanced",
+    "policy": "port-guard",
+    "planner": "original-sipp",
+    "parameters": {
+      "wait_limit": 300,
+      "deadline_guard": 120.0,
+      "port_pressure_weight": 1.0,
+      "port_queue_cap": 6
+    },
+    "selection_reason": "zero late; lower mean than preserved original; bounded starvation guard; retain exact caches and fast planner option"
+  },
+  "identity": {
+    "release": "warehouse-scheduler-v5.0.0",
+    "policy": "port-guard",
+    "parameters": {
+      "wait_limit": 300,
+      "deadline_guard": 120.0,
+      "port_pressure_weight": 1.0,
+      "port_queue_cap": 6
+    },
+    "planner": "original-sipp",
+    "source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+    "engine_release": "warehouse-scheduler-v4.0.0",
+    "features": [
+      "v4-motion-engine",
+      "strong-inventory-invariant",
+      "max-cardinality-guarded-cost"
+    ],
+    "execution_sha256": "afcead96fe0d8589e7f4567b8e0083c4204cdc58396728af060b5400bd1b7d86"
+  },
+  "cases": {
+    "peak": {
+      "results": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/peak/results.json",
+      "quiescence": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/quiescence/peak",
+      "tasks": 1728,
+      "late": 0,
+      "flow": {
+        "mean_completed_only": 380.6828703703704,
+        "p95": 752,
+        "p99": 888,
+        "max": 957
+      },
+      "wall_seconds": 433.3013160498813,
+      "planning_seconds": 362.38173940964043,
+      "handoffs": 0,
+      "min_soc": 33.330574699690736,
+      "max_active_business": 100,
+      "robots_completed_tasks": 100
+    },
+    "day": {
+      "results": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/day/results.json",
+      "quiescence": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/quiescence/day",
+      "tasks": 6912,
+      "late": 0,
+      "flow": {
+        "mean_completed_only": 128.49291087962962,
+        "p95": 172,
+        "p99": 184,
+        "max": 293
+      },
+      "wall_seconds": 956.1930826175958,
+      "planning_seconds": 208.07575110066682,
+      "handoffs": 2,
+      "min_soc": 23.62361111111118,
+      "max_active_business": 22,
+      "robots_completed_tasks": 96
+    },
+    "hotspot-2h": {
+      "results": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/hotspot-2h/results.json",
+      "quiescence": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/quiescence/hotspot-2h",
+      "tasks": 924,
+      "late": 0,
+      "flow": {
+        "mean_completed_only": 131.44372294372295,
+        "p95": 178,
+        "p99": 191,
+        "max": 211
+      },
+      "wall_seconds": 63.45694208238274,
+      "planning_seconds": 29.46860136743635,
+      "handoffs": 0,
+      "min_soc": 34.37051449779942,
+      "max_active_business": 26,
+      "robots_completed_tasks": 87
+    },
+    "peak-2h": {
+      "results": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/peak-2h/results.json",
+      "quiescence": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/quiescence/peak-2h",
+      "tasks": 768,
+      "late": 0,
+      "flow": {
+        "mean_completed_only": 140.68489583333334,
+        "p95": 190,
+        "p99": 215,
+        "max": 275
+      },
+      "wall_seconds": 71.3286470239982,
+      "planning_seconds": 38.08434150647372,
+      "handoffs": 0,
+      "min_soc": 35.952976648378865,
+      "max_active_business": 48,
+      "robots_completed_tasks": 90
+    },
+    "continuous-2d": {
+      "results": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/continuous-2d/results.json",
+      "quiescence": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/quiescence/continuous-2d",
+      "tasks": 1034,
+      "late": 0,
+      "flow": {
+        "mean_completed_only": 126.28239845261122,
+        "p95": 169,
+        "p99": 179,
+        "max": 187
+      },
+      "wall_seconds": 284.760364334099,
+      "planning_seconds": 18.773248911835253,
+      "handoffs": 0,
+      "min_soc": 38.27745894224695,
+      "max_active_business": 9,
+      "robots_completed_tasks": 69
+    }
+  },
+  "knowledge_phase_started": false,
+  "scope": "warehouse carrier, not million-query acceptance"
+}

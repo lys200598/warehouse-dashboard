@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090e0d">
+  <title>100台机器人 · 仓库布局提案</title>
+  <link rel="stylesheet" href="./layout-preview.css?v=1">
+</head>
+<body>
+  <main class="layout-app">
+    <header class="page-header">
+      <div class="title-group"><span class="brand-symbol" aria-hidden="true">▥</span><div><div class="eyebrow">WAREHOUSE / SPATIAL PROPOSAL 01</div><h1>给 100 台机器人留出工作的空间</h1></div></div>
+      <div class="proposal-tag"><span></span>设计预览 · 未接入运行仿真</div>
+    </header>
+    <section class="overview" aria-label="布局参数">
+      <div><span>仓库尺度</span><strong>60 <small>×</small> 48 <small>m</small></strong><p>2,880㎡ · 本方案假设尺寸</p></div>
+      <div><span>机器人车队</span><strong>100 <small>台</small></strong><p>另设100个独立初始 / 待命泊位</p></div>
+      <div><span>货架容量</span><strong>1,728 <small>箱位</small></strong><p>36组 × 8列 × 双面 × 3层</p></div>
+      <div><span>自动回充</span><strong>24 <small>位</small></strong><p id="chargeSummary">12＋12 · 两处充电位置</p></div>
+    </section>
+    <div class="workspace">
+      <section class="map-panel" aria-label="仓库空间预览">
+        <div class="map-toolbar">
+          <div class="switch" role="group" aria-label="观察方式"><button type="button" data-view="iso" aria-pressed="true">立体视图</button><button type="button" data-view="top" aria-pressed="false">尺寸平面</button></div>
+          <div class="map-tools"><button id="zoomOut" type="button" aria-label="缩小">−</button><button id="zoomIn" type="button" aria-label="放大">＋</button><button id="resetCamera" type="button">全景</button><button id="focusCharge" type="button">看充电位</button><button id="exportImage" type="button">总览图</button></div>
+        </div>
+        <div id="mapStage" class="map-stage">
+          <canvas id="layoutCanvas" role="img" aria-label="60米乘48米仓库；中央固定货架、四米主通道、独立收发货、100个待命泊位和24个充电位"></canvas>
+          <div class="map-note">DESIGN ONLY <span>米制坐标 / 非实时运行数据</span></div>
+          <div class="map-compass" aria-hidden="true"><span>↑</span>仓库后侧</div>
+          <div class="map-help">左键旋转 · 右键/中键平移 · 滚轮缩放 · 左键点选</div>
+        </div>
+        <div class="legend"><span><i class="lime"></i>作业</span><span><i class="blue"></i>充电</span><span><i class="neutral"></i>待命</span><span><i class="orange"></i>出库</span><span>地面网格 2m</span></div>
+        <div class="route-bar">
+          <span class="subheading">静态路径</span><div class="route-buttons" role="group" aria-label="路径示意"><button data-route="inbound" type="button" aria-pressed="true">入库上架</button><button data-route="outbound" type="button" aria-pressed="false">下架出库</button><button data-route="charging" type="button" aria-pressed="false">空载回充</button><button data-route="none" type="button" aria-pressed="false">隐藏</button></div>
+          <output id="routeInfo">计算路径…</output>
+        </div>
+      </section>
+      <aside class="inspector">
+        <section class="control-section"><div class="eyebrow">LAYOUT OPTIONS</div><h2>先比较空间，不预设结论</h2>
+          <label for="chargingLayout">充电位置 <small>总位数始终为24</small></label>
+          <select id="chargingLayout"><option value="split">分散两组 · 西12＋东12</option><option value="single">集中一组 · 西侧24</option></select>
+          <label for="inboundLayout">收货取货点 <small>同面积 / 同8个位置</small></label>
+          <select id="inboundLayout"><option value="edge">沿边分布 · 8个取货点</option><option value="corner">角落集中 · 2排×4点</option></select>
+          <label for="rosterMode">机器人示意分布</label>
+          <select id="rosterMode"><option value="rotation">轮转示意 · 作业70 / 充电20 / 待命10</option><option value="initial">初始停靠 · 全部100台在待命区</option><option value="full">作业分布 · 全部100台在通道内</option></select>
+          <div class="population" aria-label="示意机器人数量"><span>作业 <b id="workingCount">70</b></span><span>充电 <b id="chargingCount">20</b></span><span>待命 <b id="standbyCount">10</b></span><strong>Σ <span id="totalCount">100</span></strong></div>
+          <label class="envelope-control"><span><input id="showEnvelope" type="checkbox"> 显示机器人占用包络</span></label>
+          <p class="fine-print">这里的台数是布局示意，不是后端调度结果或“100台并发达标”证明。</p>
+        </section>
+        <section class="selection-section" aria-live="polite"><div class="eyebrow">SELECTED SPACE</div><h2 id="selectionTitle">整体布局</h2><p id="selectionText">固定货架＋四个存储分区；收发货同侧分开，充电与待命分开。点击货架、充电位或区域查看尺寸。</p><dl id="selectionFacts"><div><dt>主通道 / 中央纵通道</dt><dd>4m</dd></div><div><dt>货架间净巷道</dt><dd>2.4m</dd></div><div><dt>机器人占用包络</dt><dd>直径1.1m*</dd></div></dl></section>
+        <section class="constraint-section"><div class="eyebrow">CAPACITY & BOUNDARIES</div><h2>空间是约束，不是背景</h2><ul><li>收货、发货各48个暂存箱位</li><li>接收时同时预留合法货架箱位</li><li>仓内总货量上限1,728箱，暂存不额外扩容</li><li>机器人在货架外取放，货架不可穿越</li><li>回充入口不能排队堵住主通道</li></ul><p class="fine-print">*0.7m本体与1.1m占用包络为假设；机型、载货与制动距离确定后需重新标定。</p></section>
+      </aside>
+    </div>
+    <section class="design-details">
+      <article><span class="detail-index">01 / 动线</span><h3>货物有入口，也有出口</h3><p>收货 → 取货点 → 货架外侧取放面 → 库位；出库走反向流程。拿取和放置均由同一人形机器人完成，不增加叉车、输送线或人工工位。</p></article>
+      <article><span class="detail-index">02 / 轮充</span><h3>24个位，不是24台机器人</h3><p>静态停靠43.2㎡＋进出带57.6㎡＝100.8㎡。以“工作4h / 回充1h”为假设，70台作业的理想平均占桩为17.5台；24位是待验证候选，不是已算出的最优配置。</p></article>
+      <article><span class="detail-index">03 / 验证边界</span><h3>布局能放下，不等于运行已达标</h3><p id="validationText">已检查静态间隙与路径连通性。此预览未运行Ray、任务数据集、电量轮充或百万级图谱联合压测，动态交会与吞吐仍需接入现有后端验证。</p></article>
+    </section>
+    <footer><span>WAREHOUSE100 / V1 · 2026.10.26</span><span>延续现有调度台的等距投影、货架与人形图示 · 独立设计页</span><a id="downloadDesign" href="#">导出布局配置 ↓</a></footer>
+  </main>
+  <dialog id="imageDialog"><div class="dialog-toolbar"><h2>布局总览 · 当前方案</h2><button type="button" id="closeImage">返回交互预览</button></div><img id="exportedMap" alt="导出的仓库布局总览"><p>尺寸与数量为设计参数；示意分布不等于运行结果。</p></dialog>
+  <script type="module" src="./layout-preview.js?v=3-mouse"></script>
+</body>
+</html>

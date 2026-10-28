@@ -1,0 +1,26 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>第1天 · 仓储运行知识图谱</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b120f;color:#dde9df;font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif}main{max-width:1120px;margin:30px auto;padding:0 24px}header{display:flex;gap:20px;align-items:center;justify-content:space-between}h1{font-size:24px;font-weight:500}h2{font-size:17px;font-weight:500}a{color:#c9f46c}section{padding:22px 0;border-top:1px solid #2b3c30}p{color:#9db0a3}.counts{display:flex;gap:18px;flex-wrap:wrap}.counts span{font:12px Consolas,monospace;color:#9db0a3}.counts b{display:block;color:#c9f46c;font-size:24px}.fields{display:flex;gap:12px;flex-wrap:wrap;align-items:end}label{display:flex;flex-direction:column;gap:6px;font-size:12px}input,select,button{font:inherit;border:1px solid #3a4b3d;padding:8px 11px;border-radius:4px;background:#17221a;color:#dde9df}button{background:#c9f46c;color:#172112;cursor:pointer}input{max-width:100%}.chain{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.chain div{padding:11px 14px;background:#16251a;border-left:2px solid #68c7ff;min-width:150px}.chain small{display:block;color:#9db0a3}pre{font:12px/1.7 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#bad1bf}#notice{overflow-wrap:anywhere}#error{color:#f0a65a}button:disabled{opacity:.5}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #68c7ff;outline-offset:2px}
+</style></head><body><main>
+<header><div><h1>第1天 · 仓储运行知识图谱</h1><p>机器人、任务、库位、货物持有者与充电状态 · 只读查询</p></div><a href="/">返回运行回放 →</a></header>
+<section><h2>图谱水位与节点</h2><p id="notice">读取中…</p><div class="counts" id="counts"></div><p>状态节点按5分钟采样；业务事件按实际发生时刻全量记录。未达到百万级及100路延迟联合验收。</p></section>
+<section><h2>查看一件货物的真实流转</h2><div class="fields"><label>Goods ID<input id="goods" placeholder="加载示例…"></label><label>截止提交序号<input id="seq" type="number" min="1"></label><button id="goodsButton">查询货物持有链</button></div><div class="chain" id="chain"></div></section>
+<section><h2>查询机器人或充电位</h2><div class="fields"><label>对象<select id="kind"><option value="context">机器人上下文</option><option value="charger">充电位</option></select></label><label>Robot ID<input id="robot" type="number" min="1" max="100" value="1"></label><label>Charger ID<input id="charger" value="C-A01"></label><button id="entityButton">查询已提交状态</button></div><p id="error"></p><pre id="result">选定对象后查询；不会重启或推进试验。</pre></section>
+<section><h2>节点及关系</h2><pre>WHRun ← IN_RUN — WHStep ← IN_STEP — WHAgentState — OF_ROBOT → WHRobot
+WHTask — MOVES → WHCargo ← OF_CARGO — WHGoodsState — AT_LOCATION → WHLocation
+WHGoodsState — CAUSED_BY → WHEvent
+WHSlotState — OF_SLOT → WHSlot — IN_RACK → WHRack — IN_ZONE → WHZone
+WHChargerState — OF_CHARGER → WHCharger</pre><p>货物的历史持有者以WHGoodsState查询，不用可变的“当前位置”冒充过去状态。</p></section>
+</main><script type="module">
+const $=id=>document.getElementById(id);let run='';
+const clock=s=>[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(n=>String(n).padStart(2,'0')).join(':');
+async function request(path,options){const r=await fetch(path,options);const d=await r.json();if(!r.ok)throw Error(d.error||d.detail||r.statusText);return d;}
+try{const s=await request('/api/day/graph-summary');run=s.run_id;$('seq').value=s.watermark.mirrored_seq;$('goods').value=s.example_goods||'';
+$('notice').textContent=`${run} · 日志 ${s.watermark.durable_seq} / 图谱 ${s.watermark.mirrored_seq} · 延迟提交 ${s.watermark.lag}`;
+if(s.counts){for(const label of ['WHRobot','WHTask','WHAgentState','WHGoodsState','WHEvent','WHChargerState']){const span=document.createElement('span'),b=document.createElement('b');b.textContent=s.counts[label].toLocaleString();span.append(b,document.createTextNode(label));$('counts').append(span);}}
+else $('counts').textContent='试验进行中；完成后显示最终审计计数。';}catch(e){$('notice').textContent=e.message;}
+$('goodsButton').onclick=async()=>{try{$('error').textContent='';const d=await request('/api/day/entity?kind=goods&id='+encodeURIComponent($('goods').value)+'&seq='+$('seq').value);$('chain').replaceChildren();
+for(const r of d.rows){const div=document.createElement('div'),time=document.createElement('small'),title=document.createElement('strong'),loc=document.createElement('small');time.textContent=clock(r.sim_time)+' / seq '+r.seq;title.textContent=r.kind;loc.textContent=r.location;div.append(time,title,loc);$('chain').append(div);}if(!d.rows.length)$('chain').textContent='该截止提交之前没有持有记录。';}catch(e){$('error').textContent=e.message;}};
+$('entityButton').onclick=async()=>{try{$('error').textContent='';let d;if($('kind').value==='charger')d=await request('/api/day/entity?kind=charger&id='+encodeURIComponent($('charger').value)+'&seq='+$('seq').value);
+else d=await request('/api/knowledge/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query_id:'context',run_id:run,robot_id:Number($('robot').value),as_of_seq:Number($('seq').value),limit:20})});$('result').textContent=JSON.stringify(d,null,2);}catch(e){$('error').textContent=e.message;}};
+</script></body></html>

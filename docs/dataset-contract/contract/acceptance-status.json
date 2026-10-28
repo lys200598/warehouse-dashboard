@@ -1,0 +1,368 @@
+{
+  "release_state": "warehouse_accepted_knowledge_phase_in_progress",
+  "selected_algorithm": {
+    "release": "warehouse-scheduler-v5.0.0",
+    "profile": "balanced",
+    "policy": "port-guard",
+    "planner": "original-sipp",
+    "selection": "cost matching with waiting/deadline protection and inbound pressure; exact geometry/static caches retained"
+  },
+  "selected_policy_parameters": {
+    "wait_limit": 300,
+    "deadline_guard": 120.0,
+    "port_pressure_weight": 1.0,
+    "port_queue_cap": 6
+  },
+  "runtime_code_identity_sha256": "afcead96fe0d8589e7f4567b8e0083c4204cdc58396728af060b5400bd1b7d86",
+  "server_deployment_directory": "/data/workspace/wz/warehouse-dashboard-scheduler-v5",
+  "completed_at": "2026-10-28T00:36:22.020929+08:00",
+  "summary": "Warehouse stage gate passed for five completed cases, strong inventory/recovery regression and all-robot home-bay tail verification. Real million temporal KG/query work is a separate stage in progress; edge-device acceptance remains pending.",
+  "do_not_treat_package_validation_as_runtime_acceptance": true,
+  "cases": [
+    {
+      "case": "original-6912-day",
+      "status": "passed",
+      "input_sha256": "eee6de79c842c026b938174f06a481ce33c08f7b70396db1496ba700c97d916d",
+      "result_path": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/day/results.json",
+      "completed": 6912,
+      "late": 0,
+      "mean_flow_seconds": 128.49291087962962,
+      "p99_flow_seconds": 184,
+      "max_dispatch_wait_seconds": 5,
+      "unsafe_events": 0,
+      "min_soc": 23.62361111111118,
+      "remarks": "Business run and subsequent RAM escape drain are distinct phases. New graph/latency acceptance is not claimed.",
+      "input_identity": {
+        "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+        "tasks_sha256": "eee6de79c842c026b938174f06a481ce33c08f7b70396db1496ba700c97d916d",
+        "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+        "manifest_sha256": "83f5b089e145879d73bef13fa76ad9dd2ffa2f3b4b5526eb19bf88b19c551a5c"
+      },
+      "result_file_sha256": "c6acd86c5a109233a9df4f7fb389185165153528a0d6dadb9026287b1564d526",
+      "dispatch_wait_definition": "assigned_at-ready_at, not release-to-assignment",
+      "minimum_center_separation_m": 1.0999999999999943,
+      "registered_robots": 100,
+      "robots_completed_tasks": 96,
+      "max_active_business_tick_counter": 22,
+      "quiescence": {
+        "status": "passed",
+        "steps_advanced": 133,
+        "before_elapsed": 86549,
+        "after_elapsed": 86682,
+        "parked": 93,
+        "charging_at_home": 7,
+        "nonfault_robots": 100,
+        "faulted": [],
+        "source_checkpoint_unchanged": true
+      },
+      "evidence": "evidence/case-summary.json"
+    },
+    {
+      "case": "original-1728-peak",
+      "status": "passed",
+      "input_sha256": "20a2fd09bbd675834fffb723f0c484e2ffca79378cbea83f2ee4f3137626ed5b",
+      "result_path": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/peak/results.json",
+      "completed": 1728,
+      "late": 0,
+      "mean_flow_seconds": 380.6828703703704,
+      "p99_flow_seconds": 888,
+      "max_dispatch_wait_seconds": 422,
+      "unsafe_events": 0,
+      "min_soc": 33.330574699690736,
+      "remarks": "Business run and subsequent RAM escape drain are distinct phases. New graph/latency acceptance is not claimed.",
+      "input_identity": {
+        "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+        "tasks_sha256": "20a2fd09bbd675834fffb723f0c484e2ffca79378cbea83f2ee4f3137626ed5b",
+        "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+        "manifest_sha256": "20c741365bedfb477ae2c5a1f976bf4a72549e462cf190714c91980f7e4c5070"
+      },
+      "result_file_sha256": "c37fb810d5b2187e41a18484bd1d821f65ad8a915ab3ce3a84b854be3f7a7562",
+      "dispatch_wait_definition": "assigned_at-ready_at, not release-to-assignment",
+      "minimum_center_separation_m": 1.0999999999999943,
+      "registered_robots": 100,
+      "robots_completed_tasks": 100,
+      "max_active_business_tick_counter": 100,
+      "quiescence": {
+        "status": "passed",
+        "steps_advanced": 93,
+        "before_elapsed": 4179,
+        "after_elapsed": 4272,
+        "parked": 76,
+        "charging_at_home": 24,
+        "nonfault_robots": 100,
+        "faulted": [],
+        "source_checkpoint_unchanged": true
+      },
+      "evidence": "evidence/case-summary.json"
+    },
+    {
+      "case": "hotspot-2h",
+      "status": "passed",
+      "input_sha256": "67cabc7ff3a9f19915ad4565b7a2a0858259d40705a74611b57356124991d13d",
+      "result_path": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/hotspot-2h/results.json",
+      "completed": 924,
+      "late": 0,
+      "mean_flow_seconds": 131.44372294372295,
+      "p99_flow_seconds": 191,
+      "max_dispatch_wait_seconds": 0,
+      "unsafe_events": 0,
+      "min_soc": 34.37051449779942,
+      "remarks": "Business run and subsequent RAM escape drain are distinct phases. New graph/latency acceptance is not claimed.",
+      "input_identity": {
+        "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+        "tasks_sha256": "67cabc7ff3a9f19915ad4565b7a2a0858259d40705a74611b57356124991d13d",
+        "initial_inventory_sha256": "4c8cc6334adcff39e7ef99cb71f9c6022d7f123874a62da3dc2d7162182ec350",
+        "manifest_sha256": "6e30a1bcafdb93f5babba12f75958f044b7182f17221bbcbd7df7b577552535e"
+      },
+      "result_file_sha256": "2fcab7026e010a0431578d85136ffc490975953cad18abb46247687792b01e2e",
+      "dispatch_wait_definition": "assigned_at-ready_at, not release-to-assignment",
+      "minimum_center_separation_m": 1.1000000000000014,
+      "registered_robots": 100,
+      "robots_completed_tasks": 87,
+      "max_active_business_tick_counter": 26,
+      "quiescence": {
+        "status": "passed",
+        "steps_advanced": 98,
+        "before_elapsed": 7321,
+        "after_elapsed": 7419,
+        "parked": 95,
+        "charging_at_home": 5,
+        "nonfault_robots": 100,
+        "faulted": [],
+        "source_checkpoint_unchanged": true
+      },
+      "evidence": "evidence/case-summary.json"
+    },
+    {
+      "case": "peak-2h",
+      "status": "passed",
+      "input_sha256": "a8943ae059e6ff00b0acedeb7d2ed1ddb9c5a0b270267b528fd2e9c35e1e8e43",
+      "result_path": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/peak-2h/results.json",
+      "completed": 768,
+      "late": 0,
+      "mean_flow_seconds": 140.68489583333334,
+      "p99_flow_seconds": 215,
+      "max_dispatch_wait_seconds": 2,
+      "unsafe_events": 0,
+      "min_soc": 35.952976648378865,
+      "remarks": "Business run and subsequent RAM escape drain are distinct phases. New graph/latency acceptance is not claimed.",
+      "input_identity": {
+        "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+        "tasks_sha256": "a8943ae059e6ff00b0acedeb7d2ed1ddb9c5a0b270267b528fd2e9c35e1e8e43",
+        "initial_inventory_sha256": "c052472aa456e956414279ae3897c8436c8d3f31a083784fc7778e1a33a06506",
+        "manifest_sha256": "fcd50fb2f73c812b92324cfb184a26cb96dc3db2834ea6a2a7306a8dac77eff4"
+      },
+      "result_file_sha256": "f8fea6829e2868542581b0da01efaf5133bdd23d7ed90745921ebe6f4963d2fe",
+      "dispatch_wait_definition": "assigned_at-ready_at, not release-to-assignment",
+      "minimum_center_separation_m": 1.0999999999999943,
+      "registered_robots": 100,
+      "robots_completed_tasks": 90,
+      "max_active_business_tick_counter": 48,
+      "quiescence": {
+        "status": "passed",
+        "steps_advanced": 0,
+        "before_elapsed": 7200,
+        "after_elapsed": 7200,
+        "parked": 93,
+        "charging_at_home": 7,
+        "nonfault_robots": 100,
+        "faulted": [],
+        "source_checkpoint_unchanged": true
+      },
+      "evidence": "evidence/case-summary.json"
+    },
+    {
+      "case": "continuous-2d",
+      "status": "passed",
+      "input_sha256": "45d9ce8c3e64657776e9094e28d2db885d330c9dd776d22a6c5859a561efdd76",
+      "result_path": "/data/workspace/wz/warehouse-dashboard-scheduler-v5/data/final/continuous-2d/results.json",
+      "completed": 1034,
+      "late": 0,
+      "mean_flow_seconds": 126.28239845261122,
+      "p99_flow_seconds": 179,
+      "max_dispatch_wait_seconds": 0,
+      "unsafe_events": 0,
+      "min_soc": 38.27745894224695,
+      "remarks": "Business run and subsequent RAM escape drain are distinct phases. New graph/latency acceptance is not claimed.",
+      "input_identity": {
+        "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+        "tasks_sha256": "45d9ce8c3e64657776e9094e28d2db885d330c9dd776d22a6c5859a561efdd76",
+        "initial_inventory_sha256": "97999ff08c773e2e454c0286b5587bf4f08eb429a5ee842ef7b92f2f33b94318",
+        "manifest_sha256": "2407af1f9e2edddff1452ccf61d5e155a9959f7fef58c9f38c19ad4723600c0f"
+      },
+      "result_file_sha256": "78c2ef40928d44435d379ce36b70e65acc4f0eba3738c8d95417f169829ee127",
+      "dispatch_wait_definition": "assigned_at-ready_at, not release-to-assignment",
+      "minimum_center_separation_m": 1.1023977952066153,
+      "registered_robots": 100,
+      "robots_completed_tasks": 69,
+      "max_active_business_tick_counter": 9,
+      "quiescence": {
+        "status": "passed",
+        "steps_advanced": 57,
+        "before_elapsed": 172800,
+        "after_elapsed": 172857,
+        "parked": 98,
+        "charging_at_home": 2,
+        "nonfault_robots": 100,
+        "faulted": [],
+        "source_checkpoint_unchanged": true
+      },
+      "evidence": "evidence/case-summary.json"
+    },
+    {
+      "case": "handoff-fault-checkpoint-recovery",
+      "status": "passed",
+      "input_sha256": null,
+      "result_path": "evidence/full-python.log",
+      "completed": null,
+      "late": null,
+      "mean_flow_seconds": null,
+      "p99_flow_seconds": null,
+      "max_dispatch_wait_seconds": null,
+      "unsafe_events": null,
+      "min_soc": null,
+      "remarks": "Verified low-SOC handoff and exact disk-resume future, persistent fault transfer/explicit clear, invalid custody rejection and cross-policy/source refusal; normal day additionally completed two real handoffs.",
+      "representative_tests": [
+        "test_real_ticks_handoff_delay_and_disk_restore_are_legal",
+        "test_real_persistent_stop_transfer_and_explicit_clear_are_legal",
+        "test_guard_low_soc_handoff_restore_and_future_remain_exact",
+        "test_cross_policy_parameters_source_and_v4_restore_are_refused"
+      ]
+    },
+    {
+      "case": "full-regression",
+      "status": "passed_with_skips",
+      "input_sha256": null,
+      "result_path": "evidence/full-python.log",
+      "completed": null,
+      "late": null,
+      "mean_flow_seconds": null,
+      "p99_flow_seconds": null,
+      "max_dispatch_wait_seconds": null,
+      "unsafe_events": null,
+      "min_soc": null,
+      "remarks": "263 passed + 5 opt-in real DB tests skipped; 268 total, not 268 passed.",
+      "details": {
+        "status": "passed_with_opt_in_database_skips",
+        "tests_run": 268,
+        "passed": 263,
+        "skipped": 5,
+        "wall_seconds": 227.433,
+        "skip_scope": "opt-in real database integration, not counted as real KG acceptance",
+        "log_sha256": "617dd225444c5e891c4102928b8b2aa765771f3475e55b0989d695b336da25fb",
+        "scope": "frozen warehouse V5 checkout; later real_scale implementation is not part of this suite"
+      }
+    },
+    {
+      "case": "hundred-active-independent-validation-replay",
+      "status": "passed",
+      "elapsed": 804,
+      "purpose": "first actual 100-business-stage witness, not another completed demand run",
+      "result_path": "evidence/hundred-active-replay/verification.json",
+      "source_frozen_execution_sha256": "afcead96fe0d8589e7f4567b8e0083c4204cdc58396728af060b5400bd1b7d86",
+      "compared_official_10_second_samples": 81,
+      "different_samples": 0,
+      "frame_is_original_official_recording": false
+    },
+    {
+      "case": "million-temporal-graph-and-collaborative-query",
+      "status": "in_progress_not_accepted",
+      "input_sha256": null,
+      "result_path": null,
+      "completed": null,
+      "late": null,
+      "mean_flow_seconds": null,
+      "p99_flow_seconds": null,
+      "max_dispatch_wait_seconds": null,
+      "unsafe_events": null,
+      "min_soc": null,
+      "remarks": "Separate second-stage implementation/measurement in progress; no pass claim from warehouse gate or input counts."
+    }
+  ],
+  "aggregate_backend_source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+  "frozen_source_archive": "runtime/warehouse-scheduler-v5.0.0-source.zip",
+  "frozen_source_archive_sha256": "1d25052aedc0ae64d80324e9302358f6c458152a6278a420d824475ab18161d4",
+  "concurrency_evidence": {
+    "official_tick_counter_max_active_business": 100,
+    "official_recorded_frame_sample_seconds": 10,
+    "independent_recorded_frames_scanned": 419,
+    "official_recorded_frame_max_active_business": 98,
+    "official_recorded_frames_with_100": 0,
+    "official_100_frame_available": false,
+    "independent_replay_witness_status": "passed",
+    "no_synthetic_or_interpolated_frame": true,
+    "stage_definition": [
+      "to_source",
+      "to_target",
+      "picking",
+      "placing",
+      "to_handoff",
+      "handoff_receive"
+    ],
+    "recorded_scan_evidence": "evidence/peak-recorded-frame-scan.json",
+    "independent_replay_run_id": "wh-v5-proof-100-active-validation-replay",
+    "independent_replay_elapsed": 804,
+    "independent_replay_active_business": 100,
+    "independent_replay_stage_counts": {
+      "to_target": 52,
+      "to_source": 35,
+      "placing": 5,
+      "picking": 8
+    },
+    "independent_replay_identity": {
+      "release": "warehouse-scheduler-v5.0.0",
+      "policy": "port-guard",
+      "parameters": {
+        "wait_limit": 300,
+        "deadline_guard": 120.0,
+        "port_pressure_weight": 1.0,
+        "port_queue_cap": 6
+      },
+      "planner": "original-sipp",
+      "source_sha256": "e3943e9abf2076ee8a3a69a20bf627cac3f16aad5b96db898c7322651e074e97",
+      "engine_release": "warehouse-scheduler-v4.0.0",
+      "features": [
+        "v4-motion-engine",
+        "strong-inventory-invariant",
+        "max-cardinality-guarded-cost"
+      ],
+      "execution_sha256": "afcead96fe0d8589e7f4567b8e0083c4204cdc58396728af060b5400bd1b7d86"
+    },
+    "trajectory_alignment": {
+      "sample_period_seconds": 10,
+      "compared_samples": 81,
+      "missing_samples": 0,
+      "different_samples": 0,
+      "all_available_samples_equal": true,
+      "only_excluded_fields": [
+        "worker_pid",
+        "run_id",
+        "runId"
+      ],
+      "scope": "all per-robot fields; not graph watermark, performance counters or event IDs"
+    },
+    "original_files_unchanged": true,
+    "replay_evidence": "evidence/hundred-active-replay/verification.json",
+    "original_replay_frame": "evidence/hundred-active-replay/hundred-active-replay-frame.json",
+    "original_replay_frame_sha256": "f0b372cd70e9c4dc3639d6eac37545856a9afbf6d9b8e91338486f667a90929e",
+    "replay_is_distinct_from_original_official_recorded_frames": true,
+    "proof_ends_at_first_witness_not_full_business_completion": true,
+    "independent_all_pairs_audit": "evidence/hundred-active-replay/independent-all-pairs-motion-check.json"
+  },
+  "all_nonfault_robots_returned_to_own_physical_bay": {
+    "status": "passed_all_five_cases",
+    "count_per_case": 100,
+    "faulted_excluded": 0,
+    "stationary_charging_allowed": true,
+    "evidence": "evidence/quiescence-independent-RAM-check.json"
+  },
+  "edge_device_acceptance": {
+    "status": "not_run_pending_target_device",
+    "not_claimed_by_server_results": true
+  },
+  "knowledge_files_unchanged_in_warehouse_release": {
+    "files": 9,
+    "status": "sha256_equal_to_pre_scheduler_baseline",
+    "evidence": "evidence/protected-knowledge-files.json"
+  }
+}

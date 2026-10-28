@@ -1,0 +1,98 @@
+{
+  "contract_version": "warehouse-wide-layout-contract-v5-handoff-1",
+  "release_state": "warehouse_accepted_for_frozen_v5_knowledge_phase_separate",
+  "scene_file": "layout/warehouse100-wide-v2.json",
+  "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+  "scene_version": "warehouse100-wide-v2-proposal",
+  "coordinate_system": {
+    "unit": "m",
+    "width": 90,
+    "depth": 76,
+    "x_positive": "right/east in view",
+    "y_positive": "down in view; not geodetic north",
+    "height_use": "rack level is storage semantics, not 3D manipulation certification"
+  },
+  "storage": {
+    "racks": 36,
+    "levels": 3,
+    "bays_per_face": 8,
+    "faces": 2,
+    "slots_per_rack": 48,
+    "capacity": 1728,
+    "per_slot_capacity": 1,
+    "slot_pitch_m": 1.2,
+    "slot_approach_offset_m": 0.7
+  },
+  "fleet": {
+    "robot_entities": 100,
+    "body_width_m": 0.7,
+    "body_depth_m": 0.7,
+    "planning_radius_m": 0.55,
+    "minimum_center_separation_m": 1.1
+  },
+  "aisles": {
+    "ordinary_width_m": 4.5,
+    "main_width_m": 6
+  },
+  "charging_standby": {
+    "canonical_physical_bays": 100,
+    "home_aliases": 100,
+    "canonical_id_field": "dock.id",
+    "home_alias_field": "home.alias_of",
+    "capacity_per_canonical_bay": 1,
+    "ownership": "one home/charging bay assigned per robot in current research baseline",
+    "empty_hardware_static_collision": false,
+    "actual_robot_body_collision": true,
+    "power_grid_or_hardware_calibrated": false,
+    "resource_locations_file": "layout/physical-bays.csv",
+    "aliases_are_extra_capacity": false
+  },
+  "boundary": {
+    "inbound_ids": [
+      "IN-1",
+      "IN-2",
+      "IN-3",
+      "IN-4",
+      "IN-5",
+      "IN-6",
+      "IN-7",
+      "IN-8"
+    ],
+    "outbound_ids": [
+      "OUT-1",
+      "OUT-2",
+      "OUT-3",
+      "OUT-4",
+      "OUT-5",
+      "OUT-6",
+      "OUT-7",
+      "OUT-8"
+    ],
+    "inbound_received_unpicked_capacity_per_point": 6,
+    "inbound_received_unpicked_total": 48,
+    "outbound_semantics": "completed placement at legal OUT point confirms shipment across warehouse boundary immediately",
+    "outbound_buffer_metadata_units": 48,
+    "outbound_queue_or_loading_resource_simulated": false
+  },
+  "tables": {
+    "task_locations": "layout/task-locations.csv",
+    "task_location_rows": 1744,
+    "all_locations": "layout/all-locations.csv",
+    "all_location_rows": 1944,
+    "all_locations_note": "1728 slots +16 task boundary points +100 canonical bays +100 aliases; aliases have zero independent capacity"
+  },
+  "not_in_scope": [
+    "customer orders/order lines",
+    "internal replenishment",
+    "separate human/forklift/arm/conveyor service bottlenecks",
+    "direct robot-to-robot battery transfer",
+    "physical box stacking/contact",
+    "3D arm/leg dynamics",
+    "charger electrical engineering"
+  ],
+  "source_provenance": {
+    "source_scene": "warehouse-dashboard/data/layouts/warehouse100-wide-v2.json",
+    "preserved_original_bytes": true,
+    "legacy_design_flags_note": "source proposal/design flags are preserved to keep scene SHA; execution compatibility depends on wide/V5 loader, not on blindly clearing flags"
+  }
+}

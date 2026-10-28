@@ -11,6 +11,8 @@ class RobotRuntime(Protocol):
     def replace(self, snapshots: list[dict[str, Any]]) -> None: ...
     def snapshots(self) -> list[dict[str, Any]]: ...
     def assign(self, robot_id: int, assignment: dict[str, Any]) -> dict[str, Any]: ...
+    def reroute_many(self, paths: dict[int, list[dict[str, float]]]) -> list[dict[str, Any]]: ...
+    def admit_pickups(self, robots: list[int]) -> list[dict[str, Any]]: ...
     def propose_all(self, delta_seconds: float, sim_time: float, tick_id: int) -> list[dict[str, Any]]: ...
     def commit_all(self, proposals: list[dict[str, Any]], decisions: dict[int, bool]) -> list[dict[str, Any]]: ...
     def close(self) -> None: ...
@@ -33,6 +35,12 @@ class LocalRobotRuntime:
 
     def assign(self, robot_id: int, assignment: dict[str, Any]) -> dict[str, Any]:
         return self.agents[robot_id].assign(assignment)
+
+    def reroute_many(self, paths):
+        return [self.agents[robot].reroute(path) for robot,path in paths.items()]
+
+    def admit_pickups(self, robots):
+        return [self.agents[robot].admit_pickup() for robot in robots]
 
     def propose_all(self, delta_seconds: float, sim_time: float, tick_id: int) -> list[dict[str, Any]]:
         return [
@@ -66,6 +74,12 @@ class _RayRobotActor:
 
     def assign(self, assignment: dict[str, Any]) -> dict[str, Any]:
         return self.agent.assign(assignment)
+
+    def reroute(self, path):
+        return self.agent.reroute(path)
+
+    def admit_pickup(self):
+        return self.agent.admit_pickup()
 
     def propose_step(self, delta_seconds: float, sim_time: float, tick_id: int) -> dict[str, Any]:
         return self.agent.propose_step(delta_seconds, sim_time, tick_id)
@@ -118,6 +132,12 @@ class RayRobotRuntime:
 
     def assign(self, robot_id: int, assignment: dict[str, Any]) -> dict[str, Any]:
         return self.ray.get(self.actors[robot_id].assign.remote(assignment))
+
+    def reroute_many(self, paths):
+        return self.ray.get([self.actors[robot].reroute.remote(path) for robot,path in paths.items()])
+
+    def admit_pickups(self, robots):
+        return self.ray.get([self.actors[robot].admit_pickup.remote() for robot in robots])
 
     def propose_all(self, delta_seconds: float, sim_time: float, tick_id: int) -> list[dict[str, Any]]:
         refs = [

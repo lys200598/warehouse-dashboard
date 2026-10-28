@@ -1,0 +1,12 @@
+{
+  "profile": "balanced",
+  "policy": "port-guard",
+  "planner": "original-sipp",
+  "parameters": {
+    "wait_limit": 300,
+    "deadline_guard": 120.0,
+    "port_pressure_weight": 1.0,
+    "port_queue_cap": 6
+  },
+  "selection_reason": "zero late; lower mean than preserved original; bounded starvation guard; retain exact caches and fast planner option"
+}

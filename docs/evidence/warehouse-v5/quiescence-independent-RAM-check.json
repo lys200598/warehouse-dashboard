@@ -1,0 +1,62 @@
+{
+  "peak": {
+    "status": "passed",
+    "source_checkpoint_sha_unchanged_verified": true,
+    "RAM_checkpoint_hash_verified": true,
+    "RAM_physical_home_positions_independently_verified": 100,
+    "states": {
+      "charging": 24,
+      "idle": 76
+    },
+    "faults": 0,
+    "new_simulation_run": false
+  },
+  "day": {
+    "status": "passed",
+    "source_checkpoint_sha_unchanged_verified": true,
+    "RAM_checkpoint_hash_verified": true,
+    "RAM_physical_home_positions_independently_verified": 100,
+    "states": {
+      "idle": 93,
+      "charging": 7
+    },
+    "faults": 0,
+    "new_simulation_run": false
+  },
+  "hotspot-2h": {
+    "status": "passed",
+    "source_checkpoint_sha_unchanged_verified": true,
+    "RAM_checkpoint_hash_verified": true,
+    "RAM_physical_home_positions_independently_verified": 100,
+    "states": {
+      "idle": 95,
+      "charging": 5
+    },
+    "faults": 0,
+    "new_simulation_run": false
+  },
+  "peak-2h": {
+    "status": "passed",
+    "source_checkpoint_sha_unchanged_verified": true,
+    "RAM_checkpoint_hash_verified": true,
+    "RAM_physical_home_positions_independently_verified": 100,
+    "states": {
+      "idle": 93,
+      "charging": 7
+    },
+    "faults": 0,
+    "new_simulation_run": false
+  },
+  "continuous-2d": {
+    "status": "passed",
+    "source_checkpoint_sha_unchanged_verified": true,
+    "RAM_checkpoint_hash_verified": true,
+    "RAM_physical_home_positions_independently_verified": 100,
+    "states": {
+      "idle": 98,
+      "charging": 2
+    },
+    "faults": 0,
+    "new_simulation_run": false
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "valid": true,
+  "tasks": 6912,
+  "inbound": 3456,
+  "outbound": 3456,
+  "initial_inventory": 864,
+  "initial": 864,
+  "duration_seconds": 86400,
+  "capacity": 1728,
+  "start": "2026-10-27T00:00:00+08:00",
+  "timezone_offset_seconds": 28800,
+  "planned_min_inventory": 844,
+  "planned_max_inventory": 884,
+  "planned_final_inventory": 864,
+  "hourly_tasks": [
+    306,
+    287,
+    271,
+    305,
+    282,
+    277,
+    306,
+    287,
+    271,
+    305,
+    282,
+    277,
+    306,
+    287,
+    271,
+    305,
+    282,
+    277,
+    306,
+    287,
+    271,
+    305,
+    282,
+    277
+  ],
+  "daily_tasks": [
+    6912
+  ],
+  "reference_order": [
+    "release_second",
+    "task_id"
+  ],
+  "hashes_verified": true,
+  "runtime_feasibility_claim": false,
+  "note": "Reference release-order inventory/dependency replay only; does not prove runtime timely completion, traffic safety or actual admission capacity.",
+  "migration": {
+    "source_manifest_sha256": "4c113ece3c51779b28b0775b96d8a1ab574cd419dd40128e001a3dbc2869e257",
+    "source_scene_sha256": "744e69309c86d9ad5589805a0f5a7e04bd32347ce5f374afaa9efbf731816960",
+    "source_files": {
+      "tasks.csv": "eee6de79c842c026b938174f06a481ce33c08f7b70396db1496ba700c97d916d",
+      "initial_inventory.csv": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40"
+    },
+    "deadline_policy": "preserve",
+    "due_time_changes": 0,
+    "task_ids_preserved": true,
+    "goods_ids_preserved": true,
+    "release_times_preserved": true,
+    "source_reference_verified": true,
+    "uses_measured_completion_times": false,
+    "hotspot_location_labels": "source labels retained as provenance; reclassify spatial regions using new coordinates",
+    "reference_deadline": "original timestamps unchanged; runtime feasibility requires fresh validation"
+  }
+}

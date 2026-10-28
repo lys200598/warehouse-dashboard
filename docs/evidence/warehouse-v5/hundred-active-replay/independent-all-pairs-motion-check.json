@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "pairs_tested": 4950,
+  "min_continuous_center_separation_m": 1.131370849898472,
+  "closest_pair": [
+    52,
+    84
+  ],
+  "method": "independent stdlib relative-motion minimization over every pair during witness last 1-second step",
+  "source_motion_audit_sha256": "6c911eca9beeb99e5ce63265e79c7541fb1734b65c33e9f9c5a8d59013f51599",
+  "original_official_frame": false,
+  "validation_replay_frame": true,
+  "witness_elapsed": 804,
+  "active_robots": 100
+}

@@ -1194,3 +1194,23 @@ input[type="range"]::-webkit-slider-thumb {
   .scene-title p { display: none; }
   .export-button { display: none; }
 }
+/* Keep the actual map usable inside the Codex side panel as well as a desktop. */
+@media (max-width: 1179px) {
+  html, body { min-width: 360px; }
+  .app-shell { padding: 0 12px; }
+  .topbar { height: auto; min-height: 76px; flex-wrap: wrap; gap: 12px; padding: 14px 0; }
+  .topbar-meta { gap: 12px; flex-wrap: wrap; }
+  .metrics-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .workspace { height: auto; min-height: 0; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .scene-panel { grid-column: 1 / -1; grid-row: 1; min-height: 560px; }
+  .scene-toolbar { flex-wrap: wrap; gap: 7px; }
+  .toolbar-actions { flex-wrap: wrap; }
+  .left-panel,.right-panel { min-width: 0; }
+  .footer-bar { height: auto; min-height: 42px; flex-wrap: wrap; gap: 10px; padding: 12px 0; }
+}
+@media (max-width: 480px) {
+  .workspace { grid-template-columns: minmax(0,1fr); }
+  .scene-panel { min-height: 500px; grid-template-rows: 86px minmax(0,1fr) 51px; }
+  .metric-value strong { font-size: 32px; }
+  .right-panel { grid-column: 1; }
+}
