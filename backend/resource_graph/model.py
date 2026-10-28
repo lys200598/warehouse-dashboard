@@ -8,6 +8,7 @@ initial stock, so different seeds on one date cannot overwrite one another.
 import math
 
 from ..knowledge import digest
+from ..boundary_contract import declared as boundary_declared, validate_task as boundary_task, location_registry
 
 VERSION = 'warehouse-resource-graph-v1'
 
@@ -107,13 +108,20 @@ def build_package(batch):
             locations.append({'id': f'{warehouse_id}:location:{location}', 'location_id': location,
                 'warehouse_id': warehouse_id, 'kind': item.get('kind', kind),
                 'alias_of': item.get('alias_of'), 'x': point['x'], 'y': point['y']})
+    if boundary_declared(metadata):
+        locations.extend({'id': f'{warehouse_id}:location:{name}', 'location_id': name,
+            'warehouse_id': warehouse_id, 'kind': 'logical-boundary',
+            'boundary_role': role, 'physical': False}
+            for name, role in (('INBOUND', 'inbound'), ('OUTBOUND', 'outbound')))
     by_location = {row['location_id']: row for row in locations}
     if len(by_location) != len(locations):
         raise ValueError('duplicate resource location')
     plans = []
+    boundary_registry = location_registry(scene) if boundary_declared(metadata) else None
     for task in batch.get('tasks', []):
         row = {key: task.get(key) for key in ('task_id', 'task_type', 'goods_id', 'source_id', 'target_id',
                 'release_time', 'due_time', 'release_second', 'due_second')}
+        row['source_id'], row['target_id'] = boundary_task(task, metadata, cutoff=batch.get('sim_time'),registry=boundary_registry)
         for key in ('task_id', 'goods_id', 'source_id', 'target_id'):
             ident(row[key], key)
         if row['source_id'] not in by_location or row['target_id'] not in by_location:
@@ -157,6 +165,8 @@ def materialize_task_records(batch, warehouse_id, dataset_id):
     scene = batch['metadata']['scene']; spec = scene['spec']
     rack_ids = {rack['id'] for rack in scene['racks']}
     stations = {p['id'] for p in scene.get('stations', [])}
+    if boundary_declared(batch['metadata']):
+        stations |= {'INBOUND', 'OUTBOUND'}
 
     def endpoint(value):
         ident(value, 'task endpoint')
@@ -172,9 +182,11 @@ def materialize_task_records(batch, warehouse_id, dataset_id):
             raise ValueError('resource task has an invalid storage endpoint')
 
     tasks, goods, seen = [], {}, set()
+    boundary_registry = location_registry(scene) if boundary_declared(batch['metadata']) else None
     for task in batch.get('tasks', []):
         row = {key: task.get(key) for key in ('task_id', 'task_type', 'goods_id', 'source_id', 'target_id',
                 'release_time', 'due_time', 'release_second', 'due_second')}
+        row['source_id'], row['target_id'] = boundary_task(task, batch['metadata'], cutoff=batch.get('sim_time'),registry=boundary_registry)
         ident(row['task_id'], 'task'); ident(row['goods_id'], 'goods')
         if row['task_id'] in seen or row['task_type'] not in ('INBOUND', 'OUTBOUND'):
             raise ValueError('duplicate/invalid published resource task')

@@ -1,0 +1,31 @@
+--- frozen-template
++++ static-ports-only
+@@ -20,19 +20,19 @@
+     keepalive_timeout 65s;
+     upstream warehouse_queries {
+         least_conn;
+-        server 127.0.0.1:14200 max_fails=0;
+-        server 127.0.0.1:14201 max_fails=0;
+-        server 127.0.0.1:14202 max_fails=0;
+-        server 127.0.0.1:14203 max_fails=0;
+-        server 127.0.0.1:14204 max_fails=0;
+-        server 127.0.0.1:14205 max_fails=0;
+-        server 127.0.0.1:14206 max_fails=0;
+-        server 127.0.0.1:14207 max_fails=0;
++        server 127.0.0.1:14220 max_fails=0;
++        server 127.0.0.1:14221 max_fails=0;
++        server 127.0.0.1:14222 max_fails=0;
++        server 127.0.0.1:14223 max_fails=0;
++        server 127.0.0.1:14224 max_fails=0;
++        server 127.0.0.1:14225 max_fails=0;
++        server 127.0.0.1:14226 max_fails=0;
++        server 127.0.0.1:14227 max_fails=0;
+         keepalive 64;
+     }
+     map $http_upgrade $warehouse_connection { default upgrade; '' ''; }
+     server {
+-        listen 127.0.0.1:14189;
++        listen 127.0.0.1:14289;
+         proxy_http_version 1.1;
+         proxy_set_header Host $http_host;
+         proxy_next_upstream off;

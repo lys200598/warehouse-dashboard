@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "verified": 1424,
+  "requests": 1424,
+  "errors": [],
+  "counts": {
+    "('baseline', 'global')": 101,
+    "('accelerated', 'global')": 101,
+    "('baseline', 'local_awareness')": 101,
+    "('accelerated', 'local_awareness')": 101,
+    "('baseline', 'similar_history')": 409,
+    "('accelerated', 'similar_history')": 409,
+    "('baseline', 'self')": 101,
+    "('accelerated', 'self')": 101
+  },
+  "full_32d_ann_paths": {
+    "('baseline', 'ann100')": 409,
+    "('accelerated', 'ann100')": 409
+  },
+  "source_and_packets_unchanged": true,
+  "hashes": {
+    "requests.jsonl": "755080f898eaa87987549f639433dc6a390c635497387d1c378bc51954d73692",
+    "responses.jsonl.gz": "ed8c22e3a38ee3aa5b2484b81146c18301da1f4a2d58375976a067b0e4959263",
+    "oracle.sqlite": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+  },
+  "seconds": 446.71033423487097,
+  "scope": "complete HTTP catalog payloads versus original snapshot/independent RealOracle; AFTER measured load"
+}
+ANN PHASE ('baseline', 'first-similar_history', 'similar_history') 1 29.746944084763527 29.746944084763527 0
+ANN PHASE ('accelerated', 'first-similar_history', 'similar_history') 1 26.192575693130493 26.192575693130493 0
+ANN PHASE ('baseline', 'matched-ann-warmup', 'similar_history') 8 37.02589590102434 48.28000906854868 0
+ANN PHASE ('accelerated', 'matched-ann-warmup', 'similar_history') 8 43.391959043219686 53.230524994432926 0
+ANN PHASE ('accelerated', 'burst-4', 'similar_history') 100 433.48403457552195 696.9399154186249 38
+ANN PHASE ('baseline', 'burst-4', 'similar_history') 100 233.17453858442605 464.1869245097041 0
+ANN PHASE ('baseline', 'burst-5', 'similar_history') 100 253.05209081619978 505.240554921329 1
+ANN PHASE ('accelerated', 'burst-5', 'similar_history') 100 241.26173736527562 517.3466075211763 6
+ANN PHASE ('accelerated', 'burst-6', 'similar_history') 100 249.33766957372427 590.4208421707153 19
+ANN PHASE ('baseline', 'burst-6', 'similar_history') 100 220.0814187619835 458.7051058188081 0
+ANN PHASE ('baseline', 'burst-7', 'similar_history') 100 287.6957219466567 556.3540598377585 7
+ANN PHASE ('accelerated', 'burst-7', 'similar_history') 100 267.17249982059 597.4286505952477 16

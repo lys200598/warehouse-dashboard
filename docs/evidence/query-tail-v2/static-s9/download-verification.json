@@ -1,0 +1,7 @@
+{
+  "all_downloaded_bytes_match_remote_manifests": true,
+  "checks": 56,
+  "unique_files": 56,
+  "evidence_manifest_sha256": "fd662971721bc11244976810fa49ab2bff09d1a467dbf5df80599b34d107e571",
+  "supplement_manifest_sha256": "4581b972f6b2d670cec1caa0c7425f9ccc30988b995a9c10b8034c209c072b51"
+}

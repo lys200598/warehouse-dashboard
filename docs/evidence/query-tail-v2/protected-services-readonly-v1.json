@@ -1,0 +1,17 @@
+{
+  "formal_source_file": "/data/workspace/wz/warehouse-live-platform-20261028/app/ops/warehouse_live_runtime.py",
+  "sha256": "6ae1313dcb4d193921c371984ef86bafa16083a5dfadc24f88f23abf1b261b63",
+  "ports": {
+    "14186": {
+      "status": "ok",
+      "run_id": "wh-live-20261028T092951Z-5f9367ed",
+      "simulation_status": "running"
+    },
+    "14188": {
+      "status": "ok",
+      "run_id": "wh-live-20261028T160015Z-6cba7867",
+      "simulation_status": "ready"
+    }
+  },
+  "original_pids": "PID COMMAND\n1453004 python /data/workspace/wz/warehouse-live-platform-20261028/app/ops/warehouse_live.py --source-root /data/workspace/wz/warehouse-live-platform-20261028/source-v2 --dist /data/workspace/wz/warehouse-live-platform-20261028/app/dist --registry /data/workspace/wz/warehouse-live-platform-20261028/live-datasets-v2.json --output-root /data/workspace/wz/warehouse-live-platform-20261028/runs --dataset-id seven-patterns --mode required --knowledge-backend neo4j --commit-seconds 5 --expected-neo4j-uri bolt://127.0.0.1:17690 --port 14186\n2441643 python ops/warehouse_live.py --source-root /data/workspace/wz/warehouse-meeting-candidates-20261028/source-v5 --dist /data/workspace/wz/warehouse-meeting-candidates-20261028/source-v5/dist --registry /data/workspace/wz/warehouse-meeting-candidates-20261028/candidate-live-registry-v5.json --output-root /data/workspace/wz/warehouse-meeting-candidates-20261028/candidate-live-runs-v5 --dataset-id balanced-peak-080 --mode required --knowledge-backend neo4j --resource-graph --commit-seconds 30 --expected-neo4j-uri bolt://127.0.0.1:17691 --port 14188"
+}

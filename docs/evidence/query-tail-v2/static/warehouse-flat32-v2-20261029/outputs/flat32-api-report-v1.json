@@ -1,0 +1,80 @@
+{
+  "version": "catalog-tail-static-api-v1",
+  "groups": [
+    {
+      "method": "ann",
+      "query_id": "similar_history",
+      "count": 409,
+      "mean_ms": 236.402688520644,
+      "p99_ms": 519.5572972297668,
+      "max_ms": 535.1830730214715,
+      "over_500ms": 15,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 409,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "flat",
+      "query_id": "similar_history",
+      "count": 409,
+      "mean_ms": 305.37857363925,
+      "p99_ms": 662.9237681627274,
+      "max_ms": 1360.2333255112171,
+      "over_500ms": 54,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 409,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    }
+  ],
+  "requests": 818,
+  "source": {
+    "run_id": "wh-density120-week-required-20261028",
+    "head": 5073,
+    "mirrored_seq": 5073,
+    "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+    "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+    "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "actual_same_run_nodes_at_final_head": 1652135
+  },
+  "no_samples_filtered": true,
+  "warmup": {
+    "version": "source-journal-exhaustive-float64-32d-v1",
+    "run_id": "wh-density120-week-required-20261028",
+    "created_version": "2026-10-28T08:43:59.115Z",
+    "prefix": 5073,
+    "dimensions": 32,
+    "vector_kind": "32d_structured_physical_time_identity_features_not_semantic",
+    "metadata_sha256": "dbc58a567cd5f31a9f1f479a20b81c2e7188cf6ca12fd698b54f80887698607f",
+    "config_sha256": "a5ea88780d25a9c2b7e88d3d49fa21eee101c31acb9c842a19fe8e36934cb239",
+    "source_journal_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "files": {
+      "raw.f64": {
+        "sha256": "53fe55ecbc742a637e990b8938c951a91194b64dab2b574646c88aa4b76e7be7",
+        "bytes": 129868800
+      },
+      "norm.f64": {
+        "sha256": "42edf5748381504ffaae6277ae10aa8c4d60e1d60ae3ccbda76f44fd2545bd68",
+        "bytes": 4058400
+      },
+      "payload.s64": {
+        "sha256": "438d38c14ce651fe1e9391f39f2a3756db8a674dd9050429833c1c93514dcb0c",
+        "bytes": 32467200
+      },
+      "step.s64": {
+        "sha256": "39ae36e4075bd1184c6c3bd2f8631877294a6c45b12f7a21a2816b29d1a48412",
+        "bytes": 324672
+      }
+    },
+    "build_wall_seconds": 48.67427831981331,
+    "reuse_immutable_index": true,
+    "origin_index": "/data/workspace/wz/warehouse-flat32-20261029/index-v1",
+    "original_build_retained": "/data/workspace/wz/warehouse-flat32-20261029/outputs/index-build-v1.json",
+    "reason": "first benchmark harness variable shadowed worker number; no measured queries were served"
+  },
+  "production_vs_verifier_separated": true,
+  "joint_live_control_acceptance": false
+}

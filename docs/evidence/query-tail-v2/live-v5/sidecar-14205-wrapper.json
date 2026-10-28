@@ -1,0 +1,23 @@
+{
+  "pid": 2893601,
+  "port": 14205,
+  "wrapper_sha256": "6865ddfe12d2166238fe7625923cf25a3bc9ad377a153f421cffa66eb62c545e",
+  "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v4",
+  "runtime_created_by_wrapper": false,
+  "args": [
+    "--source-root",
+    "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v4",
+    "--source-manifest",
+    "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v4/source-s5-manifest.json",
+    "--summary-root",
+    "/data/workspace/wz/warehouse-free-ports-20261029/live-joint-runs-v5",
+    "--warm-run-id",
+    "wh-live-20261028T195742Z-02c4734a",
+    "--expected-neo4j-uri",
+    "bolt://127.0.0.1:17691",
+    "--query-workers",
+    "3",
+    "--port",
+    "14205"
+  ]
+}

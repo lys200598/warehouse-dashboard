@@ -1,0 +1,347 @@
+{
+  "remote_root": "/data/workspace/wz/warehouse-ann-clients-20261029",
+  "source_baseline_git": "4998682a135848a29cca3862a67001930987545a",
+  "files": [
+    {
+      "path": "outputs/graph-source-point.json",
+      "bytes": 612,
+      "sha256": "dc154224e269a60600ade4a00c02f6b60442e3015776bb7bb00bd3a442c97a67"
+    },
+    {
+      "path": "outputs/oracle.sqlite",
+      "bytes": 441958400,
+      "sha256": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+    },
+    {
+      "path": "outputs/preparation-v1.json",
+      "bytes": 76,
+      "sha256": "5dd7e164a442022cb488aa9e8f7c1f788a1bd6dceedc1bfcae1d4aadf56b26d7"
+    },
+    {
+      "path": "outputs-v2/ann-clients-api-report-v1.json",
+      "bytes": 1732,
+      "sha256": "96728f02ce88ecca45833b4e68dcf40c2c2f7d7487388a77d9a289a9b0ebcdb7"
+    },
+    {
+      "path": "outputs-v2/client-phase-analysis.json",
+      "bytes": 5715,
+      "sha256": "faabd8311bcbafc5fb3ac9fbd6d998439ece87c6549d30695fb92aea3cea6985"
+    },
+    {
+      "path": "outputs-v2/driver-runtime-identity.json",
+      "bytes": 351,
+      "sha256": "4568597a5449b7bd0ac371c2eb71ceb913fcdb6f0e1e4b7eb4051c98b4614ef2"
+    },
+    {
+      "path": "outputs-v2/graph-source-point.json",
+      "bytes": 612,
+      "sha256": "dc154224e269a60600ade4a00c02f6b60442e3015776bb7bb00bd3a442c97a67"
+    },
+    {
+      "path": "outputs-v2/many-0-api.jsonl",
+      "bytes": 7197,
+      "sha256": "cfb7f86c2937821dc61d455a37c043df9355ef4e027f41c9edef8ed19fad1634"
+    },
+    {
+      "path": "outputs-v2/many-1-api.jsonl",
+      "bytes": 7055,
+      "sha256": "c97568d78e44e201c1e709c02691346c09e0b71de433371b7f4eec75adcd0dd5"
+    },
+    {
+      "path": "outputs-v2/many-2-api.jsonl",
+      "bytes": 7055,
+      "sha256": "ed8156611a0c4e9abadae9a3ed9f32b1e2e35930622b6aae2eaf7f3e8e8cc4e5"
+    },
+    {
+      "path": "outputs-v2/many-3-api.jsonl",
+      "bytes": 7059,
+      "sha256": "b0f218a80ef029c32a70be2bd588facce5bf80ba9a5dc9a7abd2957c5647a485"
+    },
+    {
+      "path": "outputs-v2/many-4-api.jsonl",
+      "bytes": 6523,
+      "sha256": "2bda0655caa5546c4b5e2b156b86846ead4e6c79246fb6ebc70053a4d151e0ec"
+    },
+    {
+      "path": "outputs-v2/many-5-api.jsonl",
+      "bytes": 6523,
+      "sha256": "cd0ccfb198aaf786e15933cf9b60179a0bf2fc4e44a4d8b8e15eaf98b8aba329"
+    },
+    {
+      "path": "outputs-v2/many-6-api.jsonl",
+      "bytes": 6523,
+      "sha256": "05277883f0255256a56f07c1bb66bb24153f67d5d2ac0539d1fab1110e75d39a"
+    },
+    {
+      "path": "outputs-v2/many-7-api.jsonl",
+      "bytes": 6523,
+      "sha256": "57ab6165b0a0bdce844f8cb452a08b5ccade857ef5d893cc7cde3abd04cce69f"
+    },
+    {
+      "path": "outputs-v2/observations.json",
+      "bytes": 794802,
+      "sha256": "0c1663499f7913c604dd32b78ed4401bda6ed0aad2bfd2aebe3e4eb16ee5029f"
+    },
+    {
+      "path": "outputs-v2/one-0-api.jsonl",
+      "bytes": 7143,
+      "sha256": "8f5b79fcca65932e7ef33fb5ab95381e6da2a7518aeaaa07c27d20939e96790d"
+    },
+    {
+      "path": "outputs-v2/one-1-api.jsonl",
+      "bytes": 7002,
+      "sha256": "6fe67b6ee0cabe512a19d82c0247735a53ca78a14d8ac04f9d50c866d566e54e"
+    },
+    {
+      "path": "outputs-v2/one-2-api.jsonl",
+      "bytes": 7002,
+      "sha256": "5389c83deee0d8241caca239c7b72221a1503a93dc99d1dbd18ae3b42b736191"
+    },
+    {
+      "path": "outputs-v2/one-3-api.jsonl",
+      "bytes": 7006,
+      "sha256": "6ca28f07273a8014eeaa75c89d0905f92c30aa3c980b1659ba3033fa0922f8cc"
+    },
+    {
+      "path": "outputs-v2/one-4-api.jsonl",
+      "bytes": 6474,
+      "sha256": "0fe8ca821c56d9422295aa15dbec07497f088c81c022b0c19b8b833c7623a5e7"
+    },
+    {
+      "path": "outputs-v2/one-5-api.jsonl",
+      "bytes": 6474,
+      "sha256": "77f50cb92556eb6b372507d0f824fe3ced54e071676752cdbf5c8a4b973b5f47"
+    },
+    {
+      "path": "outputs-v2/one-6-api.jsonl",
+      "bytes": 6474,
+      "sha256": "d4c4a73816730d6c7dbf199f09598debb36651ee7cd97a1cd600a479496e11ca"
+    },
+    {
+      "path": "outputs-v2/one-7-api.jsonl",
+      "bytes": 6474,
+      "sha256": "384d2a56e29c213db07643c1831b6398f0147e92715f6f47007bb26a65f62a5b"
+    },
+    {
+      "path": "outputs-v2/oracle-startup.json",
+      "bytes": 79,
+      "sha256": "3e4c0090a63ae9178fc17a17002fd634f2d30e86a1a5ebf26d88c1c096ea7408"
+    },
+    {
+      "path": "outputs-v2/oracle.sqlite",
+      "bytes": 441958400,
+      "sha256": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+    },
+    {
+      "path": "outputs-v2/postverify-v1.json",
+      "bytes": 740,
+      "sha256": "acd143d406b5a52e91245e997ffa70a4e04e9b4e3a2c824fc39c624cf99df71b"
+    },
+    {
+      "path": "outputs-v2/preparation-v1.json",
+      "bytes": 76,
+      "sha256": "5dd7e164a442022cb488aa9e8f7c1f788a1bd6dceedc1bfcae1d4aadf56b26d7"
+    },
+    {
+      "path": "outputs-v2/requests.jsonl",
+      "bytes": 375911,
+      "sha256": "889e9f4155d021b4a7ce8525cf69f55029c08bdfcafbb03219e6762918ceefb4"
+    },
+    {
+      "path": "outputs-v2/responses.jsonl.gz",
+      "bytes": 9308619,
+      "sha256": "952860b17d597ef467bf69811aa88ec9ab021cbd349dcfee52c115e03f9798ae"
+    },
+    {
+      "path": "outputs-v2/server-ready.json",
+      "bytes": 1530,
+      "sha256": "fa2075a99bdd24844611edc86f854658a7ee598ddad23b85f46d64bf21859ef1"
+    },
+    {
+      "path": "outputs-v3/ann-clients-api-report-v1.json",
+      "bytes": 1848,
+      "sha256": "0bfe69824ed7079b8b2e86cda3503ae341281ae53d619b3e2b645af81fc92296"
+    },
+    {
+      "path": "outputs-v3/client-phase-analysis.json",
+      "bytes": 6596,
+      "sha256": "f7461dcef0a5bd2ae4c2ccef6c5e946f695d88ffcc4b31459fd2607cd1e50d28"
+    },
+    {
+      "path": "outputs-v3/driver-runtime-identity.json",
+      "bytes": 351,
+      "sha256": "4568597a5449b7bd0ac371c2eb71ceb913fcdb6f0e1e4b7eb4051c98b4614ef2"
+    },
+    {
+      "path": "outputs-v3/graph-source-point.json",
+      "bytes": 612,
+      "sha256": "dc154224e269a60600ade4a00c02f6b60442e3015776bb7bb00bd3a442c97a67"
+    },
+    {
+      "path": "outputs-v3/many-0-api.jsonl",
+      "bytes": 8805,
+      "sha256": "ff6daa41ca723f3bfdba75940d5383e26c60c1e810478f0ea5481277257b602e"
+    },
+    {
+      "path": "outputs-v3/many-1-api.jsonl",
+      "bytes": 8663,
+      "sha256": "e986d012e6f94b203b4b0161cda9057516f9979fa7c5e32fa06dc164c6800a72"
+    },
+    {
+      "path": "outputs-v3/many-2-api.jsonl",
+      "bytes": 8663,
+      "sha256": "3cb73077cd12bb3e8f10c18ce0640c7e87e066d3719f88dc066909a6a1c609a6"
+    },
+    {
+      "path": "outputs-v3/many-3-api.jsonl",
+      "bytes": 8667,
+      "sha256": "a9f6e097b90b2a0660917f93fd63f6a7fc2605baa3250df334c2f6e33942813f"
+    },
+    {
+      "path": "outputs-v3/many-4-api.jsonl",
+      "bytes": 8667,
+      "sha256": "afea10d497c5c97786e6b67285e49a097cab1c60b0d077d5df53eea82d00e7fe"
+    },
+    {
+      "path": "outputs-v3/many-5-api.jsonl",
+      "bytes": 8667,
+      "sha256": "3b59e2324039c0f8d72e0fcb93e71e9e6a003494275150b2324fb03d49d8dab5"
+    },
+    {
+      "path": "outputs-v3/many-6-api.jsonl",
+      "bytes": 8667,
+      "sha256": "84bed62766ac11377a003432fd5419d74e370adadd0ee7eba774657b6914f94c"
+    },
+    {
+      "path": "outputs-v3/many-7-api.jsonl",
+      "bytes": 8667,
+      "sha256": "7a38f8ceee3291cfbc330f7d861508b73b9e2d5d9ddd67d16af071fbf5f23633"
+    },
+    {
+      "path": "outputs-v3/observations.json",
+      "bytes": 1107222,
+      "sha256": "b66824bb05eead1f26e61ba8d958ba9effc14f908b0a7e05e83a0e9e652b5837"
+    },
+    {
+      "path": "outputs-v3/one-0-api.jsonl",
+      "bytes": 8739,
+      "sha256": "db6a4e24c70abb8716130dacb3ef3d6d73c55be7855c80befed802ff2ace008a"
+    },
+    {
+      "path": "outputs-v3/one-1-api.jsonl",
+      "bytes": 8598,
+      "sha256": "5eadbb795b64c30ca88451df1db53a194f51b9d67ff81bdde829a912e3edefb2"
+    },
+    {
+      "path": "outputs-v3/one-2-api.jsonl",
+      "bytes": 8598,
+      "sha256": "3893b774596491820e3901c0860113a2c07f81c8c0e450c4d27b249a745addd9"
+    },
+    {
+      "path": "outputs-v3/one-3-api.jsonl",
+      "bytes": 8602,
+      "sha256": "b3593ee818321358505c6c1dee27b3ba4cc5aef53362d8bdf8760ea9a5661714"
+    },
+    {
+      "path": "outputs-v3/one-4-api.jsonl",
+      "bytes": 8602,
+      "sha256": "2dfe7723147fb0092b9cf3390cbda01925aa86ba944e1b64662a1774f24be0a8"
+    },
+    {
+      "path": "outputs-v3/one-5-api.jsonl",
+      "bytes": 8602,
+      "sha256": "b447ecd76faef7e2076d2aaacd043a468b7a73d624f32d31825e05ed5864aba3"
+    },
+    {
+      "path": "outputs-v3/one-6-api.jsonl",
+      "bytes": 8602,
+      "sha256": "a1cc03ea90947d4019ed114eaaa602d6aa7b2cb01e50899f4973c63dbba4611b"
+    },
+    {
+      "path": "outputs-v3/one-7-api.jsonl",
+      "bytes": 8602,
+      "sha256": "3d19856f30f7ea78627ba7cd8c619d42d161ad31c06dc98998563dcd8e5be48e"
+    },
+    {
+      "path": "outputs-v3/oracle-startup.json",
+      "bytes": 79,
+      "sha256": "3f97b7cb0032ef0c7bf05074139828bf85039047733d35cbfcd5acd17fcc8479"
+    },
+    {
+      "path": "outputs-v3/oracle.sqlite",
+      "bytes": 441958400,
+      "sha256": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+    },
+    {
+      "path": "outputs-v3/postverify-v1.json",
+      "bytes": 741,
+      "sha256": "c2a203683a76d0ae0b9a7579f6cd4c1ca3893a8ca8aa180e77edd6f38ab4f1bc"
+    },
+    {
+      "path": "outputs-v3/preparation-v1.json",
+      "bytes": 184,
+      "sha256": "24d6fa5c8baa57e06a93b9a024ae3d699161fe89e8d0dae9ecb3130352127234"
+    },
+    {
+      "path": "outputs-v3/requests.jsonl",
+      "bytes": 523797,
+      "sha256": "247987837d016ed6767e92cbdaacbebe9c532f090f6545ca64b031349cd61d00"
+    },
+    {
+      "path": "outputs-v3/responses.jsonl.gz",
+      "bytes": 11850192,
+      "sha256": "eb01983ab8322ee847b7fa18697d10426abbf9fd4fe6e9d77fa0a7c2b542f211"
+    },
+    {
+      "path": "outputs-v3/server-ready.json",
+      "bytes": 1530,
+      "sha256": "77c4bafd5a80067ef022a4a067df4f717ac6a958986459580dfaf061974ee578"
+    },
+    {
+      "path": "deployment/ann-client-analysis.py",
+      "bytes": 2506,
+      "sha256": "28d9f8a2ee885f55aaf679e740d2772665b32f6efdc4b302bf25ede32dd74227"
+    },
+    {
+      "path": "deployment/ann-client-postverify.py",
+      "bytes": 3934,
+      "sha256": "ce5238ada86808bf0f6c38d32b032c55cf358b132bd728c252f758af56b5ea66"
+    },
+    {
+      "path": "deployment/ann-client-process-benchmark-v2.py",
+      "bytes": 11542,
+      "sha256": "0a514882b7ad31d463843fb27153454400cae078fbff2a71df4811f717f41b22"
+    },
+    {
+      "path": "deployment/ann-client-process-benchmark-v3.py",
+      "bytes": 11973,
+      "sha256": "24d0d89ad2ec8dc8846e6dbfe01a4c124687ddc491914df01d8f4048540a9afe"
+    },
+    {
+      "path": "deployment/ann-client-process-benchmark.py",
+      "bytes": 11555,
+      "sha256": "4b6d4db9e49dd66df5c10744edb8ea6a8b0eeff8fac0480571b9b6ae6b7db190"
+    },
+    {
+      "path": "deployment/api-v1.pid",
+      "bytes": 7,
+      "sha256": "d7512ca2adede9ca19c9ff9effc396c4840fca9d216d53685c4a8874000248e9"
+    },
+    {
+      "path": "deployment/api-v2.pid",
+      "bytes": 7,
+      "sha256": "eb50586df0c8c84d58bda04d24d59499ab7ffd2282202223c9adf752a5878de2"
+    },
+    {
+      "path": "deployment/api-v3.pid",
+      "bytes": 7,
+      "sha256": "38b16287475854e823f604a96ebace80c76f3f5e150d9c1bbd8a8aa49861dde4"
+    },
+    {
+      "path": "source-snapshot.json",
+      "bytes": 439,
+      "sha256": "e86e32a27def6902679036672d3f330b05ebd4d60e41b76314b52e277785daeb"
+    }
+  ],
+  "old_failures_preserved": true
+}

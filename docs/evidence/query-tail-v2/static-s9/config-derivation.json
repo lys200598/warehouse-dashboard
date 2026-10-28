@@ -1,0 +1,8 @@
+{
+  "source_template": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/config/query-gateway-nginx.conf.example",
+  "template_sha256": "88bf4c077a50ac152c32c170bb46862bbc8e7cbde08ceda02632fe73dc053615",
+  "derived_sha256": "2f662732037fc6b9c04173f735fe174e0dacdb37444f5808b337c6df2940d81f",
+  "exact_diff_file": "ports-only.diff",
+  "changes": "listen and eight query upstream ports only; all other bytes retained",
+  "nonquery_route_14190_inherited_but_unused": true
+}

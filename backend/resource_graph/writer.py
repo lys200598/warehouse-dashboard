@@ -17,6 +17,8 @@ BOOTSTRAP_LOCATIONS = '''UNWIND $rows AS row MATCH (w:Warehouse {id:row.warehous
     MERGE (l:Location {id:row.id}) SET l += row MERGE (w)-[:HAS_LOCATION]->(l)
     WITH l,row MATCH (actual:WHLocation {key:$run+':'+row.location_id})
     MERGE (actual)-[:INSTANCE_OF]->(l)'''
+LABEL_BOUNDARY_GROUPS = '''UNWIND $rows AS row
+    MATCH (l:Location {id:row.id}) SET l:BoundaryGroup'''
 LINK_RACK_SLOTS = '''UNWIND $rows AS row
     MATCH (rack:Rack {id:row.rack_node_id}),(l:Location {id:row.id}),
           (actual:WHSlot {key:$run+':'+row.location_id})
@@ -90,6 +92,9 @@ def apply_resources(tx, forward_batches, *, prepared=None):
         tx.run(BOOTSTRAP_WAREHOUSE, warehouse=package['warehouse'], run=run).consume()
         tx.run(BOOTSTRAP_RACKS, rows=package['racks']).consume()
         tx.run(BOOTSTRAP_LOCATIONS, rows=package['locations'], run=run).consume()
+        groups = [row for row in package['locations'] if row['kind'] == 'logical-boundary']
+        if groups:
+            tx.run(LABEL_BOUNDARY_GROUPS, rows=groups).consume()
         tx.run(LINK_RACK_SLOTS, rows=[row for row in package['locations'] if row['kind'] == 'slot'], run=run).consume()
         tx.run(BOOTSTRAP_DATASET, dataset=package['dataset'], run=run).consume()
         tx.run(BOOTSTRAP_GOODS, rows=package['goods'], run=run).consume()

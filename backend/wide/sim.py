@@ -31,6 +31,7 @@ class Config(V3Config):
     capability_spare_cost_seconds: float = 15.
     inbound_admission_policy: str = 'fifo'
     port_relief_policy: str = 'off'
+    port_selection_policy: str = 'fixed'
 
     def __post_init__(self):
         super().__post_init__()
@@ -39,6 +40,8 @@ class Config(V3Config):
             raise ValueError('unknown inbound admission policy')
         if self.port_relief_policy not in ('off', 'deadline'):
             raise ValueError('unknown port relief policy')
+        if self.port_selection_policy not in ('fixed', 'balanced'):
+            raise ValueError('unknown port selection policy')
         if (isinstance(self.capability_spare_cost_seconds, bool) or
                 not isinstance(self.capability_spare_cost_seconds, (int, float)) or
                 not math.isfinite(self.capability_spare_cost_seconds) or
@@ -103,6 +106,8 @@ class Simulation(V3Simulation):
             t.update(status='scheduled',robot_id=None,cargo_id=t['goods_id'],
                      slot_id=t['target_id'] if t['task_type']=='INBOUND' else t['source_id'])
             self.tasks[t['task_id']]=t
+        from .free_ports import prepare_tasks
+        prepare_tasks(self)
         self.release_order=sorted(self.tasks,key=lambda k:(self.tasks[k]['release_second'],k))
         self.cursor=0
         self.pending=[]
@@ -144,6 +149,19 @@ class Simulation(V3Simulation):
             self.inside+=1
             self.event('initial_stock',goods_id=g,location_id=s)
         self.metrics['max_inside']=self.inside
+
+    def _release(self):
+        if self.config.port_selection_policy == 'balanced':
+            from .free_ports import release
+            return release(self)
+        return super()._release()
+
+    def assert_inventory(self):
+        result = super().assert_inventory()
+        if self.config.port_selection_policy == 'balanced':
+            from .free_ports import assert_bindings
+            assert_bindings(self)
+        return result
 
     def task_capability_requirements(self, task, *, remaining=False):
         keys = [task['target_id']] if remaining else [task['source_id'], task['target_id']]

@@ -1,0 +1,7 @@
+{
+  "not_index_selection": true,
+  "source": "unchanged production ANN32D",
+  "pressure_requests": 128,
+  "distinct_robots": 100,
+  "client_timing": "body read + JSON parse separate"
+}

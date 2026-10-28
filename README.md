@@ -64,3 +64,11 @@ python -m backend.warehouse validate --dataset data/datasets/my-seven-days
 长运行可显式设`--commit-seconds 300`：全部业务事件保留，100机器人状态按此间隔和关键协作边界提交。5秒与300秒结果分别计量。大输入设置合适的`--max-wall-seconds`和存储预算，长任务不默认保存巨大网页帧。
 
 原Ray控制台保留；新版中央执行器的100机器人实体、100客户端查询、100独立Actor分别记录。LLM不在本分支交付范围。运行与性能结论均应关联相应输入、源码及验收记录。
+
+## 逻辑入出库边界与自由工位
+
+[自由边界指南](docs/FREE_BOUNDARIES_GUIDE_20261029.md)说明七字段中使用`INBOUND / OUTBOUND`、由仿真选择实际工位及记录计划/实际关系的方法。现有8IN/8OUT、每IN六件和物理约束保持；当前1728高峰自由口场景全部按时完成。旧固定口数据和运行继续保留，其他日型与查询性能分别验收。
+
+## 查询增量摘要与原生入口
+
+[查询部署指南](docs/QUERY_TAIL_DEPLOYMENT_20261029.md)说明单Runtime、8个query-only进程、原子发布点和原生HTTP路由。当前S9动态124131完整响应源验真通过，完整HTTP P99约303ms，仍保留24条超500ms；固定百万前缀与动态规模资格分别报告。输入、源码、SHA及对接说明见[本轮总结](docs/codex_notes/10/29-自由进出货口与查询长尾优化.md)。

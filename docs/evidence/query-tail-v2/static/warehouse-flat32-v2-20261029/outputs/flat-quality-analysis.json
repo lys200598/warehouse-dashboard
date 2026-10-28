@@ -1,0 +1,81 @@
+{
+  "ann_recall_at5_vs_flat_numeric_top5_mean": 0.976,
+  "ann_recall_samples": 100,
+  "ann_recall_distribution": {
+    "0.2": 1,
+    "0.4": 1,
+    "0.6": 1,
+    "0.8": 3,
+    "1.0": 94
+  },
+  "independent_scalar_complete_domain": [
+    {
+      "robot": 1,
+      "all_candidates_independently_scored": 507300,
+      "seconds": 10.794341642409563,
+      "scalar_top5_ids": [
+        507200,
+        124006,
+        377913,
+        251704,
+        379404
+      ],
+      "flat_top5_ids": [
+        507200,
+        124006,
+        377913,
+        251704,
+        379404
+      ],
+      "exact_set_equal": true,
+      "all_selected_scores_at_boundary_within_1e_14": true,
+      "max_reported_score_error": 1.1102230246251565e-16
+    },
+    {
+      "robot": 50,
+      "all_candidates_independently_scored": 507300,
+      "seconds": 9.716491448692977,
+      "scalar_top5_ids": [
+        507249,
+        319048,
+        256449,
+        380047,
+        127248
+      ],
+      "flat_top5_ids": [
+        507249,
+        319048,
+        256449,
+        380047,
+        127248
+      ],
+      "exact_set_equal": true,
+      "all_selected_scores_at_boundary_within_1e_14": true,
+      "max_reported_score_error": 0.0
+    },
+    {
+      "robot": 100,
+      "all_candidates_independently_scored": 507300,
+      "seconds": 8.570805978029966,
+      "scalar_top5_ids": [
+        507299,
+        254293,
+        124989,
+        252897,
+        125094
+      ],
+      "flat_top5_ids": [
+        507299,
+        254293,
+        124989,
+        252897,
+        125094
+      ],
+      "exact_set_equal": true,
+      "all_selected_scores_at_boundary_within_1e_14": true,
+      "max_reported_score_error": 1.1102230246251565e-16
+    }
+  ],
+  "flat_numeric_definition": "all32D float64 cosine, numerical ties can differ within roundoff; exact_set_equal separately disclosed",
+  "original_manifest_sha256": "1763befc6316f092dd2fb4f592660e4bdd8acd9673baa49fd24a09de0cbc2483"
+}

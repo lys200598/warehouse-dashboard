@@ -23,6 +23,9 @@ def parser():
     q=sub.add_parser('validate',help='validate warehouse fixed-file input without a calendar cap')
     q.add_argument('--scene',default=str(SCENE));q.add_argument('--dataset',required=True)
     q.add_argument('--max-tasks',type=int);q.add_argument('--output')
+    q=sub.add_parser('convert-boundaries',help='create a new logical INBOUND/OUTBOUND dataset; preserve goods, time and rack references')
+    q.add_argument('--scene',default=str(SCENE));q.add_argument('--dataset',required=True)
+    q.add_argument('--output',required=True);q.add_argument('--role',choices=['both','inbound','outbound'],default='both')
     q=sub.add_parser('generate',help='reproducible input; robot energy/faults stay outside CSV')
     q.add_argument('--kind',choices=['multiday','uniform','peak','hotspot','continuous'],default='multiday')
     q.add_argument('--scene',default=str(SCENE));q.add_argument('--output',required=True)
@@ -42,6 +45,8 @@ def parser():
     q=sub.add_parser('query',help='versioned read-only warehouse query catalog')
     q.add_argument('--catalog',action='store_true');q.add_argument('--request-json')
     q.add_argument('--output');q.add_argument('--timeout',type=float,default=15)
+    q.add_argument('--summary-root',type=Path,help='source journal root for exact-cutoff derived summaries; baseline if omitted')
+    q.add_argument('--query-summary-cache',type=Path)
     q=sub.add_parser('serve',help='read-only saved frames, preserves existing camera controls')
     q.add_argument('--output',required=True);q.add_argument('--port',type=int,default=14183)
     q.add_argument('--dist',default=str(ROOT/'dist/v5'));q.add_argument('--neo4j',action='store_true')
@@ -69,8 +74,13 @@ def main(argv=None):
             'execution':'one central V5 coordinator with 100 actual simulated robots',
             'legacy_ray_entrypoint':'python -m backend.server --help',
             'playback':'serve consumes recorded --frames output; no synthetic frames',
-            'duration_cap':None,'subcommands':['validate','generate','run','query','serve','live','status','retrieval-eval']})
+            'duration_cap':None,'subcommands':['validate','convert-boundaries','generate','run','query','serve','live','status','retrieval-eval']})
         return 0
+    if args.command=='convert-boundaries':
+        from ops.convert_logical_boundaries import convert
+        manifest,report=convert(args.scene,args.dataset,args.output,
+            inbound=args.role!='outbound',outbound=args.role!='inbound')
+        emit({'manifest':manifest,'validation':report});return 0
     if args.command=='validate':
         from ..wide.data import validate_dataset
         emit(validate_dataset(args.scene,args.dataset,max_tasks=args.max_tasks),args.output);return 0
@@ -105,7 +115,11 @@ def main(argv=None):
             emit(QueryCatalogService.describe(),args.output);return 0
         if not args.request_json:p.error('--request-json or --catalog required')
         request=json.loads(sys.stdin.read() if args.request_json=='-' else Path(args.request_json).read_text(encoding='utf-8'))
-        service=QueryCatalogService.from_env(timeout=args.timeout)
+        options=({'summary_root':args.summary_root,'summary_cache_root':args.query_summary_cache}
+                 if args.summary_root is not None else {})
+        if args.query_summary_cache is not None and args.summary_root is None:
+            p.error('--query-summary-cache requires --summary-root')
+        service=QueryCatalogService.from_env(timeout=args.timeout,**options)
         try:emit(service.execute(request),args.output)
         finally:service.close()
         return 0

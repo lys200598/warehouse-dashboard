@@ -192,9 +192,13 @@ def migrate_dataset(old_scene, new_scene, source, output, *, deadline_policy="pr
     manifest, tasks, initial = read_dataset(old_scene, source)
     ports = {p["id"]: p for p in scene["stations"]}
     for task in tasks:
-        if task["source_id"] not in slots and task["source_id"] not in ports or \
-                task["target_id"] not in slots and task["target_id"] not in ports:
+        logical_source = task['task_type'] == 'INBOUND' and task['source_id'] == 'INBOUND'
+        logical_target = task['task_type'] == 'OUTBOUND' and task['target_id'] == 'OUTBOUND'
+        if (task["source_id"] not in slots and task["source_id"] not in ports and not logical_source) or \
+                (task["target_id"] not in slots and task["target_id"] not in ports and not logical_target):
             raise ValueError("old task location is missing from new layout")
+        if deadline_policy == 'explicit-reference' and (logical_source or logical_target):
+            raise ValueError('logical boundary migration must preserve deadlines; no physical endpoint is predetermined')
     old_manifest_sha = sha(source/"manifest.json")
     source_files = dict(manifest["files"])
     changes = 0
@@ -397,6 +401,12 @@ def validate_dataset(scene_path, directory, *, max_tasks=None):
         stock[slot], where[goods] = goods, slot
         ever_seen.add(goods)
     ports = {station["id"]: station["kind"] for station in scene["stations"]}
+    routing = manifest.get('boundary_routing')
+    if routing is not None:
+        from .free_ports import DECLARATION
+        if not isinstance(routing, dict) or any(routing.get(key) != value for key, value in DECLARATION.items()):
+            raise ValueError('unsupported logical boundary routing declaration')
+        ports.update(INBOUND='inbound', OUTBOUND='outbound')
     low = high = len(stock)
     hourly, daily = Counter(), Counter()
     for task in sorted(tasks, key=lambda row: (row["release_second"], row["task_id"])):

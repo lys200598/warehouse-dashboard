@@ -1,0 +1,2 @@
+{"passed": true, "run_id": "wh-free-required19", "physical_completed": 19, "late": 0, "elapsed": 1970, "knowledge_control": {"queries": 2, "approved_plans": 1, "approved_transfers": 1, "rejected": 0, "query_seconds": 0.0671806950122118, "helper_order_changes": 0}, "journal_batches": 69, "source_actual_agent_states": 6900, "graph_actual_agent_states": 6900, "relationships": {"head": 69, "resource_head": 69, "racks": 40, "slots": 1920}, "checked_slot_point_values": 5760}
+report_sha256 2ba73516d3013a6296b68577fa426bb6c215946260f8d7e160cf4a0147808267

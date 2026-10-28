@@ -1,0 +1,7 @@
+{
+  "source_snapshot_reused_readonly": true,
+  "oracle_reused_readonly": true,
+  "derived_view_reused": true,
+  "original_summary_build_seconds": 34.88804861065,
+  "original_report": "/data/workspace/wz/warehouse-query-tail-20261029/outputs/api-report-v1.json"
+}

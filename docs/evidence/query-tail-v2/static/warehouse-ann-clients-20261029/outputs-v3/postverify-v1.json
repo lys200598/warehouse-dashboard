@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "verified": 1042,
+  "requests": 1042,
+  "errors": [],
+  "counts": {
+    "('one', 'similar_history')": 521,
+    "('many', 'similar_history')": 521
+  },
+  "full_32d_ann_paths": {
+    "('one', 'ann100')": 521,
+    "('many', 'ann100')": 521
+  },
+  "source_and_packets_unchanged": true,
+  "hashes": {
+    "requests.jsonl": "247987837d016ed6767e92cbdaacbebe9c532f090f6545ca64b031349cd61d00",
+    "responses.jsonl.gz": "eb01983ab8322ee847b7fa18697d10426abbf9fd4fe6e9d77fa0a7c2b542f211",
+    "oracle.sqlite": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+  },
+  "seconds": 4.959569654427469,
+  "scope": "complete HTTP catalog payloads versus original snapshot/independent RealOracle; AFTER measured load"
+}

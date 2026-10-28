@@ -1,0 +1,243 @@
+{
+  "quantile": "nearest-rank ceil(0.99*N)",
+  "all_cold_and_warm_rows_included": true,
+  "source": "same Neo4j run final5073, 1652135 total nodes, no writer, full32D ANN",
+  "oracle_after_load": true,
+  "request_sha256": "247987837d016ed6767e92cbdaacbebe9c532f090f6545ca64b031349cd61d00",
+  "results": [
+    {
+      "method": "one",
+      "source_ANN32D_unmodified": true,
+      "distinct_robots": 100,
+      "all_HTTP_end_to_end": {
+        "n": 521,
+        "mean_ms": 291.7337277207002,
+        "p99_ms": 660.861998796463,
+        "max_ms": 682.4457300826907,
+        "over500": 102
+      },
+      "actual_API_peak": 126,
+      "actual_server_interval": {
+        "n": 521,
+        "mean_ms": 116.82293228214971,
+        "p99_ms": 261.431415,
+        "max_ms": 285.111517,
+        "over500": 0
+      },
+      "service": {
+        "n": 521,
+        "mean_ms": 103.69137407507526,
+        "p99_ms": 253.80358658730984,
+        "max_ms": 276.0841231793165,
+        "over500": 0
+      },
+      "bolt": {
+        "n": 521,
+        "mean_ms": 94.43482066792455,
+        "p99_ms": 233.0281650647521,
+        "max_ms": 251.27750728279352,
+        "over500": 0
+      },
+      "phases": [
+        {
+          "phase": "burst-1",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 259.94651867222274,
+            "p99_ms": 577.1111184731126,
+            "max_ms": 577.8491143137217,
+            "over500": 16
+          },
+          "actual_API_peak": 126
+        },
+        {
+          "phase": "burst-2",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 305.5375858239131,
+            "p99_ms": 638.2092144340277,
+            "max_ms": 642.3082053661346,
+            "over500": 30
+          },
+          "actual_API_peak": 121
+        },
+        {
+          "phase": "burst-3",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 294.90951609477634,
+            "p99_ms": 555.4879615083337,
+            "max_ms": 570.3108049929142,
+            "over500": 18
+          },
+          "actual_API_peak": 118
+        },
+        {
+          "phase": "burst-4",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 323.60723162128124,
+            "p99_ms": 666.7763954028487,
+            "max_ms": 682.4457300826907,
+            "over500": 38
+          },
+          "actual_API_peak": 125
+        },
+        {
+          "phase": "first-similar_history",
+          "full_HTTP_parse": {
+            "n": 1,
+            "mean_ms": 57.9402819275856,
+            "p99_ms": 57.9402819275856,
+            "max_ms": 57.9402819275856,
+            "over500": 0
+          },
+          "actual_API_peak": 1
+        },
+        {
+          "phase": "matched-ann-warmup",
+          "full_HTTP_parse": {
+            "n": 8,
+            "mean_ms": 47.90284717455506,
+            "p99_ms": 50.34264922142029,
+            "max_ms": 50.34264922142029,
+            "over500": 0
+          },
+          "actual_API_peak": 1
+        }
+      ],
+      "response_body_read": {
+        "n": 521,
+        "mean_ms": 285.55604372881425,
+        "p99_ms": 637.722697108984,
+        "max_ms": 677.1262921392918,
+        "over500": 93
+      },
+      "client_JSON_parse": {
+        "n": 521,
+        "mean_ms": 6.16140558693608,
+        "p99_ms": 107.85400681197643,
+        "max_ms": 196.47835101932287,
+        "over500": 0
+      },
+      "client_start_to_response_body_end_peak": 128
+    },
+    {
+      "method": "many",
+      "source_ANN32D_unmodified": true,
+      "distinct_robots": 100,
+      "all_HTTP_end_to_end": {
+        "n": 521,
+        "mean_ms": 122.51967455541104,
+        "p99_ms": 264.2204202711582,
+        "max_ms": 318.077121861279,
+        "over500": 0
+      },
+      "actual_API_peak": 126,
+      "actual_server_interval": {
+        "n": 521,
+        "mean_ms": 113.23951261996162,
+        "p99_ms": 256.073965,
+        "max_ms": 290.250614,
+        "over500": 0
+      },
+      "service": {
+        "n": 521,
+        "mean_ms": 102.60374449736898,
+        "p99_ms": 240.0604011490941,
+        "max_ms": 283.35025534033775,
+        "over500": 0
+      },
+      "bolt": {
+        "n": 521,
+        "mean_ms": 93.00584874997155,
+        "p99_ms": 225.5616970360279,
+        "max_ms": 264.2477657645941,
+        "over500": 0
+      },
+      "phases": [
+        {
+          "phase": "burst-1",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 140.76390660193283,
+            "p99_ms": 313.3049579337239,
+            "max_ms": 318.077121861279,
+            "over500": 0
+          },
+          "actual_API_peak": 117
+        },
+        {
+          "phase": "burst-2",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 121.67952048184816,
+            "p99_ms": 251.06411334127188,
+            "max_ms": 264.2204202711582,
+            "over500": 0
+          },
+          "actual_API_peak": 126
+        },
+        {
+          "phase": "burst-3",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 116.9196076298249,
+            "p99_ms": 250.91219786554575,
+            "max_ms": 251.9887713715434,
+            "over500": 0
+          },
+          "actual_API_peak": 107
+        },
+        {
+          "phase": "burst-4",
+          "full_HTTP_parse": {
+            "n": 128,
+            "mean_ms": 115.85544662375469,
+            "p99_ms": 226.19374375790358,
+            "max_ms": 234.05959084630013,
+            "over500": 0
+          },
+          "actual_API_peak": 103
+        },
+        {
+          "phase": "first-similar_history",
+          "full_HTTP_parse": {
+            "n": 1,
+            "mean_ms": 45.907448045909405,
+            "p99_ms": 45.907448045909405,
+            "max_ms": 45.907448045909405,
+            "over500": 0
+          },
+          "actual_API_peak": 1
+        },
+        {
+          "phase": "matched-ann-warmup",
+          "full_HTTP_parse": {
+            "n": 8,
+            "mean_ms": 49.85967301763594,
+            "p99_ms": 70.49781084060669,
+            "max_ms": 70.49781084060669,
+            "over500": 0
+          },
+          "actual_API_peak": 1
+        }
+      ],
+      "response_body_read": {
+        "n": 521,
+        "mean_ms": 119.74876104619877,
+        "p99_ms": 260.5492966249585,
+        "max_ms": 315.13372901827097,
+        "over500": 0
+      },
+      "client_JSON_parse": {
+        "n": 521,
+        "mean_ms": 2.765635407445756,
+        "p99_ms": 8.391120471060276,
+        "max_ms": 26.985966600477695,
+        "over500": 0
+      },
+      "client_start_to_response_body_end_peak": 128
+    }
+  ]
+}

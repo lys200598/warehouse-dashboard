@@ -1,0 +1,10 @@
+{
+  "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v2",
+  "parent_source": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v1",
+  "change": "query_point atomic scalar snapshot; same catalog workers/slots and backend",
+  "files": {
+    "ops/warehouse_live.py": "481cfa972cc460479c811937f36ac37fbff12694cef5c95e5437170dd640e87b",
+    "ops/warehouse_live_runtime.py": "c4f28a08e1c3e3d160aceee87daacd3d714d54b2151487f92e4309b292fa81cc",
+    "tests/test_live_summary_publisher.py": "ca3d40c5e956184864f551386ba18df157c0ba87ad016f200563b37b2567b04c"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "verified": 1008,
+  "requests": 1008,
+  "errors": [],
+  "counts": {
+    "('baseline', 'global')": 101,
+    "('accelerated', 'global')": 101,
+    "('baseline', 'local_awareness')": 101,
+    "('accelerated', 'local_awareness')": 101,
+    "('baseline', 'similar_history')": 201,
+    "('accelerated', 'similar_history')": 201,
+    "('baseline', 'self')": 101,
+    "('accelerated', 'self')": 101
+  },
+  "full_32d_ann_paths": {
+    "('baseline', 'ann100')": 201,
+    "('accelerated', 'ann100')": 201
+  },
+  "source_and_packets_unchanged": true,
+  "hashes": {
+    "requests.jsonl": "6fe0dbf3b3e89496179f036c234a94d88447d20ea0ed5572e5a7c810a661ab30",
+    "responses.jsonl.gz": "bd2f17cce41165b6d50c5ba845435cae151ba385440cf00270ba28dc6d626b82",
+    "oracle.sqlite": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+  },
+  "seconds": 418.2415136033669,
+  "scope": "complete HTTP catalog payloads versus original snapshot/independent RealOracle; AFTER measured load"
+}
+ANN PHASE ('baseline', 'first-similar_history', 'similar_history') 1 3505.7771783322096 3505.7771783322096 1
+ANN PHASE ('accelerated', 'first-similar_history', 'similar_history') 1 62.84536700695753 62.84536700695753 0
+ANN PHASE ('accelerated', 'burst-4', 'similar_history') 100 1615.9344911202788 2708.7260745465755 100
+ANN PHASE ('baseline', 'burst-4', 'similar_history') 100 223.3554200362414 480.05876410752535 0
+ANN PHASE ('baseline', 'burst-5', 'similar_history') 100 235.6753434240818 539.0089591965079 3
+ANN PHASE ('accelerated', 'burst-5', 'similar_history') 100 222.0287581998855 433.5936577990651 0

@@ -1,0 +1,717 @@
+{
+  "version": "S9-static-complete-v1",
+  "passed": false,
+  "scope": "fixed final original same-run million-node prefix; no Runtime, no live control or concurrent source writer",
+  "source_identity": {
+    "manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+    "sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+    "verified_files": 242
+  },
+  "same_run_nodes": 1652135,
+  "actual_32d_vectors": 507300,
+  "seq": 5073,
+  "complete_response_verified": 2084,
+  "formal_requests": 2084,
+  "counts": {
+    "global": 521,
+    "local_awareness": 521,
+    "self": 521,
+    "similar_history": 521
+  },
+  "errors": [],
+  "all_cold_warm_samples_retained": true,
+  "all_API_and_Native_rows_complete": true,
+  "all_pressure_phases_actual_API_peak_ge100": false,
+  "all_formal_requests_le500ms": false,
+  "immutable_packets_unchanged": true,
+  "packet_hashes": {
+    "requests.jsonl": "f095a50513ea764555c7de5ed00eacc726e50769833b2c2a48174be59e5b1a83",
+    "responses.jsonl.gz": "aeeb47cc2e1bf0d0ff1de931fafb10bf4eb275312acd19ca0a26eb7172389027"
+  },
+  "Oracle_seconds_after_load": 53.02869331929833,
+  "offline_original_task_fact_cache": "one same immutable seq; no production helpers/queries; original ResponseVerifier compares each response",
+  "source_journal_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+  "oracle_source_sha256": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe",
+  "groups": [
+    {
+      "query": "global",
+      "all_client_HTTP": {
+        "n": 521,
+        "mean_ms": 110.30480096161229,
+        "p99_ms": 240.097314,
+        "max_ms": 601.353968,
+        "over500": 1
+      },
+      "client_body_read": {
+        "n": 521,
+        "mean_ms": 109.56911710940498,
+        "p99_ms": 239.415573,
+        "max_ms": 600.678432,
+        "over500": 1
+      },
+      "client_JSON_parse": {
+        "n": 521,
+        "mean_ms": 0.6602706525911708,
+        "p99_ms": 1.677849,
+        "max_ms": 2.589628,
+        "over500": 0
+      },
+      "Native_front_request": {
+        "n": 521,
+        "mean_ms": 108.28406909788868,
+        "p99_ms": 239.0,
+        "max_ms": 599.0,
+        "over500": 1
+      },
+      "actual_sidecar_API": {
+        "n": 521,
+        "mean_ms": 105.51511149520154,
+        "p99_ms": 234.082331,
+        "max_ms": 597.406981,
+        "over500": 1
+      },
+      "actual_catalog_execute": {
+        "n": 521,
+        "mean_ms": 32.02512348560461,
+        "p99_ms": 80.42982,
+        "max_ms": 587.719775,
+        "over500": 1
+      },
+      "actual_API_peak": 128,
+      "formal_requests": 521,
+      "API_rows": 521,
+      "catalog_rows": 521,
+      "Native_rows": 521,
+      "errors": 0,
+      "phases": [
+        {
+          "phase": "cold-first-call",
+          "client_HTTP": {
+            "n": 1,
+            "mean_ms": 601.353968,
+            "p99_ms": 601.353968,
+            "max_ms": 601.353968,
+            "over500": 1
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 1,
+            "mean_ms": 597.406981,
+            "p99_ms": 597.406981,
+            "max_ms": 597.406981,
+            "over500": 1
+          },
+          "distinct_robots": 1
+        },
+        {
+          "phase": "matched-warmup",
+          "client_HTTP": {
+            "n": 8,
+            "mean_ms": 58.058044,
+            "p99_ms": 80.622128,
+            "max_ms": 80.622128,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 8,
+            "mean_ms": 56.1432115,
+            "p99_ms": 78.033716,
+            "max_ms": 78.033716,
+            "over500": 0
+          },
+          "distinct_robots": 8
+        },
+        {
+          "phase": "pressure-1",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 130.7388605859375,
+            "p99_ms": 267.959305,
+            "max_ms": 279.771444,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 124.8698262890625,
+            "p99_ms": 262.264651,
+            "max_ms": 273.542544,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-2",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 106.79300415625,
+            "p99_ms": 207.248291,
+            "max_ms": 209.678386,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 102.548222203125,
+            "p99_ms": 202.572053,
+            "max_ms": 204.217812,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-3",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 96.1027099375,
+            "p99_ms": 174.98944,
+            "max_ms": 175.364737,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 91.9656936484375,
+            "p99_ms": 167.8884,
+            "max_ms": 172.569836,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-4",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 107.013729859375,
+            "p99_ms": 206.657377,
+            "max_ms": 208.95782,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 101.919542359375,
+            "p99_ms": 193.722989,
+            "max_ms": 199.172276,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        }
+      ]
+    },
+    {
+      "query": "local_awareness",
+      "all_client_HTTP": {
+        "n": 521,
+        "mean_ms": 111.74851090019193,
+        "p99_ms": 275.952399,
+        "max_ms": 340.165752,
+        "over500": 0
+      },
+      "client_body_read": {
+        "n": 521,
+        "mean_ms": 111.47821690978887,
+        "p99_ms": 275.697329,
+        "max_ms": 339.821331,
+        "over500": 0
+      },
+      "client_JSON_parse": {
+        "n": 521,
+        "mean_ms": 0.2077974452975048,
+        "p99_ms": 0.495438,
+        "max_ms": 0.59835,
+        "over500": 0
+      },
+      "Native_front_request": {
+        "n": 521,
+        "mean_ms": 110.27831094049904,
+        "p99_ms": 275.0,
+        "max_ms": 338.0,
+        "over500": 0
+      },
+      "actual_sidecar_API": {
+        "n": 521,
+        "mean_ms": 107.92084521113243,
+        "p99_ms": 261.254723,
+        "max_ms": 336.039019,
+        "over500": 0
+      },
+      "actual_catalog_execute": {
+        "n": 521,
+        "mean_ms": 33.42741983109405,
+        "p99_ms": 69.530313,
+        "max_ms": 85.560129,
+        "over500": 0
+      },
+      "actual_API_peak": 128,
+      "formal_requests": 521,
+      "API_rows": 521,
+      "catalog_rows": 521,
+      "Native_rows": 521,
+      "errors": 0,
+      "phases": [
+        {
+          "phase": "cold-first-call",
+          "client_HTTP": {
+            "n": 1,
+            "mean_ms": 11.435569,
+            "p99_ms": 11.435569,
+            "max_ms": 11.435569,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 1,
+            "mean_ms": 10.658389,
+            "p99_ms": 10.658389,
+            "max_ms": 10.658389,
+            "over500": 0
+          },
+          "distinct_robots": 1
+        },
+        {
+          "phase": "matched-warmup",
+          "client_HTTP": {
+            "n": 8,
+            "mean_ms": 23.52128075,
+            "p99_ms": 29.950241,
+            "max_ms": 29.950241,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 8,
+            "mean_ms": 22.83453625,
+            "p99_ms": 29.288323,
+            "max_ms": 29.288323,
+            "over500": 0
+          },
+          "distinct_robots": 8
+        },
+        {
+          "phase": "pressure-1",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 125.564720640625,
+            "p99_ms": 326.689134,
+            "max_ms": 340.165752,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 121.73202925,
+            "p99_ms": 322.11816,
+            "max_ms": 336.039019,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-2",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 114.8700206640625,
+            "p99_ms": 250.548293,
+            "max_ms": 276.570446,
+            "over500": 0
+          },
+          "actual_API_peak": 123,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 109.793839921875,
+            "p99_ms": 221.827275,
+            "max_ms": 242.55217,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-3",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 101.0723908125,
+            "p99_ms": 192.740078,
+            "max_ms": 197.942023,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 97.9438453515625,
+            "p99_ms": 188.166744,
+            "max_ms": 195.285348,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-4",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 111.7848082265625,
+            "p99_ms": 254.839914,
+            "max_ms": 275.952399,
+            "over500": 0
+          },
+          "actual_API_peak": 128,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 108.2914235703125,
+            "p99_ms": 249.068681,
+            "max_ms": 273.396655,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        }
+      ]
+    },
+    {
+      "query": "self",
+      "all_client_HTTP": {
+        "n": 521,
+        "mean_ms": 18.37832162571977,
+        "p99_ms": 53.175496,
+        "max_ms": 58.463767,
+        "over500": 0
+      },
+      "client_body_read": {
+        "n": 521,
+        "mean_ms": 18.264104550863724,
+        "p99_ms": 53.085916,
+        "max_ms": 58.36537,
+        "over500": 0
+      },
+      "client_JSON_parse": {
+        "n": 521,
+        "mean_ms": 0.039929907869481765,
+        "p99_ms": 0.084143,
+        "max_ms": 0.107611,
+        "over500": 0
+      },
+      "Native_front_request": {
+        "n": 521,
+        "mean_ms": 17.12476007677543,
+        "p99_ms": 52.0,
+        "max_ms": 58.0,
+        "over500": 0
+      },
+      "actual_sidecar_API": {
+        "n": 521,
+        "mean_ms": 14.32348953934741,
+        "p99_ms": 42.466653,
+        "max_ms": 48.520608,
+        "over500": 0
+      },
+      "actual_catalog_execute": {
+        "n": 521,
+        "mean_ms": 3.8763982111324378,
+        "p99_ms": 19.225314,
+        "max_ms": 30.55067,
+        "over500": 0
+      },
+      "actual_API_peak": 87,
+      "formal_requests": 521,
+      "API_rows": 521,
+      "catalog_rows": 521,
+      "Native_rows": 521,
+      "errors": 0,
+      "phases": [
+        {
+          "phase": "cold-first-call",
+          "client_HTTP": {
+            "n": 1,
+            "mean_ms": 4.354874,
+            "p99_ms": 4.354874,
+            "max_ms": 4.354874,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 1,
+            "mean_ms": 3.451213,
+            "p99_ms": 3.451213,
+            "max_ms": 3.451213,
+            "over500": 0
+          },
+          "distinct_robots": 1
+        },
+        {
+          "phase": "matched-warmup",
+          "client_HTTP": {
+            "n": 8,
+            "mean_ms": 3.936233875,
+            "p99_ms": 4.764105,
+            "max_ms": 4.764105,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 8,
+            "mean_ms": 3.372384125,
+            "p99_ms": 4.238165,
+            "max_ms": 4.238165,
+            "over500": 0
+          },
+          "distinct_robots": 8
+        },
+        {
+          "phase": "pressure-1",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 16.462468765625,
+            "p99_ms": 31.491359,
+            "max_ms": 31.727478,
+            "over500": 0
+          },
+          "actual_API_peak": 78,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 12.9136827734375,
+            "p99_ms": 28.071643,
+            "max_ms": 28.080939,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-2",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 18.995279578125,
+            "p99_ms": 35.738433,
+            "max_ms": 36.118226,
+            "over500": 0
+          },
+          "actual_API_peak": 84,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 14.5587116796875,
+            "p99_ms": 26.179579,
+            "max_ms": 27.454162,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-3",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 19.0035429375,
+            "p99_ms": 42.737276,
+            "max_ms": 43.37014,
+            "over500": 0
+          },
+          "actual_API_peak": 87,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 15.0690437890625,
+            "p99_ms": 38.104351,
+            "max_ms": 39.709885,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-4",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 20.064183890625,
+            "p99_ms": 57.557663,
+            "max_ms": 58.463767,
+            "over500": 0
+          },
+          "actual_API_peak": 85,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 15.521903664062501,
+            "p99_ms": 48.252341,
+            "max_ms": 48.520608,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        }
+      ]
+    },
+    {
+      "query": "similar_history",
+      "all_client_HTTP": {
+        "n": 521,
+        "mean_ms": 178.15743519385796,
+        "p99_ms": 412.851542,
+        "max_ms": 457.301423,
+        "over500": 0
+      },
+      "client_body_read": {
+        "n": 521,
+        "mean_ms": 175.87975188675622,
+        "p99_ms": 411.236742,
+        "max_ms": 452.638062,
+        "over500": 0
+      },
+      "client_JSON_parse": {
+        "n": 521,
+        "mean_ms": 2.185592226487524,
+        "p99_ms": 6.031587,
+        "max_ms": 7.311687,
+        "over500": 0
+      },
+      "Native_front_request": {
+        "n": 521,
+        "mean_ms": 174.08637236084454,
+        "p99_ms": 411.0,
+        "max_ms": 451.0,
+        "over500": 0
+      },
+      "actual_sidecar_API": {
+        "n": 521,
+        "mean_ms": 167.6208881727447,
+        "p99_ms": 385.608555,
+        "max_ms": 405.512108,
+        "over500": 0
+      },
+      "actual_catalog_execute": {
+        "n": 521,
+        "mean_ms": 44.18691844721689,
+        "p99_ms": 83.36455,
+        "max_ms": 102.842319,
+        "over500": 0
+      },
+      "actual_API_peak": 124,
+      "formal_requests": 521,
+      "API_rows": 521,
+      "catalog_rows": 521,
+      "Native_rows": 521,
+      "errors": 0,
+      "phases": [
+        {
+          "phase": "cold-first-call",
+          "client_HTTP": {
+            "n": 1,
+            "mean_ms": 103.810548,
+            "p99_ms": 103.810548,
+            "max_ms": 103.810548,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 1,
+            "mean_ms": 100.751598,
+            "p99_ms": 100.751598,
+            "max_ms": 100.751598,
+            "over500": 0
+          },
+          "distinct_robots": 1
+        },
+        {
+          "phase": "matched-warmup",
+          "client_HTTP": {
+            "n": 8,
+            "mean_ms": 77.499553375,
+            "p99_ms": 99.105664,
+            "max_ms": 99.105664,
+            "over500": 0
+          },
+          "actual_API_peak": 1,
+          "actual_API": {
+            "n": 8,
+            "mean_ms": 72.645101625,
+            "p99_ms": 90.940603,
+            "max_ms": 90.940603,
+            "over500": 0
+          },
+          "distinct_robots": 8
+        },
+        {
+          "phase": "pressure-1",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 194.488607109375,
+            "p99_ms": 447.368021,
+            "max_ms": 457.301423,
+            "over500": 0
+          },
+          "actual_API_peak": 108,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 176.375211203125,
+            "p99_ms": 352.88127,
+            "max_ms": 385.608555,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-2",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 174.325259046875,
+            "p99_ms": 408.183696,
+            "max_ms": 409.109747,
+            "over500": 0
+          },
+          "actual_API_peak": 124,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 168.9587177578125,
+            "p99_ms": 397.864964,
+            "max_ms": 405.512108,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-3",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 149.8034001640625,
+            "p99_ms": 304.421082,
+            "max_ms": 309.266123,
+            "over500": 0
+          },
+          "actual_API_peak": 119,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 142.6880676484375,
+            "p99_ms": 289.070381,
+            "max_ms": 299.406159,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        },
+        {
+          "phase": "pressure-4",
+          "client_HTTP": {
+            "n": 128,
+            "mean_ms": 200.884427125,
+            "p99_ms": 412.851542,
+            "max_ms": 419.85748,
+            "over500": 0
+          },
+          "actual_API_peak": 114,
+          "actual_API": {
+            "n": 128,
+            "mean_ms": 188.9199590703125,
+            "p99_ms": 386.946204,
+            "max_ms": 390.117441,
+            "over500": 0
+          },
+          "distinct_robots": 100
+        }
+      ],
+      "full_32d_ANN_paths": {
+        "ann100": 521
+      },
+      "ANN_bolt": {
+        "n": 521,
+        "mean_ms": 29.182820361028934,
+        "p99_ms": 65.23342803120613,
+        "max_ms": 78.08459270745516,
+        "over500": 0
+      }
+    }
+  ],
+  "Native_nonformal_startup_rows_preserved": 0,
+  "joint_live_control_acceptance": false
+}

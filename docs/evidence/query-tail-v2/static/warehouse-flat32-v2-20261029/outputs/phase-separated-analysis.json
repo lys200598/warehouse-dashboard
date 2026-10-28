@@ -1,0 +1,107 @@
+{
+  "source": "/data/workspace/wz/warehouse-flat32-v2-20261029/outputs/observations.json",
+  "source_sha256": "e20b95d9e081d3051a87003a4f5dbe03bd8ac88ef3740b7621fa02e7d9f66cce",
+  "all_cold_warm_requests_retained": true,
+  "P99_definition": "nearest rank ceil(0.99*N), maximum separately reported",
+  "metrics": [
+    {
+      "method": "ann",
+      "kind": "similar_history",
+      "HTTP_full_parse": {
+        "n": 409,
+        "mean_ms": 236.402688520644,
+        "p99_ms": 520.6132950261235,
+        "max_ms": 535.1830730214715,
+        "over500": 15
+      },
+      "actual_server_interval": {
+        "n": 409,
+        "mean_ms": 96.61777996577017,
+        "p99_ms": 217.081296,
+        "max_ms": 245.224264,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 409,
+        "mean_ms": 85.0633199766169,
+        "p99_ms": 201.378864236176,
+        "max_ms": 231.72348365187645,
+        "over500": 0
+      },
+      "bolt_stages": {
+        "n": 409,
+        "mean_ms": 75.41990161288193,
+        "p99_ms": 185.65291073173285,
+        "max_ms": 211.7420444265008,
+        "over500": 0
+      },
+      "json_assemble_ms": {
+        "n": 409,
+        "mean_ms": 2.627396334445418,
+        "p99_ms": 10.726964101195335,
+        "max_ms": 31.14475030452013,
+        "over500": 0
+      },
+      "catalog_JSON_roundtrip": {
+        "n": 409,
+        "mean_ms": 6.529178167522536,
+        "p99_ms": 25.485342368483543,
+        "max_ms": 34.7341587767005,
+        "over500": 0
+      }
+    },
+    {
+      "method": "flat",
+      "kind": "similar_history",
+      "HTTP_full_parse": {
+        "n": 409,
+        "mean_ms": 305.37857363925,
+        "p99_ms": 669.6243118494749,
+        "max_ms": 1360.2333255112171,
+        "over500": 54
+      },
+      "actual_server_interval": {
+        "n": 409,
+        "mean_ms": 203.10326414669927,
+        "p99_ms": 431.988227,
+        "max_ms": 1353.436171,
+        "over500": 1
+      },
+      "service_execute": {
+        "n": 409,
+        "mean_ms": 195.79181782810204,
+        "p99_ms": 423.1337457895279,
+        "max_ms": 1349.1466958075762,
+        "over500": 1
+      },
+      "bolt_stages": {
+        "n": 409,
+        "mean_ms": 31.04132880436252,
+        "p99_ms": 123.76119289547205,
+        "max_ms": 1294.734574854374,
+        "over500": 1
+      },
+      "json_assemble_ms": {
+        "n": 409,
+        "mean_ms": 3.769189000931229,
+        "p99_ms": 29.652624391019344,
+        "max_ms": 36.750040017068386,
+        "over500": 0
+      },
+      "catalog_JSON_roundtrip": {
+        "n": 409,
+        "mean_ms": 6.7540202904629245,
+        "p99_ms": 16.954505816102028,
+        "max_ms": 35.11555213481188,
+        "over500": 0
+      },
+      "flat_search_including_queue": {
+        "n": 409,
+        "mean_ms": 152.9752839046979,
+        "p99_ms": 337.38742396235466,
+        "max_ms": 368.44526045024395,
+        "over500": 0
+      }
+    }
+  ]
+}

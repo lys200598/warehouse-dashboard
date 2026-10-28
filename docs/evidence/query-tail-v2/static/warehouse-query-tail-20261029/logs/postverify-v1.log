@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/data/workspace/wz/warehouse-query-tail-20261029/tools/query-tail-postverify.py", line 23, in <module>
+    validator=verify.CatalogVerifier(truth)
+AttributeError: module 'independent_catalog_verifier' has no attribute 'CatalogVerifier'

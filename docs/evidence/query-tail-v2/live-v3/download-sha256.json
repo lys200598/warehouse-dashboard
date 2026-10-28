@@ -1,0 +1,9 @@
+{
+  "api-responses.jsonl.gz": "5ce5ef6d91c5665c63eecebbb7bed0e672fc8011faee077d64cc39e4b4bf15b2",
+  "client-run.json": "d99395ef788f71ff9aefa1d61f4bb8ab35b65551b97bc258f8b769a4707a16d5",
+  "postload-oracle.sqlite": "f22c3b433f4d1a1c9244965c8601809d226fc3617722f9e60135d1a4d659df1c",
+  "postverify-report-v3.json": "32836c72b40659091502f81d56dc1eda9d08ac7c6807f64e43e3fe7eac234b2e",
+  "ready.json": "4dca1bf76a0f35d707f091f300d8d59207fa79b3b7cc26ea0f83d43331176c7f",
+  "resource-kg-audit-v3.json": "b2413ed5a4096c8165427bfe1ca4b97466c8894ddbdf01ea410a95d8cc97786f",
+  "server-observations.jsonl": "6cd4f00c2f2a6a2fe15fc4a159fea6aca5344bd56efb846323136e5a0da58ae5"
+}

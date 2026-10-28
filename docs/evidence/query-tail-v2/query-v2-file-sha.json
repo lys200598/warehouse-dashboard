@@ -1,0 +1,9 @@
+{
+  "backend/query_catalog/service.py": "7b47b73da381f007547cf4a52cfe69dce36a59191f5d94a9b9b9f0802acb3e2a",
+  "backend/query_views/__init__.py": "2fe9129b34f2357fc149f727d788829e59fbb71924a79347befafa07ea66cbd0",
+  "backend/query_views/catalog.py": "1df63b226d3f98c4b51583d1346b90f139844b7d0609a783920e217e7543408d",
+  "backend/query_views/summary.py": "748b405d2ae6d91f43ee7e7a2cd5842db58b3ae7993d85eab16c8b3b3651890d",
+  "ops/warehouse_live.py": "9db84dc9b7909cc204c2306e35d88a7ce4c99de2d5ab10196dca78e8472d843f",
+  "tests/test_query_catalog_acceleration.py": "08d347832d676543cb9fc4611694d03bed1c0eae5c79a780d8055833daccafd6",
+  "tests/test_query_summary_views.py": "cfd3e54d9aabf47abe98f3a6b6318ba3cc80443dd96cf5e428f6e68fc25167c7"
+}

@@ -117,7 +117,7 @@ def sampled_frames(path, run_id):
         'peak_business_active_sampled_by_type':dict(max_by_type), 'series':series}
 
 
-def journal_events(path, run_id, expected_head, expected_events):
+def journal_events(path, run_id, expected_head, expected_events, *, task_validator=None):
     """Verify original commit checksums, then compare complete semantic events."""
     events, last_seq, event_sequences = [], 0, []
     with closing(db_reader(path)) as db:
@@ -125,6 +125,10 @@ def journal_events(path, run_id, expected_head, expected_events):
             batch = json.loads(zlib.decompress(payload))
             if seq != last_seq+1 or batch['run_id'] != run_id or batch['seq'] != seq or digest(batch) != checksum:
                 raise ValueError('source journal gap/identity/checksum mismatch')
+            if task_validator is not None:
+                event_cutoff = max((e['event_seq'] for e in batch['events']), default=event_sequences[-1] if event_sequences else 0)
+                for task in batch['tasks']:
+                    task_validator(seq, batch['sim_time'], event_cutoff, task)
             for row in batch['events']:
                 value = dict(row)
                 ident = value.get('event_id')
@@ -189,14 +193,39 @@ def summarize_case(root, case):
         task_count=len(source_tasks);by_id={t['task_id']:t for t in source_tasks}
         if len(by_id)!=task_count:raise ValueError('duplicate source task IDs')
         start=datetime.fromisoformat(manifest['start'])
-        for task_id, task in cp['tasks'].items():
-            original=by_id.get(task_id)
-            if original is None or any(task.get(k)!=v for k,v in original.items()):
+        from backend.boundary_contract import declared as boundary_declared, validate_task as boundary_task, validate_binding_history, location_registry
+        flexible = boundary_declared(metadata)
+        if flexible:
+            uses_logical_input = any(t['source_id'] in {'INBOUND','OUTBOUND'} or t['target_id'] in {'INBOUND','OUTBOUND'} for t in source_tasks)
+            manifest_boundary = manifest.get('boundary_routing')
+            if uses_logical_input and manifest_boundary is None:
+                raise ValueError('logical CSV lacks its manifest boundary contract')
+            if manifest_boundary is not None:
+                boundary_declared({'boundary_routing':manifest_boundary})
+                if manifest_boundary['version'] != metadata['boundary_routing']['version']:
+                    raise ValueError('manifest/runtime boundary contract mismatch')
+        boundary_registry = location_registry(load_json(scene)) if flexible else None
+        if flexible and boundary_registry != location_registry(metadata['scene']):
+            raise ValueError('runtime physical endpoint registry differs from the actual scene file')
+
+        def check_plan(task):
+            original=by_id.get(task['task_id'])
+            endpoints = boundary_task(task, metadata, cutoff=cp['elapsed'], registry=boundary_registry)
+            actual = dict(task)
+            if flexible:
+                actual.update(source_id=endpoints[0], target_id=endpoints[1])
+            if original is None or any(actual.get(k)!=v for k,v in original.items()):
                 raise ValueError('checkpoint task static fields differ from immutable CSV')
             for field in ('release','due'):
                 seconds=int((datetime.fromisoformat(original[field+'_time'])-start).total_seconds())
                 if type(task.get(field+'_second')) is not int or task[field+'_second']!=seconds:
                     raise ValueError('checkpoint task clock differs from immutable CSV')
+            return original
+
+        for task_id, task in cp['tasks'].items():
+            if task.get('task_id') != task_id:
+                raise ValueError('checkpoint task map key differs from task identity')
+            original=check_plan(task)
         tasks = list(cp['tasks'].values());finished=[t for t in tasks if t['status']=='completed']
         flow = [t['completed_at']-t['release_second'] for t in finished]
         late = sum(t['completed_at']>t['due_second'] for t in finished)
@@ -215,7 +244,24 @@ def summarize_case(root, case):
                 row[field]+=robot[field]
         frames, sample = sampled_frames(output/'frames.sqlite', run)
         if sample['last_second'] != cp['elapsed']:raise ValueError('final source frame missing')
-        events=journal_events(output/'journal.sqlite',run,cp['knowledge_seq'],cp['event_sequence'])
+        binding_versions = {}
+        def check_version(seq, at, event_cutoff, task):
+            check_plan(task)
+            boundary_task(task, metadata, cutoff=at, registry=boundary_registry)
+            for side in ('source', 'target'):
+                binding = task.get('boundary_bindings', {}).get(side)
+                key = (task['task_id'], side)
+                if key in binding_versions and binding != binding_versions[key]:
+                    raise ValueError('boundary endpoint was rebound or its record rewritten in source history')
+                if binding is not None:
+                    if (type(binding.get('event_seq')) is not int or not 1 <= binding['event_seq'] <= event_cutoff
+                            or binding.get('event_id') != f"{run}:event:{binding['event_seq']}"):
+                        raise ValueError('boundary state refers to a foreign/future source event')
+                    binding_versions[key] = dict(binding)
+        events = (journal_events(output/'journal.sqlite',run,cp['knowledge_seq'],cp['event_sequence'],task_validator=check_version)
+            if flexible else journal_events(output/'journal.sqlite',run,cp['knowledge_seq'],cp['event_sequence']))
+        if flexible:
+            report['boundary_routing_audit'] = validate_binding_history(cp['tasks'],events,metadata,cutoff=cp['elapsed'])
         report.update(status=result['status'],elapsed=cp['elapsed'],wall_seconds=result['wall_seconds'],
             tasks_total=task_count,completed=completed,unfinished_total=task_count-completed,
             unfinished_released=len(tasks)-completed,unreleased=task_count-len(tasks),

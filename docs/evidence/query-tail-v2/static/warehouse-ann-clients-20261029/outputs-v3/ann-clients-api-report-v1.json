@@ -1,0 +1,53 @@
+{
+  "version": "catalog-tail-static-api-v1",
+  "groups": [
+    {
+      "method": "one",
+      "query_id": "similar_history",
+      "count": 521,
+      "mean_ms": 291.7337277207002,
+      "p99_ms": 643.733911216259,
+      "max_ms": 682.4457300826907,
+      "over_500ms": 102,
+      "errors": 0,
+      "actual_API_peak": 126,
+      "server_requests_recorded": 521,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "many",
+      "query_id": "similar_history",
+      "count": 521,
+      "mean_ms": 122.51967455541104,
+      "p99_ms": 263.2588157430291,
+      "max_ms": 318.077121861279,
+      "over_500ms": 0,
+      "errors": 0,
+      "actual_API_peak": 126,
+      "server_requests_recorded": 521,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    }
+  ],
+  "requests": 1042,
+  "source": {
+    "run_id": "wh-density120-week-required-20261028",
+    "head": 5073,
+    "mirrored_seq": 5073,
+    "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+    "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+    "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "actual_same_run_nodes_at_final_head": 1652135
+  },
+  "no_samples_filtered": true,
+  "warmup": {
+    "not_index_selection": true,
+    "source": "unchanged production ANN32D",
+    "pressure_requests": 128,
+    "distinct_robots": 100,
+    "client_timing": "body read + JSON parse separate"
+  },
+  "production_vs_verifier_separated": true,
+  "joint_live_control_acceptance": false
+}

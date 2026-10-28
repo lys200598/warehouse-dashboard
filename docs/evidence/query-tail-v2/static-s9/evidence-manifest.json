@@ -1,0 +1,260 @@
+{
+  "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+  "files": [
+    {
+      "path": "evidence/client-completed.json",
+      "bytes": 284,
+      "sha256": "d3044d4544eb2518123444977d194a1de608703fd56f3ea1476cb11a185d461b"
+    },
+    {
+      "path": "evidence/final-report.json",
+      "bytes": 19006,
+      "sha256": "ab9dd5d17edcf0139c687d2a9ba9347e04f0b6559a5dd7bc07de25a932bc07e1"
+    },
+    {
+      "path": "evidence/graph-after.json",
+      "bytes": 937,
+      "sha256": "92ad2d925a4ed8ed10585cbad2c20356f74e5ccc6c08b53021f75a70c43e3434"
+    },
+    {
+      "path": "evidence/graph-before.json",
+      "bytes": 937,
+      "sha256": "92ad2d925a4ed8ed10585cbad2c20356f74e5ccc6c08b53021f75a70c43e3434"
+    },
+    {
+      "path": "evidence/native-nginx/config-derivation.json",
+      "bytes": 489,
+      "sha256": "a420ffb8a1bc4f636d2ed740d770fd6a78c115c840e089f55e8d6986dc43c8d3"
+    },
+    {
+      "path": "evidence/native-nginx/config-test.log",
+      "bytes": 396,
+      "sha256": "ebf0d6cdd543ef77ebe49c574d0f4f0b7eed394ddf1e88d85fec7cc594b73b7a"
+    },
+    {
+      "path": "evidence/native-nginx/logs/query-gateway-access.jsonl",
+      "bytes": 459878,
+      "sha256": "87983dd1a9cfb0a9dce72db2c095d48b7e7c818b960555c31aa23d3cf597c0ea"
+    },
+    {
+      "path": "evidence/native-nginx/logs/query-gateway-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/native-nginx/ports-only.diff",
+      "bytes": 1158,
+      "sha256": "a48cb1905eb93c52273b198d330ac1f8c0153b961b89baeaf490343a4c2d65aa"
+    },
+    {
+      "path": "evidence/native-nginx/query-gateway.conf",
+      "bytes": 2260,
+      "sha256": "2f662732037fc6b9c04173f735fe174e0dacdb37444f5808b337c6df2940d81f"
+    },
+    {
+      "path": "evidence/native-nginx/startup.stderr.log",
+      "bytes": 118,
+      "sha256": "846086f5bf6595d8cdf64e3af6b1a1f7a9af70c3facead3607efa0aa5086ade0"
+    },
+    {
+      "path": "evidence/native-nginx/template.original.conf",
+      "bytes": 2260,
+      "sha256": "88bf4c077a50ac152c32c170bb46862bbc8e7cbde08ceda02632fe73dc053615"
+    },
+    {
+      "path": "evidence/new-cache-preparation.json",
+      "bytes": 388,
+      "sha256": "015d22c196c07ab8a2700db2a2935497f1aa6222c79675f8912db8dc65648a2b"
+    },
+    {
+      "path": "evidence/ready.json",
+      "bytes": 21353,
+      "sha256": "b3d85a41e3b429aea1cff1c3ee64cd89b17463afd638c34b7bb53d29ca542129"
+    },
+    {
+      "path": "evidence/request-plan.json",
+      "bytes": 87839,
+      "sha256": "de71aa3631c7b587befb4eb4b6fa851a0b20e7b9a073efbd6bb3f0fa01d30249"
+    },
+    {
+      "path": "evidence/requests.jsonl",
+      "bytes": 1851824,
+      "sha256": "f095a50513ea764555c7de5ed00eacc726e50769833b2c2a48174be59e5b1a83"
+    },
+    {
+      "path": "evidence/responses.jsonl.gz",
+      "bytes": 29637582,
+      "sha256": "aeeb47cc2e1bf0d0ff1de931fafb10bf4eb275312acd19ca0a26eb7172389027"
+    },
+    {
+      "path": "evidence/server-checks-complete.json",
+      "bytes": 107,
+      "sha256": "5c570d78e958ef94998e4a9dedf2d8178409765ee0dce9a03298d82b60f8adaa"
+    },
+    {
+      "path": "evidence/shutdown.json",
+      "bytes": 207,
+      "sha256": "ca9552ab66b3c7ad307b230f0184e4470fc453376c8b9fb2f8946a55f7c96051"
+    },
+    {
+      "path": "evidence/sidecar-14220-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14220-observations.jsonl",
+      "bytes": 340625,
+      "sha256": "fdcf804c8ac2e6d751d4240d54e71fd55526707018d76f840eecb93f4c7ce847"
+    },
+    {
+      "path": "evidence/sidecar-14220-wrapper.json",
+      "bytes": 850,
+      "sha256": "8896328d898507d5a0f6c7fd9039550d263b618b347b3389c28e3e814bbf053e"
+    },
+    {
+      "path": "evidence/sidecar-14220.stdout.log",
+      "bytes": 20283,
+      "sha256": "81c9fb155f49faf45b23b2420193aec7c300a478e120be1d23a43b138855ea21"
+    },
+    {
+      "path": "evidence/sidecar-14221-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14221-observations.jsonl",
+      "bytes": 343351,
+      "sha256": "e15cce7f74c32ec95b1b86413f572a6f3f6cd47f01acaf0abc30ae288da4b92e"
+    },
+    {
+      "path": "evidence/sidecar-14221-wrapper.json",
+      "bytes": 850,
+      "sha256": "1ebecda6bcb6e4d4fda97a7d33f82ec1651cf300c7939e5564a96ecdeac09567"
+    },
+    {
+      "path": "evidence/sidecar-14221.stdout.log",
+      "bytes": 20571,
+      "sha256": "7f687abb9c3e9a6ad1bc48f4e4a3d85bd870b938fbcd4c52e1a7736109df04b7"
+    },
+    {
+      "path": "evidence/sidecar-14222-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14222-observations.jsonl",
+      "bytes": 343024,
+      "sha256": "09c5ee5233207425f1d8c3cc7b61b24c6995e2270730d0499dec28e2eea6c7b6"
+    },
+    {
+      "path": "evidence/sidecar-14222-wrapper.json",
+      "bytes": 850,
+      "sha256": "87d14e033378b617bc71ae8b54204ff80e30e98bc7e19bd550eaa8b1f836b369"
+    },
+    {
+      "path": "evidence/sidecar-14222.stdout.log",
+      "bytes": 20639,
+      "sha256": "df99416ce978c32071696116b61da74a42a872a30d0e3b4eb2bbb460f800b9fd"
+    },
+    {
+      "path": "evidence/sidecar-14223-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14223-observations.jsonl",
+      "bytes": 341655,
+      "sha256": "7945529dc16e59d1fddcd3481fff4c0682ed5312c4b4394e0886fdbecd86ef9a"
+    },
+    {
+      "path": "evidence/sidecar-14223-wrapper.json",
+      "bytes": 850,
+      "sha256": "8f3028dc189e09a85b404906d3701687e5af1033618392b0e218ad2899ba29ed"
+    },
+    {
+      "path": "evidence/sidecar-14223.stdout.log",
+      "bytes": 20499,
+      "sha256": "49dd4d276adab81b223269248c2cf875584e63a6624661ac8670b044babb5c1d"
+    },
+    {
+      "path": "evidence/sidecar-14224-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14224-observations.jsonl",
+      "bytes": 342344,
+      "sha256": "5c8d87b2f3b0421d0268f121201355a6f3226701b760ceaf4cc23923d9f844e7"
+    },
+    {
+      "path": "evidence/sidecar-14224-wrapper.json",
+      "bytes": 850,
+      "sha256": "f141079c5e0fa033912a3e7454a8adadf50e260c90486900fc6269f9e423ee40"
+    },
+    {
+      "path": "evidence/sidecar-14224.stdout.log",
+      "bytes": 20571,
+      "sha256": "7e87243d3afa905c291b0733f0a9290321aa404dbb469f1e3eaebc2180578789"
+    },
+    {
+      "path": "evidence/sidecar-14225-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14225-observations.jsonl",
+      "bytes": 340355,
+      "sha256": "2bf6ed49331a2ffd359663f2b431661e0e36bf623797ae4f9732c74fef272e0d"
+    },
+    {
+      "path": "evidence/sidecar-14225-wrapper.json",
+      "bytes": 850,
+      "sha256": "a05ae4b2154f2f299320972e4135a7b8b0567d77e40d142fdeae72175162d8fd"
+    },
+    {
+      "path": "evidence/sidecar-14225.stdout.log",
+      "bytes": 20355,
+      "sha256": "bced472866873b71ee08dc2e6eca2379eeba6a4307a59e6f4d0ee60af6f69294"
+    },
+    {
+      "path": "evidence/sidecar-14226-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14226-observations.jsonl",
+      "bytes": 340324,
+      "sha256": "5c5cbcb8ca070465ae3c759e5314dad6190045711571daa172dbbef3f813e845"
+    },
+    {
+      "path": "evidence/sidecar-14226-wrapper.json",
+      "bytes": 850,
+      "sha256": "091eaaac0e611e960de5a9acf01ff573074bc6d79e1731743a7ad48f9d9871bc"
+    },
+    {
+      "path": "evidence/sidecar-14226.stdout.log",
+      "bytes": 20283,
+      "sha256": "08688dc04ebc6f5b05ad27bd0a22a5f94c726323426eec36b64ea0015f54a1cc"
+    },
+    {
+      "path": "evidence/sidecar-14227-driver-identity.json",
+      "bytes": 588,
+      "sha256": "77afabae64f7eba5a17182fea0dcc18919031679df58270ee42a2e609c9e1ed4"
+    },
+    {
+      "path": "evidence/sidecar-14227-observations.jsonl",
+      "bytes": 341659,
+      "sha256": "67608b4f989fda844cf4006c8c66936717ab15e0bb6577402a60cd3a28191338"
+    },
+    {
+      "path": "evidence/sidecar-14227-wrapper.json",
+      "bytes": 850,
+      "sha256": "e1963106f87f31328e5c48b4f88822a2f35685c6295ce88593bf52db37987e53"
+    },
+    {
+      "path": "evidence/sidecar-14227.stdout.log",
+      "bytes": 20499,
+      "sha256": "d8a962e6b04a5e1cbd19c6037d9ad752331042a4e94c0f129de5be02090f9ffa"
+    }
+  ]
+}

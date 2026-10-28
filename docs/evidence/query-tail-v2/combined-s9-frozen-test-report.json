@@ -1,0 +1,24 @@
+{
+  "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+  "isolated_test_tree": "C:\\E\\projects\\warehouse\\research\\query-tail-20261029\\ci-s9-frozen",
+  "all_242_source_files_match_before_and_after": true,
+  "Python_total": 850,
+  "Python_pass": 845,
+  "Python_optional_skips": 5,
+  "Python_exit": 0,
+  "frontend_total": 86,
+  "frontend_pass": 86,
+  "frontend_exit": 0,
+  "frontend_files_unchanged": true,
+  "logs_sha256": {
+    "local-combined-s9-frozen-tests-v1.log": "72b1b460e79be14288630e52e56775e69b0aed522800a0a2f426ce3be23d189d",
+    "local-combined-s9-frozen-tests-v1.exit": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "frontend-s5-tests-v1.log": "1e34b7b85f0110b4014d3f873ab7691f4c9338e3e1eefe4e0144727311febc8e"
+  },
+  "prior_S8_working_tree_CI": {
+    "tests": 848,
+    "exit": 0,
+    "strict_frozen_source_qualified": false,
+    "reason": "S9 files changed late in working-tree run; retained at research path, replaced by independent final S9 tree"
+  }
+}

@@ -1,0 +1,519 @@
+{
+  "scope": "fixed final original same-run million-node prefix; no Runtime, no live control or concurrent source writer",
+  "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+  "source_identity": {
+    "manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+    "sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+    "verified_files": 242
+  },
+  "run_id": "wh-density120-week-required-20261028",
+  "seq": 5073,
+  "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+  "summary_cache": "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+  "sidecars": [
+    {
+      "port": 14220,
+      "pid": 3028972,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14220",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197254534974,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.12996262218803167,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.0005183909088373184,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197869684688
+    },
+    {
+      "port": 14221,
+      "pid": 3028973,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14221",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197255306650,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.13084140233695507,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.0005684178322553635,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197875210844
+    },
+    {
+      "port": 14222,
+      "pid": 3028974,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14222",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197256028600,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.12971196230500937,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.00060285534709692,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197891378893
+    },
+    {
+      "port": 14223,
+      "pid": 3028975,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14223",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197256750840,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.13054445944726467,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.0005182232707738876,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197903329871
+    },
+    {
+      "port": 14224,
+      "pid": 3028976,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14224",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197257546502,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.1319765280932188,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.00048539042472839355,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197909740951
+    },
+    {
+      "port": 14225,
+      "pid": 3028977,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14225",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197258498933,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.13258446007966995,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.0005631772801280022,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197915547431
+    },
+    {
+      "port": 14226,
+      "pid": 3028978,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14226",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197259232837,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.12816673517227173,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.0005732756108045578,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197922292708
+    },
+    {
+      "port": 14227,
+      "pid": 3028979,
+      "argv": [
+        "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+        "-u",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/static_sidecar.py",
+        "--plan",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/research/query-tail-20261029/S9-static-candidate/plan.json",
+        "--source-root",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+        "--source-manifest",
+        "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+        "--summary-root",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/journals",
+        "--query-summary-cache",
+        "/data/workspace/wz/warehouse-query-S9-static-20261029/summary-cache",
+        "--warm-run-id",
+        "wh-density120-week-required-20261028",
+        "--expected-neo4j-uri",
+        "bolt://127.0.0.1:17689",
+        "--port",
+        "14227",
+        "--query-workers",
+        "3"
+      ],
+      "started_ns": 6422197259960951,
+      "health": {
+        "status": "ok",
+        "kind": "query_only",
+        "runtime_created": false,
+        "catalog_workers": 3,
+        "admission_slots": 3,
+        "max_Neo4j_query_connections": 3,
+        "pool_size_per_worker": 1,
+        "source_identity": {
+          "source_root": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7",
+          "source_manifest": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v7/source-s9-manifest.json",
+          "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+          "verified_files": 242,
+          "manifest_verified": true
+        },
+        "startup_preparation": {
+          "phase": "explicit sidecar startup preparation before HTTP readiness",
+          "total_wall_seconds": 0.12871278543025255,
+          "result": {
+            "head": 5073,
+            "consumed": 0,
+            "wall_seconds": 0.0004953658208250999,
+            "read_only_fast_path": true,
+            "run_id": "wh-density120-week-required-20261028",
+            "created_version": "2026-10-28T08:43:59.115Z",
+            "phase": "explicit startup warmup"
+          }
+        }
+      },
+      "ready_ns": 6422197927592747
+    }
+  ],
+  "graph_before": {
+    "head": 5073,
+    "real_head": 5073,
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "source_run": "wh-density120-week-required-20261028",
+    "dimensions": 32,
+    "same_run_nodes": 1652135,
+    "real_vectors": 507300,
+    "runtime_driver": {
+      "versions": {
+        "neo4j": "6.4.1",
+        "neo4j-rust-ext": "6.4.1.0"
+      },
+      "loaded_native_modules": {
+        "neo4j._rust": {
+          "path": "/data/workspace/wz/warehouse-validation-v2-20261027/driver-rust/neo4j/_rust.cpython-310-x86_64-linux-gnu.so",
+          "sha256": "0617105386c439011b6c3469e6386130f5aad28a3dbe9a27002b7be1adc0755f"
+        }
+      },
+      "rust_native_loaded": true,
+      "python_executable": "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+      "python": "3.10.12",
+      "platform": "Linux-6.2.0-26-generic-x86_64-with-glibc2.35",
+      "hostname": "pro6000",
+      "logical_cpus": 152
+    }
+  },
+  "native": {
+    "pid": 3029038,
+    "binary_sha256": "40ab7ce04f0d0af77e54bc73055131a8f1330c7ec5f4763fb5e8b8bb4fe8a2d8",
+    "template_sha256": "88bf4c077a50ac152c32c170bb46862bbc8e7cbde08ceda02632fe73dc053615",
+    "derived_config_sha256": "2f662732037fc6b9c04173f735fe174e0dacdb37444f5808b337c6df2940d81f",
+    "public_port": 14289
+  },
+  "total_max_query_connections": 24,
+  "runtime_created": false,
+  "supervisor_pid": 3027589,
+  "observer_wrapper_sha256": "01a31100891f6d87a67eaae64d82394f1f281ada0b12a2c181bafe2fddacc11a",
+  "plan_sha256": "460d4b215d66a52e4cb964c18e55bc342f8292f55ffaf09c4b540c75715d30fb"
+}

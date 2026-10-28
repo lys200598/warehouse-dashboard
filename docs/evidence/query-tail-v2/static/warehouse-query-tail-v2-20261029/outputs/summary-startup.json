@@ -1,0 +1,10 @@
+{
+  "head": 5073,
+  "consumed": 0,
+  "wall_seconds": 0.0018687611445784569,
+  "read_only_fast_path": true,
+  "run_id": "wh-density120-week-required-20261028",
+  "created_version": "2026-10-28T08:43:59.115Z",
+  "phase": "explicit startup warmup",
+  "total_wall_seconds": 0.005319719202816486
+}

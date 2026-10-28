@@ -1,0 +1,57 @@
+# Run with an explicitly owned prefix, e.g. nginx -p OWNED_DIRECTORY/ -c CONFIG.
+# Query-only processes read the owner's SHA-protected published point file.
+# UI, controls and WebSockets still belong to exactly one Runtime on 14190.
+worker_processes 1;
+pid logs/query-gateway.pid;
+error_log logs/query-gateway-error.log warn;
+events { worker_connections 512; }
+http {
+    log_format warehouse escape=json
+        '{"end_s":"$msec","duration_s":"$request_time","request_id":"$http_x_probe_id",'
+        '"method":"$request_method","uri":"$uri","status":$status,"bytes":$body_bytes_sent,'
+        '"upstream":"$upstream_addr","upstream_s":"$upstream_response_time"}';
+    access_log logs/query-gateway-access.jsonl warehouse;
+    client_body_temp_path logs/client-body;
+    proxy_temp_path logs/proxy-temp;
+    fastcgi_temp_path logs/fastcgi-temp;
+    uwsgi_temp_path logs/uwsgi-temp;
+    scgi_temp_path logs/scgi-temp;
+    client_max_body_size 64k;
+    keepalive_timeout 65s;
+    upstream warehouse_queries {
+        least_conn;
+        server 127.0.0.1:14200 max_fails=0;
+        server 127.0.0.1:14201 max_fails=0;
+        server 127.0.0.1:14202 max_fails=0;
+        server 127.0.0.1:14203 max_fails=0;
+        server 127.0.0.1:14204 max_fails=0;
+        server 127.0.0.1:14205 max_fails=0;
+        server 127.0.0.1:14206 max_fails=0;
+        server 127.0.0.1:14207 max_fails=0;
+        keepalive 64;
+    }
+    map $http_upgrade $warehouse_connection { default upgrade; '' ''; }
+    server {
+        listen 127.0.0.1:14189;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_next_upstream off;
+        proxy_cache off;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_connect_timeout 15s;
+        proxy_read_timeout 90s;
+        proxy_send_timeout 90s;
+        location = /api/knowledge/query {
+            proxy_set_header Host $http_host;
+            proxy_set_header Connection '';
+            proxy_pass http://warehouse_queries;
+        }
+        location / {
+            proxy_set_header Host $http_host;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $warehouse_connection;
+            proxy_pass http://127.0.0.1:14190;
+        }
+    }
+}

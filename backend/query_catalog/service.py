@@ -222,9 +222,17 @@ class QueryCatalogService:
         self._local.metrics=value
 
     @classmethod
-    def from_env(cls, timeout=15, *, pool_size=120):
+    def from_env(cls, timeout=15, *, pool_size=120, summary_root=None,
+                 summary_cache_root=None, cache_fleet=False, catch_up_on_read=True):
         from ..query_v2.service_tail import TailQueryService
-        return cls(TailQueryService.from_env(timeout=timeout, pool_size=pool_size))
+        store=TailQueryService.from_env(timeout=timeout, pool_size=pool_size)
+        if summary_root is not None or cache_fleet:
+            from ..query_views.catalog import AcceleratedCatalog
+            from ..query_views import SummaryDirectory
+            summaries=SummaryDirectory(summary_root,summary_cache_root) if summary_root is not None else None
+            return AcceleratedCatalog(store,summaries=summaries,cache_fleet=cache_fleet,
+                                      catch_up_on_read=catch_up_on_read)
+        return cls(store)
 
     @classmethod
     def describe(cls):
@@ -242,7 +250,13 @@ class QueryCatalogService:
 
     def _read(self, query, params):
         self._metrics['statements'] += 1
-        return self.store.mirror.query(query, params, timeout=self.store.timeout)
+        started=time.perf_counter()
+        try:return self.store.mirror.query(query, params, timeout=self.store.timeout)
+        finally:
+            key=('fleet' if query==FLEET_QUERY else 'events' if query==EVENTS_QUERY
+                 else 'task_counts' if query==TASK_COUNTS_QUERY else 'point_or_other')
+            timing=self._metrics.setdefault('bolt_stage_ms',{})
+            timing[key]=timing.get(key,0.)+(time.perf_counter()-started)*1000
 
     def _point(self, row, run, seq, token=None):
         if row.get('run_id')!=run or type(row.get('head')) is not int or row['head']<seq:
@@ -432,6 +446,7 @@ class QueryCatalogService:
                 elif variant=='full-ann':
                     task=identity(request.get('task_id'),'task');goods=identity(request.get('goods_id'),'goods')
                     result=self.store.full_query(run,seq,robot,goods,task)
+                    self._metrics['full_ann_store']=deepcopy(getattr(self.store,'latest_metrics',{}))
                 else:raise ValueError('unknown similarity variant')
                 result={'variant':variant,'context':result,'control_role':'advisory; cannot authorize cargo transfer'}
             else:
@@ -510,7 +525,10 @@ class QueryCatalogService:
             result={'catalog_version':VERSION,'query_id':query,'run_id':run,'seq':seq,
                 'read_only':True,'used_by_live_control':False,'result':result}
             # Include complete JSON encoding/decoding in the API, not driver time only.
-            return json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
+            materialize_started=time.perf_counter()
+            output=json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
+            self._metrics['json_roundtrip_ms']=(time.perf_counter()-materialize_started)*1000
+            return output
         finally:
             self._metrics['service_ms']=(time.perf_counter()-started)*1000
 

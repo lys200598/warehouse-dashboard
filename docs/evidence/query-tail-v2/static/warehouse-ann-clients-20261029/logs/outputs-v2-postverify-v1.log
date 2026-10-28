@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "verified": 818,
+  "requests": 818,
+  "errors": [],
+  "counts": {
+    "('one', 'similar_history')": 409,
+    "('many', 'similar_history')": 409
+  },
+  "full_32d_ann_paths": {
+    "('one', 'ann100')": 409,
+    "('many', 'ann100')": 409
+  },
+  "source_and_packets_unchanged": true,
+  "hashes": {
+    "requests.jsonl": "889e9f4155d021b4a7ce8525cf69f55029c08bdfcafbb03219e6762918ceefb4",
+    "responses.jsonl.gz": "952860b17d597ef467bf69811aa88ec9ab021cbd349dcfee52c115e03f9798ae",
+    "oracle.sqlite": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+  },
+  "seconds": 3.5810558404773474,
+  "scope": "complete HTTP catalog payloads versus original snapshot/independent RealOracle; AFTER measured load"
+}
+ANN PHASE ('one', 'first-similar_history', 'similar_history') 1 44.71537284553051 44.71537284553051 0
+ANN PHASE ('many', 'first-similar_history', 'similar_history') 1 42.319539934396744 42.319539934396744 0
+ANN PHASE ('one', 'matched-ann-warmup', 'similar_history') 8 40.31062836293131 42.3294585198164 0
+ANN PHASE ('many', 'matched-ann-warmup', 'similar_history') 8 44.255303335376084 63.55155725032091 0
+ANN PHASE ('one', 'burst-1', 'similar_history') 100 177.8597737569362 383.6698345839977 0
+ANN PHASE ('many', 'burst-1', 'similar_history') 100 110.95718247815967 244.72657404839993 0
+ANN PHASE ('many', 'burst-2', 'similar_history') 100 89.83616231009364 173.74823335558176 0
+ANN PHASE ('one', 'burst-2', 'similar_history') 100 276.9209587108344 533.9743904769421 7
+ANN PHASE ('one', 'burst-3', 'similar_history') 100 236.27077328041196 476.01697128266096 0
+ANN PHASE ('many', 'burst-3', 'similar_history') 100 108.62390431575477 237.99333069473505 0
+ANN PHASE ('many', 'burst-4', 'similar_history') 100 91.2502502836287 207.11353421211243 0
+ANN PHASE ('one', 'burst-4', 'similar_history') 100 215.15547941438854 518.5065986588597 3

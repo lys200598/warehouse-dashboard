@@ -1,0 +1,187 @@
+{
+  "version": 2,
+  "scope": "read-only lifecycle byte identity and independently frozen Oracle prefix revalidation",
+  "time_ns": 1793217210017570701,
+  "runs": {
+    "v2": {
+      "run_id": "wh-live-20261028T190757Z-07511643",
+      "source_output": "/data/workspace/wz/warehouse-free-ports-20261029/live-joint-runs-v2/wh-live-20261028T190757Z-07511643",
+      "prior_report_sha256": "b10e93f7fb83b482d9a6359a462d9ca2e2ad3eed66253cf7abc7fcdd9008b8ba",
+      "prior_measured_artifact_sha256": {
+        "journal.sqlite": "7180a1c64dcaced2fbf5a653cbd683f4a386bbb8db9d92c67ca034a4a3371aed",
+        "checkpoint.json": "a51a7ca58d9c244681f5ba7766bb8024f1b91ea472ce5332675007c1769caee2",
+        "results.json": "f887fe7d1b5eb114c944397364dd375887466d5305f9fc51ea38c09ba04710c4"
+      },
+      "current_artifact_sha256": {
+        "journal.sqlite": "7180a1c64dcaced2fbf5a653cbd683f4a386bbb8db9d92c67ca034a4a3371aed",
+        "checkpoint.json": "a51a7ca58d9c244681f5ba7766bb8024f1b91ea472ce5332675007c1769caee2",
+        "results.json": "f887fe7d1b5eb114c944397364dd375887466d5305f9fc51ea38c09ba04710c4"
+      },
+      "whole_files_match_measured_sha256": {
+        "journal.sqlite": true,
+        "checkpoint.json": true,
+        "results.json": true
+      },
+      "original_oracle_sha256": "131433e0ddac19feb6d7654eb441b82ef93a8d97a74d69579768a90f03b7b712",
+      "measured_oracle_prefix": 70,
+      "current_head": 70,
+      "prefix_batches_sha_and_payload_verified": 70,
+      "all_prefix_checksums_equal_original_oracle": true,
+      "indexed_states_checked": 7000,
+      "indexed_task_versions_checked": 62,
+      "indexed_events_checked": 978,
+      "all_source_prefix_robots_are_100_unique": true,
+      "post_measurement_suffix": [],
+      "extra_result_metric_keys_not_published_in_snapshot": [
+        "charge_wait_seconds",
+        "departure_wait_seconds",
+        "dispatch_wait_seconds",
+        "dispatch_wall_seconds",
+        "recovery_wall_seconds",
+        "task_flow_seconds"
+      ],
+      "current_result_semantics_match_measured_report": {
+        "run_id": true,
+        "complete": true,
+        "elapsed": true,
+        "published_metric_subset": true,
+        "full_metrics_equal_current_source_checkpoint": true,
+        "all_input_completed": true,
+        "no_safety_failure": true,
+        "registered_robots": true,
+        "knowledge_control_stats": true
+      },
+      "writer_epoch_intervals_33_34_35": [
+        {
+          "backend": "neo4j",
+          "durable_seq": 33,
+          "lag": 0,
+          "last_error": null,
+          "mirrored_seq": 33,
+          "observed_at_ns": 1793214664160503569,
+          "run_id": "wh-live-20261028T190757Z-07511643",
+          "seq": 33,
+          "sim_time": 873,
+          "started_ns": 1793214662185952990
+        },
+        {
+          "backend": "neo4j",
+          "durable_seq": 34,
+          "lag": 0,
+          "last_error": null,
+          "mirrored_seq": 34,
+          "observed_at_ns": 1793214669477295444,
+          "run_id": "wh-live-20261028T190757Z-07511643",
+          "seq": 34,
+          "sim_time": 903,
+          "started_ns": 1793214667380186046
+        },
+        {
+          "backend": "neo4j",
+          "durable_seq": 35,
+          "lag": 0,
+          "last_error": null,
+          "mirrored_seq": 35,
+          "observed_at_ns": 1793214675341803338,
+          "run_id": "wh-live-20261028T190757Z-07511643",
+          "seq": 35,
+          "sim_time": 933,
+          "started_ns": 1793214673464036506
+        }
+      ],
+      "readonly_inputs_unchanged_during_this_audit": true
+    },
+    "v3": {
+      "run_id": "wh-live-20261028T193407Z-edde08fa",
+      "source_output": "/data/workspace/wz/warehouse-free-ports-20261029/live-joint-runs-v3/wh-live-20261028T193407Z-edde08fa",
+      "prior_report_sha256": "32836c72b40659091502f81d56dc1eda9d08ac7c6807f64e43e3fe7eac234b2e",
+      "prior_measured_artifact_sha256": {
+        "journal.sqlite": "2957a628fbf143e55db40241a90f0e2d202c93733ba01de10569c759758e3741",
+        "checkpoint.json": "1e836ae3ec584bb3363fe6478b686eb231866b7640e3bb51dee27898eaa45018",
+        "results.json": "5eb80496814d013df9fa72315dd2b8e610b441de4a937f969e246b2d55e54cdd"
+      },
+      "current_artifact_sha256": {
+        "journal.sqlite": "2957a628fbf143e55db40241a90f0e2d202c93733ba01de10569c759758e3741",
+        "checkpoint.json": "1e836ae3ec584bb3363fe6478b686eb231866b7640e3bb51dee27898eaa45018",
+        "results.json": "5eb80496814d013df9fa72315dd2b8e610b441de4a937f969e246b2d55e54cdd"
+      },
+      "whole_files_match_measured_sha256": {
+        "journal.sqlite": true,
+        "checkpoint.json": true,
+        "results.json": true
+      },
+      "original_oracle_sha256": "f22c3b433f4d1a1c9244965c8601809d226fc3617722f9e60135d1a4d659df1c",
+      "measured_oracle_prefix": 70,
+      "current_head": 70,
+      "prefix_batches_sha_and_payload_verified": 70,
+      "all_prefix_checksums_equal_original_oracle": true,
+      "indexed_states_checked": 7000,
+      "indexed_task_versions_checked": 62,
+      "indexed_events_checked": 978,
+      "all_source_prefix_robots_are_100_unique": true,
+      "post_measurement_suffix": [],
+      "extra_result_metric_keys_not_published_in_snapshot": [
+        "charge_wait_seconds",
+        "departure_wait_seconds",
+        "dispatch_wait_seconds",
+        "dispatch_wall_seconds",
+        "recovery_wall_seconds",
+        "task_flow_seconds"
+      ],
+      "current_result_semantics_match_measured_report": {
+        "run_id": true,
+        "complete": true,
+        "elapsed": true,
+        "published_metric_subset": true,
+        "full_metrics_equal_current_source_checkpoint": true,
+        "all_input_completed": true,
+        "no_safety_failure": true,
+        "registered_robots": true,
+        "knowledge_control_stats": true
+      },
+      "writer_epoch_intervals_33_34_35": [
+        {
+          "backend": "neo4j",
+          "durable_seq": 33,
+          "lag": 0,
+          "last_error": null,
+          "mirrored_seq": 33,
+          "observed_at_ns": 1793216215919118455,
+          "run_id": "wh-live-20261028T193407Z-edde08fa",
+          "seq": 33,
+          "sim_time": 873,
+          "started_ns": 1793216214507993009
+        },
+        {
+          "backend": "neo4j",
+          "durable_seq": 34,
+          "lag": 0,
+          "last_error": null,
+          "mirrored_seq": 34,
+          "observed_at_ns": 1793216219850973520,
+          "run_id": "wh-live-20261028T193407Z-edde08fa",
+          "seq": 34,
+          "sim_time": 903,
+          "started_ns": 1793216218359773315
+        },
+        {
+          "backend": "neo4j",
+          "durable_seq": 35,
+          "lag": 0,
+          "last_error": null,
+          "mirrored_seq": 35,
+          "observed_at_ns": 1793216224263376488,
+          "run_id": "wh-live-20261028T193407Z-edde08fa",
+          "seq": 35,
+          "sim_time": 933,
+          "started_ns": 1793216222768311278
+        }
+      ],
+      "readonly_inputs_unchanged_during_this_audit": true
+    }
+  },
+  "no_new_oracle_or_pressure": true,
+  "clock_limit": "writer uses epoch time_ns; API uses perf_counter_ns. No contemporaneous cross-clock anchor was recorded, so these clocks are not directly aligned here.",
+  "passed": true,
+  "tool_sha256": "1c76a6722b3fd91d6623c21d08de26c59b0504c45ae3b7342f41d56408bdf1fb"
+}

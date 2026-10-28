@@ -211,3 +211,9 @@ python -m backend.warehouse run \
 ### 2026-10-29入库背压增量
 
 [晚点优化指南](LATENESS_OPTIMIZATION_20261029.md)记录了同一balanced高峰输入的逐任务归因和全部候选。七字段CSV、初始库存、地图SHA与每口6件约束保持；调度新增显式opt-in疏口候选，1728任务晚点23→5，出库0晚点但平均流转有所增加。默认FIFO/off和现有实时服务保持。新日型请继续保留各入口发布时间、数量与期限分布，双方固定同一输入做IN/OUT联合回归；最终选择的完整运行配置见`config/warehouse-balanced-port-relief.json`及指南的收尾记录。
+
+### 2026-10-29逻辑边界与数据对接
+
+[自由边界指南](FREE_BOUNDARIES_GUIDE_20261029.md)增加了更简洁的端口约定：七字段中，入库`source_id=INBOUND`、出库`target_id=OUTBOUND`，货架端点保持；manifest声明`warehouse-logical-boundaries-v1`。用统一`convert-boundaries --dataset ... --scene ... --output ... --role both`创建新数据，再执行`validate`。仿真按实际状态选择工位，入库准入/出库发布后固定，计划与实际位置分别记录到知识图谱。
+
+现100×90m、100台、0.8m/s和8IN/8OUT/每IN六件的高峰1728任务已全部按时完成，旧固定门基线保留。请继续设计货量、货物身份、库存连续性、发布时间及期限；无需预先给每件货指定具体入口。未来扩展站点需同步地图、校验和图谱登记，逻辑CSV可保持。不同日型、多天与设备验收范围见新指南；使用双方约定的commit与完整配置对接。

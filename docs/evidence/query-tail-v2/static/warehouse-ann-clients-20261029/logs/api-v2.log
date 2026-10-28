@@ -1,0 +1,61 @@
+preparation {'not_index_selection': True, 'source': 'unchanged production ANN32D'}
+{'request_id': 'one-first-similar_history-1', 'method': 'one', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 44.71537284553051, 'service_metrics': {'statements': 0, 'observed_heads': [], 'full_ann_store': {'query_bolt_ms': 24.850858375430107, 'bolt_statements': 1, 'metadata_cache_hit': False, 'metadata_wire_chars': 67159, 'decode_assemble_ms': 4.510159604251385, 'json_roundtrip_ms': 1.3939402997493744, 'fragment_cache_hit': False, 'fragment_encoding_ms': 1.8488643690943718, 'fragment_static_json_chars': 58498, 'fragment_encoding_enabled': True, 'ann_fused': True, 'ann100_eligible': 5, 'ann1000_eligible': 0, 'header_parse_reused': False, 'returned_json_chars': 69771}, 'json_roundtrip_ms': 3.0255625024437904, 'service_ms': 33.93464721739292}, 'error': None}
+{'request_id': 'many-first-similar_history-1', 'method': 'many', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 42.319539934396744, 'service_metrics': {'statements': 0, 'observed_heads': [], 'full_ann_store': {'query_bolt_ms': 22.680592723190784, 'bolt_statements': 1, 'metadata_cache_hit': False, 'metadata_wire_chars': 67159, 'decode_assemble_ms': 5.347686819732189, 'json_roundtrip_ms': 1.4029396697878838, 'fragment_cache_hit': False, 'fragment_encoding_ms': 2.0061256363987923, 'fragment_static_json_chars': 58498, 'fragment_encoding_enabled': True, 'ann_fused': True, 'ann100_eligible': 5, 'ann1000_eligible': 0, 'header_parse_reused': False, 'returned_json_chars': 69771}, 'json_roundtrip_ms': 3.460821695625782, 'service_ms': 33.204054459929466}, 'error': None}
+one 1 similar_history {'count': 100, 'mean_ms': 177.8597737569362, 'p99_ms': 375.3990288823843, 'max_ms': 383.6698345839977, 'over_500ms': 0}
+many 1 similar_history {'count': 100, 'mean_ms': 110.95718247815967, 'p99_ms': 241.02859292179346, 'max_ms': 244.72657404839993, 'over_500ms': 0}
+many 2 similar_history {'count': 100, 'mean_ms': 89.83616231009364, 'p99_ms': 172.92711418122053, 'max_ms': 173.74823335558176, 'over_500ms': 0}
+one 2 similar_history {'count': 100, 'mean_ms': 276.9209587108344, 'p99_ms': 532.9175656661391, 'max_ms': 533.9743904769421, 'over_500ms': 7}
+one 3 similar_history {'count': 100, 'mean_ms': 236.27077328041196, 'p99_ms': 466.78645070642233, 'max_ms': 476.01697128266096, 'over_500ms': 0}
+many 3 similar_history {'count': 100, 'mean_ms': 108.62390431575477, 'p99_ms': 228.49309910088778, 'max_ms': 237.99333069473505, 'over_500ms': 0}
+many 4 similar_history {'count': 100, 'mean_ms': 91.2502502836287, 'p99_ms': 201.15609467029572, 'max_ms': 207.11353421211243, 'over_500ms': 0}
+one 4 similar_history {'count': 100, 'mean_ms': 215.15547941438854, 'p99_ms': 510.33543702214956, 'max_ms': 518.5065986588597, 'over_500ms': 3}
+{
+  "version": "catalog-tail-static-api-v1",
+  "groups": [
+    {
+      "method": "one",
+      "query_id": "similar_history",
+      "count": 409,
+      "mean_ms": 222.46430052813224,
+      "p99_ms": 518.2618042454123,
+      "max_ms": 533.9743904769421,
+      "over_500ms": 10,
+      "errors": 0,
+      "actual_API_peak": 98,
+      "server_requests_recorded": 409,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "many",
+      "query_id": "similar_history",
+      "count": 409,
+      "mean_ms": 98.931813949587,
+      "p99_ms": 228.49309910088778,
+      "max_ms": 244.72657404839993,
+      "over_500ms": 0,
+      "errors": 0,
+      "actual_API_peak": 93,
+      "server_requests_recorded": 409,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    }
+  ],
+  "requests": 818,
+  "source": {
+    "run_id": "wh-density120-week-required-20261028",
+    "head": 5073,
+    "mirrored_seq": 5073,
+    "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+    "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+    "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "actual_same_run_nodes_at_final_head": 1652135
+  },
+  "no_samples_filtered": true,
+  "warmup": {
+    "not_index_selection": true,
+    "source": "unchanged production ANN32D"
+  },
+  "production_vs_verifier_separated": true,
+  "joint_live_control_acceptance": false
+}

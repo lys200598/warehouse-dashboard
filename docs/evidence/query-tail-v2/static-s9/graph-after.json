@@ -1,0 +1,28 @@
+{
+  "head": 5073,
+  "real_head": 5073,
+  "created": "2026-10-28T08:43:59.115Z",
+  "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+  "source_run": "wh-density120-week-required-20261028",
+  "dimensions": 32,
+  "same_run_nodes": 1652135,
+  "real_vectors": 507300,
+  "runtime_driver": {
+    "versions": {
+      "neo4j": "6.4.1",
+      "neo4j-rust-ext": "6.4.1.0"
+    },
+    "loaded_native_modules": {
+      "neo4j._rust": {
+        "path": "/data/workspace/wz/warehouse-validation-v2-20261027/driver-rust/neo4j/_rust.cpython-310-x86_64-linux-gnu.so",
+        "sha256": "0617105386c439011b6c3469e6386130f5aad28a3dbe9a27002b7be1adc0755f"
+      }
+    },
+    "rust_native_loaded": true,
+    "python_executable": "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+    "python": "3.10.12",
+    "platform": "Linux-6.2.0-26-generic-x86_64-with-glibc2.35",
+    "hostname": "pro6000",
+    "logical_cpus": 152
+  }
+}

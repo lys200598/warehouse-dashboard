@@ -1,0 +1,11 @@
+{
+  "run_id": "wh-density120-week-required-20261028",
+  "head": 5073,
+  "mirrored_seq": 5073,
+  "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+  "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+  "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+  "created": "2026-10-28T08:43:59.115Z",
+  "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+  "actual_same_run_nodes_at_final_head": 1652135
+}

@@ -1,0 +1,250 @@
+{
+  "source": "/data/workspace/wz/warehouse-query-tail-v2-20261029/outputs/observations.json",
+  "source_sha256": "426fd583ea7b52219766511e05b331437f58719376b75403aafe8956184c3a7e",
+  "all_cold_warm_requests_retained": true,
+  "P99_definition": "nearest rank ceil(0.99*N), maximum separately reported",
+  "metrics": [
+    {
+      "method": "accelerated",
+      "kind": "global",
+      "HTTP_full_parse": {
+        "n": 101,
+        "mean_ms": 138.28947386787374,
+        "p99_ms": 235.0049987435341,
+        "max_ms": 236.07663996517658,
+        "over500": 0
+      },
+      "actual_server_interval": {
+        "n": 101,
+        "mean_ms": 117.36155853465347,
+        "p99_ms": 211.41525,
+        "max_ms": 216.361519,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 101,
+        "mean_ms": 111.62895543297918,
+        "p99_ms": 201.04354061186314,
+        "max_ms": 208.1442717462778,
+        "over500": 0
+      }
+    },
+    {
+      "method": "accelerated",
+      "kind": "local_awareness",
+      "HTTP_full_parse": {
+        "n": 101,
+        "mean_ms": 115.74499160604607,
+        "p99_ms": 226.74900107085705,
+        "max_ms": 233.4073269739747,
+        "over500": 0
+      },
+      "actual_server_interval": {
+        "n": 101,
+        "mean_ms": 98.80030578217821,
+        "p99_ms": 200.833233,
+        "max_ms": 210.923976,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 101,
+        "mean_ms": 93.74780767588037,
+        "p99_ms": 195.9309447556734,
+        "max_ms": 209.8896997049451,
+        "over500": 0
+      }
+    },
+    {
+      "method": "accelerated",
+      "kind": "self",
+      "HTTP_full_parse": {
+        "n": 101,
+        "mean_ms": 39.51984740756821,
+        "p99_ms": 66.08403101563454,
+        "max_ms": 67.48044677078724,
+        "over500": 0
+      },
+      "actual_server_interval": {
+        "n": 101,
+        "mean_ms": 13.49536104950495,
+        "p99_ms": 32.576226,
+        "max_ms": 43.540205,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 101,
+        "mean_ms": 7.134623751781954,
+        "p99_ms": 24.436764419078827,
+        "max_ms": 27.284963987767696,
+        "over500": 0
+      }
+    },
+    {
+      "method": "accelerated",
+      "kind": "similar_history",
+      "HTTP_full_parse": {
+        "n": 409,
+        "mean_ms": 292.1734043558682,
+        "p99_ms": 662.8377754241228,
+        "max_ms": 696.9399154186249,
+        "over500": 79
+      },
+      "actual_server_interval": {
+        "n": 409,
+        "mean_ms": 150.26969481173595,
+        "p99_ms": 428.320326,
+        "max_ms": 456.590969,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 409,
+        "mean_ms": 133.36724658840515,
+        "p99_ms": 412.3887550085783,
+        "max_ms": 446.776301600039,
+        "over500": 0
+      },
+      "bolt_stages": {
+        "n": 409,
+        "mean_ms": 121.06371817149422,
+        "p99_ms": 399.08929355442524,
+        "max_ms": 432.8519431874156,
+        "over500": 0
+      },
+      "json_assemble_ms": {
+        "n": 409,
+        "mean_ms": 3.143618179344023,
+        "p99_ms": 9.893021546304226,
+        "max_ms": 16.62595011293888,
+        "over500": 0
+      },
+      "catalog_JSON_roundtrip": {
+        "n": 409,
+        "mean_ms": 8.54609362908564,
+        "p99_ms": 30.98316304385662,
+        "max_ms": 58.42242855578661,
+        "over500": 0
+      }
+    },
+    {
+      "method": "baseline",
+      "kind": "global",
+      "HTTP_full_parse": {
+        "n": 101,
+        "mean_ms": 4779.6022742433415,
+        "p99_ms": 8602.510553784668,
+        "max_ms": 8807.790151797235,
+        "over500": 101
+      },
+      "actual_server_interval": {
+        "n": 101,
+        "mean_ms": 4764.149037653466,
+        "p99_ms": 8588.494479,
+        "max_ms": 8790.621602,
+        "over500": 101
+      },
+      "service_execute": {
+        "n": 101,
+        "mean_ms": 4758.993724287294,
+        "p99_ms": 8583.050383254886,
+        "max_ms": 8783.341239206493,
+        "over500": 101
+      }
+    },
+    {
+      "method": "baseline",
+      "kind": "local_awareness",
+      "HTTP_full_parse": {
+        "n": 101,
+        "mean_ms": 4506.921408734846,
+        "p99_ms": 8132.265194319189,
+        "max_ms": 8141.398674808443,
+        "over500": 101
+      },
+      "actual_server_interval": {
+        "n": 101,
+        "mean_ms": 4494.072185603961,
+        "p99_ms": 8129.022303,
+        "max_ms": 8134.135967,
+        "over500": 101
+      },
+      "service_execute": {
+        "n": 101,
+        "mean_ms": 4490.228969843523,
+        "p99_ms": 8127.54521984607,
+        "max_ms": 8130.302968434989,
+        "over500": 101
+      }
+    },
+    {
+      "method": "baseline",
+      "kind": "self",
+      "HTTP_full_parse": {
+        "n": 101,
+        "mean_ms": 37.61337003163477,
+        "p99_ms": 67.49242823570967,
+        "max_ms": 68.04944761097431,
+        "over500": 0
+      },
+      "actual_server_interval": {
+        "n": 101,
+        "mean_ms": 8.872208811881189,
+        "p99_ms": 27.828971,
+        "max_ms": 34.610689,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 101,
+        "mean_ms": 2.4523956074130417,
+        "p99_ms": 6.003756076097488,
+        "max_ms": 6.387287750840187,
+        "over500": 0
+      }
+    },
+    {
+      "method": "baseline",
+      "kind": "similar_history",
+      "HTTP_full_parse": {
+        "n": 409,
+        "mean_ms": 243.8296604455246,
+        "p99_ms": 545.3045247122645,
+        "max_ms": 556.3540598377585,
+        "over500": 8
+      },
+      "actual_server_interval": {
+        "n": 409,
+        "mean_ms": 100.49767260635697,
+        "p99_ms": 234.26304,
+        "max_ms": 254.03663,
+        "over500": 0
+      },
+      "service_execute": {
+        "n": 409,
+        "mean_ms": 84.25759498831476,
+        "p99_ms": 213.84007297456264,
+        "max_ms": 244.91178803145885,
+        "over500": 0
+      },
+      "bolt_stages": {
+        "n": 409,
+        "mean_ms": 73.63088687421859,
+        "p99_ms": 202.72249821573496,
+        "max_ms": 230.7002106681466,
+        "over500": 0
+      },
+      "json_assemble_ms": {
+        "n": 409,
+        "mean_ms": 2.8449404634043467,
+        "p99_ms": 14.75980132818222,
+        "max_ms": 32.39712677896023,
+        "over500": 0
+      },
+      "catalog_JSON_roundtrip": {
+        "n": 409,
+        "mean_ms": 7.2773029813702355,
+        "p99_ms": 24.736405350267887,
+        "max_ms": 33.00044592469931,
+        "over500": 0
+      }
+    }
+  ]
+}

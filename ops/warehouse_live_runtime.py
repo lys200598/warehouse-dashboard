@@ -26,6 +26,7 @@ import uuid
 
 
 VERSION = 'warehouse-owned-live-runtime-v1'
+QUERY_POINT_VERSION = 'warehouse-live-query-point-v1'
 
 
 def canonical(value):
@@ -110,7 +111,8 @@ class WarehouseLiveRuntime:
     def __init__(self, *, source_root, output_root, datasets, dataset_id,
                  run_id=None, config=None, commit_seconds=5, knowledge_mode='rules',
                  knowledge_backend='journal', wall_interval=1., disturbances_json=None,
-                 resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False):
+                 resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False,
+                 query_summary_root=None, query_summary_cache=None, query_point_path=None):
         if knowledge_mode not in ('rules', 'required') or knowledge_backend not in ('journal', 'neo4j'):
             raise ValueError('explicit rules/required and journal/neo4j modes required')
         if knowledge_mode == 'required' and knowledge_backend != 'neo4j':
@@ -126,6 +128,27 @@ class WarehouseLiveRuntime:
         self.source_root = Path(source_root).resolve(strict=True)
         self.output_root = Path(output_root).resolve()
         self.output_root.mkdir(parents=True, exist_ok=True)
+        self.query_summary_root=Path(query_summary_root).resolve() if query_summary_root is not None else None
+        self.query_summary_cache=Path(query_summary_cache).resolve() if query_summary_cache is not None else None
+        if self.query_summary_root is not None:
+            if knowledge_backend!='neo4j' or self.query_summary_root!=self.output_root:
+                raise ValueError('live query summaries require Neo4j and the owned output_root as their journal root')
+        elif self.query_summary_cache is not None:
+            raise ValueError('query summary cache requires an enabled summary root')
+        self.query_point_path = None
+        self._last_query_point = None
+        if query_point_path is not None:
+            candidate = Path(query_point_path)
+            resolved = candidate.resolve()
+            if resolved.parent != self.output_root:
+                raise ValueError('query point must be a direct child of the owned output_root')
+            if candidate.exists() or candidate.is_symlink() or resolved.exists():
+                raise FileExistsError('existing live query point is preserved; select a new owned path')
+            if knowledge_backend != 'neo4j' or self.query_summary_root is None:
+                raise ValueError('live query point requires Neo4j and enabled query summaries')
+            self.query_point_path = resolved
+        self._query_summary=None
+        self._query_summary_status=None
         self.registry = {}
         for alias, spec in datasets.items():
             if not isinstance(alias, str) or not isinstance(spec, dict) or set(spec) - {'scene', 'dataset', 'config', 'config_json', 'disturbances_json', 'label'}:
@@ -178,6 +201,14 @@ class WarehouseLiveRuntime:
         return {key: snap.get(key) for key in ('runId', 'runtimeInstanceId', 'status', 'running', 'elapsed', 'tick',
                                               'speed', 'knowledge', 'metadata', 'lastError', 'liveRevision')}
 
+    def query_point(self):
+        """Atomically fence a query without copying the fleet/map/UI snapshot."""
+        with self._lock:
+            if self._latest is None:
+                raise RuntimeError('live query point has not been published')
+            return {'run_id':self._latest['runId'],
+                    'seq':self._latest.get('knowledge',{}).get('mirrored_seq',0)}
+
     def scene(self):
         with self._lock:
             return deepcopy(self._scene)
@@ -221,6 +252,9 @@ class WarehouseLiveRuntime:
     def _worker(self):
         try:
             self._core, self._source_sha = _load_core(self.source_root)
+            if self.query_summary_root is not None:
+                from backend.query_views.summary import SummaryDirectory
+                self._query_summary=SummaryDirectory(self.query_summary_root,cache_root=self.query_summary_cache)
             dataset, run, resume = self._initial
             self._create_run(dataset, run_id=run or resume, resume=bool(resume))
             self._ready.set_result(True)
@@ -312,6 +346,8 @@ class WarehouseLiveRuntime:
                     'knowledge_mode': self.knowledge_mode, 'knowledge_backend': self.knowledge_backend,
                     'resource_graph':self.resource_graph_enabled,
                     'disturbance_sha256': digest(disturbances)}
+        if self.query_summary_root is not None:
+            identity['query_summary']='source-journal-derived-exact-cutoff-v1'
         checkpoint = None
         if resume:
             if any(output.glob('failure-*.json')):
@@ -348,6 +384,7 @@ class WarehouseLiveRuntime:
             raise
         self._output, self._dataset_id, self._identity = output, dataset_id, identity
         self._sim, self._store = sim, store
+        self._query_summary_status=None
         self._provider = None
         self._disturbances, self._applied, self._done = disturbances, [], set()
         self._events = deque(maxlen=100)
@@ -464,6 +501,11 @@ class WarehouseLiveRuntime:
                 'started_ns': start_ns, 'observed_at_ns': time.time_ns(), **status}) + '\n')
         if store.mirror and store.last_error:
             raise RuntimeError('graph mirror failed; durable boundary preserved: ' + str(store.last_error))
+        if getattr(self,'_query_summary',None) is not None:
+            if store.mirror is None:
+                raise RuntimeError('query summary publisher requires its actual graph mirror')
+            self._query_summary_status=self._query_summary.catch_up_from_graph(
+                store.mirror,sim.run_id,sim.knowledge_seq,timeout=15)
 
     def _disturb(self):
         sim = self._sim
@@ -550,6 +592,10 @@ class WarehouseLiveRuntime:
         stamp = int(time.time() * 1000)
         knowledge = self._store.status(self._sim.run_id)
         knowledge.update(committed_sim_time=self._last_commit, physical_sim_time=self._sim.elapsed)
+        if getattr(self,'_query_summary',None) is not None:
+            knowledge['query_summary']=deepcopy(self._query_summary_status)
+            published=(self._query_summary_status or {}).get('published_seq',0)
+            knowledge['query_summary_lag']=max(0,knowledge.get('mirrored_seq',0)-published)
         first, last = self._rate_points[0], self._rate_points[-1]
         rate = (last[1] - first[1]) / max(1e-9, last[0] - first[0]) if len(self._rate_points) > 1 else 0.
         snap.update(status=self._state, speed=self._speed, generatedAtMs=stamp, capturedAtMs=stamp,
@@ -567,7 +613,23 @@ class WarehouseLiveRuntime:
                         'resource_graph':self.resource_graph_enabled,
                         'fleet_mode':getattr(self._sim.config,'fleet_mode','all-x3'),
                         'fleet_capabilities':self._sim.run_metadata.get('fleet_capabilities')})
+        if self._sim.run_metadata.get('boundary_routing'):
+            snap['metadata']['boundary_routing']=deepcopy(self._sim.run_metadata['boundary_routing'])
+        point = None
+        if getattr(self, 'query_point_path', None) is not None:
+            seq = self._sim.knowledge_seq
+            committed = (knowledge.get('durable_seq'), knowledge.get('mirrored_seq'),
+                         (self._query_summary_status or {}).get('published_seq'))
+            if (type(seq) is not int or seq < 1
+                    or any(type(value) is not int or value != seq for value in committed)
+                    or knowledge.get('last_error')):
+                raise RuntimeError('live query point requires matching successful source, graph and summary commits')
+            point = {'version': QUERY_POINT_VERSION, 'run_id': self._sim.run_id, 'seq': seq,
+                     'runtime_instance_id': self.runtime_instance_id, 'source_sha256': self._source_sha}
         self._core.persistence.write_checkpoint(self._output / 'latest.json', snap)
+        if point is not None and getattr(self, '_last_query_point', None) != (point['run_id'], point['seq']):
+            self._core.persistence.write_checkpoint(self.query_point_path, point)
+            self._last_query_point = (point['run_id'], point['seq'])
         with self._changed:
             self._revision += 1
             snap['liveRevision'] = self._revision

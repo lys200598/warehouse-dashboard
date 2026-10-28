@@ -1,0 +1,88 @@
+{
+  "scope": "post-load analysis of retained first cold request; no new query or benchmark",
+  "request_id": "s9static-global-cold-first-call-c001",
+  "observations": [
+    {
+      "kind": "catalog_execution",
+      "request_id": "s9static-global-cold-first-call-c001",
+      "request": {
+        "event_limit": 10000,
+        "query_id": "global",
+        "robot_id": 1,
+        "run_id": "wh-density120-week-required-20261028",
+        "seq": 5073,
+        "start_seq": 5070
+      },
+      "start_ns": 6422310271926887,
+      "end_ns": 6422310859646662,
+      "outcome": "ok",
+      "error": null,
+      "service_metrics": {
+        "statements": 4,
+        "observed_heads": [
+          5073,
+          5073,
+          5073
+        ],
+        "catalog_fence": {
+          "version": "fixed-key-point-fence-v2",
+          "run_id": "wh-density120-week-required-20261028",
+          "requested_seq": 5073,
+          "A_rows": 1,
+          "B_rows": 1,
+          "C_rows": null,
+          "head_A": 5073,
+          "head_B": 5073,
+          "head_C": null,
+          "requested_exists": true,
+          "head_exists": true,
+          "probes": [
+            {
+              "role": "requested",
+              "key": "wh-density120-week-required-20261028:5073",
+              "expected_seq": 5073,
+              "rows": 1,
+              "current_head": 5073,
+              "exists": true,
+              "ms": 200.48958249390125
+            }
+          ],
+          "reused_requested_for_head": true,
+          "outcome": "ok",
+          "A_ms": 1.550384797155857,
+          "requested_key": "wh-density120-week-required-20261028:5073",
+          "head_key": "wh-density120-week-required-20261028:5073",
+          "B_ms": 200.48958249390125
+        },
+        "bolt_stage_ms": {
+          "point_or_other": 202.03243289142847,
+          "fleet": 292.13020019233227,
+          "events": 42.87073668092489
+        },
+        "fleet_fragment_cache_hit": false,
+        "summary_guard_ms": 0.0017909333109855652,
+        "summary_read_ms": 5.977473221719265,
+        "task_summary_source": "original-journal-derived-exact-point",
+        "summary_entity_budget_head": 5073,
+        "summary_entity_count": 50112,
+        "json_roundtrip_ms": 2.6111165061593056,
+        "service_ms": 583.2047555595636
+      },
+      "observer_error": null,
+      "pid": 3028972,
+      "port": 14220,
+      "thread_id": 139729781651008
+    },
+    {
+      "kind": "api",
+      "request_id": "s9static-global-cold-first-call-c001",
+      "start_ns": 6422310265506039,
+      "end_ns": 6422310862913020,
+      "status": 200,
+      "inflight_at_start": 1,
+      "body_send_completed": true,
+      "pid": 3028972,
+      "port": 14220
+    }
+  ]
+}

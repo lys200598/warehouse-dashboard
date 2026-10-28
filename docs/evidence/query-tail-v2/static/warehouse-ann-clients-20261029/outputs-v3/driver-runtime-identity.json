@@ -1,0 +1,13 @@
+{
+  "versions": {
+    "neo4j": "6.4.1",
+    "neo4j-rust-ext": "6.4.1.0"
+  },
+  "loaded_native_modules": {},
+  "rust_native_loaded": false,
+  "python_executable": "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+  "python": "3.10.12",
+  "platform": "Linux-6.2.0-26-generic-x86_64-with-glibc2.35",
+  "hostname": "pro6000",
+  "logical_cpus": 152
+}

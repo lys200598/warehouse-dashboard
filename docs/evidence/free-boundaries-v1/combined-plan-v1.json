@@ -1,0 +1,11 @@
+[
+  {
+    "name": "combined-free",
+    "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v1",
+    "scene": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v1/data/layouts/expansion-candidates/balanced/layout.json",
+    "dataset": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/logical-boundaries",
+    "config": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/combined-free-config.json",
+    "output": "/data/workspace/wz/warehouse-free-ports-20261029/runs/combined-free",
+    "exit_file": "/data/workspace/wz/warehouse-free-ports-20261029/logs/combined-free.exit"
+  }
+]

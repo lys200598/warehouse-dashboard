@@ -1,0 +1,35 @@
+[
+  {
+    "name": "fixed-control",
+    "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-ports-v1",
+    "scene": "/data/workspace/wz/warehouse-free-ports-20261029/source-ports-v1/data/layouts/expansion-candidates/balanced/layout.json",
+    "dataset": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/fixed-ports-baseline",
+    "config": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/fixed-control-config.json",
+    "output": "/data/workspace/wz/warehouse-free-ports-20261029/runs/fixed-control",
+    "exit_file": "/data/workspace/wz/warehouse-free-ports-20261029/logs/fixed-control.exit",
+    "tasks_sha256": "9e49fc0c78788bba64c49f8515a5721e05ae5894c4be78e8a0ddaa73ee706bb6",
+    "initial_sha256": "ffde9cda1c85e6d95e61f2e42fea4ef7147074801802c04934fb45117ffc764c"
+  },
+  {
+    "name": "free-base",
+    "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-ports-v1",
+    "scene": "/data/workspace/wz/warehouse-free-ports-20261029/source-ports-v1/data/layouts/expansion-candidates/balanced/layout.json",
+    "dataset": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/logical-boundaries",
+    "config": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/free-base-config.json",
+    "output": "/data/workspace/wz/warehouse-free-ports-20261029/runs/free-base",
+    "exit_file": "/data/workspace/wz/warehouse-free-ports-20261029/logs/free-base.exit",
+    "tasks_sha256": "4b1cda1f0d5c2a134b1458f5cdb694aa71d0138fa5a8754e421dd1db5e645da4",
+    "initial_sha256": "ffde9cda1c85e6d95e61f2e42fea4ef7147074801802c04934fb45117ffc764c"
+  },
+  {
+    "name": "free-online",
+    "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-ports-v1",
+    "scene": "/data/workspace/wz/warehouse-free-ports-20261029/source-ports-v1/data/layouts/expansion-candidates/balanced/layout.json",
+    "dataset": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/logical-boundaries",
+    "config": "/data/workspace/wz/warehouse-free-ports-20261029/inputs/free-online-config.json",
+    "output": "/data/workspace/wz/warehouse-free-ports-20261029/runs/free-online",
+    "exit_file": "/data/workspace/wz/warehouse-free-ports-20261029/logs/free-online.exit",
+    "tasks_sha256": "4b1cda1f0d5c2a134b1458f5cdb694aa71d0138fa5a8754e421dd1db5e645da4",
+    "initial_sha256": "ffde9cda1c85e6d95e61f2e42fea4ef7147074801802c04934fb45117ffc764c"
+  }
+]

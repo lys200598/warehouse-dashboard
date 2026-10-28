@@ -1,0 +1,91 @@
+index build 48.67427831981331
+{'request_id': 'ann-first-similar_history-1', 'method': 'ann', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 68.87044291943312, 'service_metrics': {'statements': 0, 'observed_heads': [], 'full_ann_store': {'query_bolt_ms': 47.722418792545795, 'bolt_statements': 1, 'metadata_cache_hit': False, 'metadata_wire_chars': 67159, 'decode_assemble_ms': 6.561683490872383, 'json_roundtrip_ms': 1.593160443007946, 'fragment_cache_hit': False, 'fragment_encoding_ms': 2.141261473298073, 'fragment_static_json_chars': 58498, 'fragment_encoding_enabled': True, 'ann_fused': True, 'ann100_eligible': 5, 'ann1000_eligible': 0, 'header_parse_reused': False, 'returned_json_chars': 69771}, 'json_roundtrip_ms': 3.4663397818803787, 'service_ms': 59.66719426214695}, 'error': None}
+{'request_id': 'flat-first-similar_history-1', 'method': 'flat', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 1360.2333255112171, 'service_metrics': {'statements': 0, 'observed_heads': [], 'full_ann_store': {'query_bolt_ms': 1294.734574854374, 'bolt_statements': 2, 'metadata_cache_hit': False, 'metadata_wire_chars': 67159, 'decode_assemble_ms': 7.0596737787127495, 'json_roundtrip_ms': 2.42744293063879, 'fragment_cache_hit': False, 'fragment_encoding_ms': 3.1681135296821594, 'fragment_static_json_chars': 58498, 'fragment_encoding_enabled': True, 'ann_fused': False, 'ann100_eligible': None, 'ann1000_eligible': None, 'header_parse_reused': False, 'returned_json_chars': 69771, 'flat32_search': {'version': 'source-journal-exhaustive-float64-32d-v1', 'dimensions': 32, 'method': 'exhaustive-float64-cosine', 'candidate_count': 507300, 'index_prefix': 5073, 'complete_domain': True, 'tie_break': 'score descending, seq/robot ascending', 'search_ms': 38.431087508797646, 'search_queue_ms': 0.03823544830083847, 'max_compute_concurrency_per_process': 2}}, 'json_roundtrip_ms': 5.528180859982967, 'service_ms': 1349.1466958075762}, 'error': None}
+ann 1 similar_history {'count': 100, 'mean_ms': 190.64239531755447, 'p99_ms': 416.474393568933, 'max_ms': 432.6914306730032, 'over_500ms': 0}
+flat 1 similar_history {'count': 100, 'mean_ms': 303.040857873857, 'p99_ms': 611.1046802252531, 'max_ms': 615.640071220696, 'over_500ms': 8}
+flat 2 similar_history {'count': 100, 'mean_ms': 253.5301477368921, 'p99_ms': 475.971233099699, 'max_ms': 487.4079478904605, 'over_500ms': 0}
+ann 2 similar_history {'count': 100, 'mean_ms': 304.3443432915956, 'p99_ms': 516.1095075309277, 'max_ms': 520.6132950261235, 'over_500ms': 7}
+ann 3 similar_history {'count': 100, 'mean_ms': 303.1190546695143, 'p99_ms': 534.1443847864866, 'max_ms': 535.1830730214715, 'over_500ms': 8}
+flat 3 similar_history {'count': 100, 'mean_ms': 372.89121587760746, 'p99_ms': 678.8709973916411, 'max_ms': 685.3806097060442, 'over_500ms': 37}
+flat 4 similar_history {'count': 100, 'mean_ms': 295.2258159313351, 'p99_ms': 523.4587350860238, 'max_ms': 531.1089353635907, 'over_500ms': 8}
+ann 4 similar_history {'count': 100, 'mean_ms': 164.30287341587245, 'p99_ms': 347.9419583454728, 'max_ms': 357.9090777784586, 'over_500ms': 0}
+{
+  "version": "catalog-tail-static-api-v1",
+  "groups": [
+    {
+      "method": "ann",
+      "query_id": "similar_history",
+      "count": 409,
+      "mean_ms": 236.402688520644,
+      "p99_ms": 519.5572972297668,
+      "max_ms": 535.1830730214715,
+      "over_500ms": 15,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 409,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "flat",
+      "query_id": "similar_history",
+      "count": 409,
+      "mean_ms": 305.37857363925,
+      "p99_ms": 662.9237681627274,
+      "max_ms": 1360.2333255112171,
+      "over_500ms": 54,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 409,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    }
+  ],
+  "requests": 818,
+  "source": {
+    "run_id": "wh-density120-week-required-20261028",
+    "head": 5073,
+    "mirrored_seq": 5073,
+    "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+    "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+    "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "actual_same_run_nodes_at_final_head": 1652135
+  },
+  "no_samples_filtered": true,
+  "warmup": {
+    "version": "source-journal-exhaustive-float64-32d-v1",
+    "run_id": "wh-density120-week-required-20261028",
+    "created_version": "2026-10-28T08:43:59.115Z",
+    "prefix": 5073,
+    "dimensions": 32,
+    "vector_kind": "32d_structured_physical_time_identity_features_not_semantic",
+    "metadata_sha256": "dbc58a567cd5f31a9f1f479a20b81c2e7188cf6ca12fd698b54f80887698607f",
+    "config_sha256": "a5ea88780d25a9c2b7e88d3d49fa21eee101c31acb9c842a19fe8e36934cb239",
+    "source_journal_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "files": {
+      "raw.f64": {
+        "sha256": "53fe55ecbc742a637e990b8938c951a91194b64dab2b574646c88aa4b76e7be7",
+        "bytes": 129868800
+      },
+      "norm.f64": {
+        "sha256": "42edf5748381504ffaae6277ae10aa8c4d60e1d60ae3ccbda76f44fd2545bd68",
+        "bytes": 4058400
+      },
+      "payload.s64": {
+        "sha256": "438d38c14ce651fe1e9391f39f2a3756db8a674dd9050429833c1c93514dcb0c",
+        "bytes": 32467200
+      },
+      "step.s64": {
+        "sha256": "39ae36e4075bd1184c6c3bd2f8631877294a6c45b12f7a21a2816b29d1a48412",
+        "bytes": 324672
+      }
+    },
+    "build_wall_seconds": 48.67427831981331,
+    "reuse_immutable_index": true,
+    "origin_index": "/data/workspace/wz/warehouse-flat32-20261029/index-v1",
+    "original_build_retained": "/data/workspace/wz/warehouse-flat32-20261029/outputs/index-build-v1.json",
+    "reason": "first benchmark harness variable shadowed worker number; no measured queries were served"
+  },
+  "production_vs_verifier_separated": true,
+  "joint_live_control_acceptance": false
+}

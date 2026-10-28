@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "verified": 1008,
+  "requests": 1008,
+  "errors": [],
+  "counts": {
+    "('baseline', 'global')": 101,
+    "('accelerated', 'global')": 101,
+    "('baseline', 'local_awareness')": 101,
+    "('accelerated', 'local_awareness')": 101,
+    "('baseline', 'similar_history')": 201,
+    "('accelerated', 'similar_history')": 201,
+    "('baseline', 'self')": 101,
+    "('accelerated', 'self')": 101
+  },
+  "full_32d_ann_paths": {
+    "('baseline', 'ann100')": 201,
+    "('accelerated', 'ann100')": 201
+  },
+  "source_and_packets_unchanged": true,
+  "hashes": {
+    "requests.jsonl": "6fe0dbf3b3e89496179f036c234a94d88447d20ea0ed5572e5a7c810a661ab30",
+    "responses.jsonl.gz": "bd2f17cce41165b6d50c5ba845435cae151ba385440cf00270ba28dc6d626b82",
+    "oracle.sqlite": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+  },
+  "seconds": 418.2415136033669,
+  "scope": "complete HTTP catalog payloads versus original snapshot/independent RealOracle; AFTER measured load"
+}

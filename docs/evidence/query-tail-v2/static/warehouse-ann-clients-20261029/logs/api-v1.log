@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/data/workspace/wz/warehouse-ann-clients-20261029/deployment/ann-client-process-benchmark.py", line 184, in <module>
+    if __name__=='__main__':main()
+  File "/data/workspace/wz/warehouse-ann-clients-20261029/deployment/ann-client-process-benchmark.py", line 117, in main
+    (output/'preparation-v1.json').write_text(json.dumps(warmup,indent=2));print('index build',warmup['build_wall_seconds'],flush=True)
+KeyError: 'build_wall_seconds'

@@ -1,0 +1,9 @@
+{
+  "scope": "post-measurement read-only original WebSocket through Native route",
+  "run_id": "wh-live-20261028T210326Z-9aee3fbd",
+  "status": "complete",
+  "robots": 100,
+  "seq": 70,
+  "lag": 0,
+  "success": true
+}

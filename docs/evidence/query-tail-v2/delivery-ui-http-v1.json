@@ -1,0 +1,13 @@
+{
+  "scope": "post-measurement delivery HTTP probe; excluded from already frozen benchmark original artifacts",
+  "url": "http://127.0.0.1:14189",
+  "run_id": "wh-live-20261028T210326Z-9aee3fbd",
+  "status": "complete",
+  "lag": 0,
+  "query_enabled": true,
+  "index_sha256": "7e66e1ec5a0ccba52f86fdcdcd6b3b3aea22c509baeeb483c76f0d486784c4aa",
+  "original_index_bytes_identical": true,
+  "self_status": 200,
+  "self_cutoff": 70,
+  "self_full_HTTP_ms": 123.86229995172471
+}

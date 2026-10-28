@@ -1,0 +1,162 @@
+{
+  "remote_root": "/data/workspace/wz/warehouse-flat32-20261029",
+  "source_baseline_git": "4998682a135848a29cca3862a67001930987545a",
+  "files": [
+    {
+      "path": "outputs/ann-0-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-1-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-2-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-3-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-4-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-5-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-6-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/ann-7-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7f19c71f20b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7f3b423060b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7f41904fa0b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7f61228fa0b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7f62c86020b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7f71da20e0b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7fb066af20b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/flat-<flat32.Flat32Index object at 0x7fe283df20b0>-api.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outputs/graph-source-point.json",
+      "bytes": 612,
+      "sha256": "dc154224e269a60600ade4a00c02f6b60442e3015776bb7bb00bd3a442c97a67"
+    },
+    {
+      "path": "outputs/index-build-v1.json",
+      "bytes": 1141,
+      "sha256": "54513483354dabc8fe8f81ee67d7b52b12e30df718e6ef8a8b43743105bb0a7d"
+    },
+    {
+      "path": "outputs/oracle-startup.json",
+      "bytes": 79,
+      "sha256": "08af382032311ad03bc8d783b9b109ab6b30177d8c9f20618ac8a0cd5cd47f59"
+    },
+    {
+      "path": "outputs/oracle.sqlite",
+      "bytes": 441958400,
+      "sha256": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe"
+    },
+    {
+      "path": "tools/flat32-api-benchmark.py",
+      "bytes": 11168,
+      "sha256": "681d63d9664d0f98f8b2db0678d622f5035089f4655e8ad8fc0f7b3ac432b4aa"
+    },
+    {
+      "path": "tools/flat32.py",
+      "bytes": 10866,
+      "sha256": "fa4134db2ce67e3ac799fdfc3546125c7264c291782c016f99f860e16dda88f8"
+    },
+    {
+      "path": "tools/test_flat32.py",
+      "bytes": 3783,
+      "sha256": "1ae5b3605a3fb582ef4f4f13b8ed6892c8e5ae660f88f7c39f9e400fbb64fe48"
+    },
+    {
+      "path": "deployment/flat32-api-v1.pid",
+      "bytes": 7,
+      "sha256": "03c14fc24fdc46e24885054ab1d33181952a5010a7b7d09ebeb276df06ce639a"
+    },
+    {
+      "path": "index-v1/manifest.json",
+      "bytes": 1297,
+      "sha256": "1763befc6316f092dd2fb4f592660e4bdd8acd9673baa49fd24a09de0cbc2483"
+    },
+    {
+      "path": "index-v1/norm.f64",
+      "bytes": 4058400,
+      "sha256": "42edf5748381504ffaae6277ae10aa8c4d60e1d60ae3ccbda76f44fd2545bd68"
+    },
+    {
+      "path": "index-v1/payload.s64",
+      "bytes": 32467200,
+      "sha256": "438d38c14ce651fe1e9391f39f2a3756db8a674dd9050429833c1c93514dcb0c"
+    },
+    {
+      "path": "index-v1/raw.f64",
+      "bytes": 129868800,
+      "sha256": "53fe55ecbc742a637e990b8938c951a91194b64dab2b574646c88aa4b76e7be7"
+    },
+    {
+      "path": "index-v1/step.s64",
+      "bytes": 324672,
+      "sha256": "39ae36e4075bd1184c6c3bd2f8631877294a6c45b12f7a21a2816b29d1a48412"
+    },
+    {
+      "path": "source-snapshot.json",
+      "bytes": 439,
+      "sha256": "e86e32a27def6902679036672d3f330b05ebd4d60e41b76314b52e277785daeb"
+    },
+    {
+      "path": "numpy-wheel.json",
+      "bytes": 239,
+      "sha256": "72ccdf98e4ccadb666e961488bb67d594c07c1ad2aff815e880395145def1684"
+    }
+  ],
+  "old_failures_preserved": true
+}

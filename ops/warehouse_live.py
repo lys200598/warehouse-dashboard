@@ -82,17 +82,26 @@ def _body(raw):
     return value
 
 
-def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=None,own_runtime=True):
+def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=None,own_runtime=True,
+               catalog_workers=4,catalog_upstreams=None):
+    if type(catalog_workers) is not int or not 1<=catalog_workers<=24:
+        raise ValueError('catalog_workers must be an integer within 1..24')
     from fastapi import FastAPI,Request,WebSocket
-    from fastapi.responses import JSONResponse,RedirectResponse
+    from fastapi.responses import JSONResponse,RedirectResponse,Response
     from fastapi.staticfiles import StaticFiles
     from starlette.websockets import WebSocketDisconnect
 
     dist=Path(dist).resolve()
     if not (dist/'index.html').is_file():raise ValueError('index.html is absent from the selected static directory')
-    executor=ThreadPoolExecutor(max_workers=4,thread_name_prefix='live-catalog')
+    if catalog_upstreams is not None and catalog_factory is not None:
+        raise ValueError('choose local catalog workers or query-only upstreams')
+    proxy=None
+    if catalog_upstreams is not None:
+        from ops.warehouse_query_proxy import HttpCatalogClient
+        proxy=HttpCatalogClient(catalog_upstreams)
+    executor=ThreadPoolExecutor(max_workers=catalog_workers,thread_name_prefix='live-catalog')
     queries=CatalogExecutor(catalog_factory) if catalog_factory else None
-    query_slots=asyncio.Semaphore(4)
+    query_slots=asyncio.Semaphore(catalog_workers)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -101,6 +110,7 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
             if own_runtime:await asyncio.to_thread(runtime.shutdown)
             await asyncio.to_thread(executor.shutdown,wait=True)
             if queries:queries.close()
+            if proxy:await proxy.close()
 
     app=FastAPI(title='Warehouse V5 live console',lifespan=lifespan)
 
@@ -132,7 +142,7 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
         return {'status':'degraded' if frame.get('status')=='failed' else 'ok','runtime':state,
             'run_id':frame.get('runId'),'simulation_status':frame.get('status'),
             'knowledge':frame.get('knowledge',{}),'metadata':frame.get('metadata',{}),
-            'graph_queries_enabled':queries is not None,'sourceKind':'live_simulation_memory'}
+            'graph_queries_enabled':queries is not None or proxy is not None,'sourceKind':'live_simulation_memory'}
 
     @app.get('/api/datasets')
     async def list_datasets():
@@ -169,18 +179,29 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
 
     @app.post('/api/knowledge/query')
     async def query(request:Request):
-        if not queries:return JSONResponse({'error':'Neo4j queries are disabled in journal/rules mode'},status_code=503)
+        if queries is None and proxy is None:
+            return JSONResponse({'error':'Neo4j queries are disabled in journal/rules mode'},status_code=503)
         started=time.perf_counter()
         try:
-            body=_body(await request.body());frame=runtime.latest();knowledge=frame.get('knowledge',{})
-            run=frame['runId'];cutoff=knowledge.get('mirrored_seq',0)
+            body=_body(await request.body())
+            if hasattr(runtime,'query_point'):
+                point=runtime.query_point();run,cutoff=point['run_id'],point['seq']
+            else:
+                # Compatibility for external read-only adapters, not the owned producer.
+                frame=runtime.latest();run=frame['runId'];cutoff=frame.get('knowledge',{}).get('mirrored_seq',0)
             body.setdefault('run_id',run);body.setdefault('seq',cutoff)
             if body['run_id']!=run:raise ValueError('query run must match the currently selected live run')
             if type(body['seq']) is not int or not 1<=body['seq']<=cutoff:
                 raise ValueError('query cutoff must be within this run mirrored watermark')
             async with query_slots:
-                result=await asyncio.get_running_loop().run_in_executor(executor,queries.execute,body)
-            response=JSONResponse(result)
+                if proxy:
+                    upstream=await proxy.execute(body)
+                    response=Response(upstream.content,status_code=upstream.status_code,media_type='application/json')
+                    if upstream.headers.get('x-warehouse-service-ms') is not None:
+                        response.headers['X-Warehouse-Upstream-Ms']=upstream.headers['x-warehouse-service-ms']
+                else:
+                    result=await asyncio.get_running_loop().run_in_executor(executor,queries.execute,body)
+                    response=JSONResponse(result)
             response.headers['X-Warehouse-Service-Ms']=str((time.perf_counter()-started)*1000)
             return response
         except (ValueError,KeyError,TypeError,json.JSONDecodeError) as exc:
@@ -224,15 +245,32 @@ def main(argv=None):
     p.add_argument('--commit-seconds',type=int,default=5);p.add_argument('--resume-run-id')
     p.add_argument('--resource-graph',action='store_true',help='same-transaction rack resources for new runs')
     p.add_argument('--expected-neo4j-uri',help='refuse startup if the live database differs from this isolated endpoint')
+    p.add_argument('--query-acceleration',choices=('baseline','summary'),default='baseline',
+                   help='explicit journal-derived exact summaries and fenced immutable fleet fragments')
+    p.add_argument('--query-summary-cache',type=Path,help='derived cache directory, never the original journal')
+    p.add_argument('--summary-root',type=Path,help='journal root containing run_id/journal.sqlite; enables summary queries')
+    p.add_argument('--query-workers',type=int,default=4,
+                   help='catalog executor and admission slots, 1..24; each worker uses one Neo4j connection')
+    p.add_argument('--query-upstream',action='append',help='query-only loopback HTTP origin; repeat up to eight times')
+    p.add_argument('--query-point-file',type=Path,
+                   help='new direct child of output-root; publish SHA-fenced points for native query routing')
     p.add_argument('--host',choices=('127.0.0.1','localhost','::1'),default='127.0.0.1')
     p.add_argument('--port',type=int,default=14185)
     args=p.parse_args(argv)
+    if not 1<=args.query_workers<=24:p.error('--query-workers must be within 1..24')
+    if args.query_upstream:
+        from ops.warehouse_query_proxy import validate_upstreams
+        try:validate_upstreams(args.query_upstream)
+        except ValueError as error:p.error(str(error))
+    if args.summary_root is not None:args.query_acceleration='summary'
     source=args.source_root.resolve()
     if not (source/'backend/knowledge_runtime/sim.py').is_file():p.error('select the actual producer source tree')
     datasets,default=load_registry(args.registry);selected=args.dataset_id or default
     available={r['id']:r['available'] for r in dataset_descriptions(datasets)['datasets']}
     if not available.get(selected):p.error('selected dataset is unavailable; generate/register its input first')
     if args.mode=='required' and args.knowledge_backend!='neo4j':p.error('required mode needs Neo4j')
+    if args.query_acceleration=='summary' and args.knowledge_backend!='neo4j':p.error('summary queries need Neo4j point fences')
+    if args.query_upstream and args.knowledge_backend!='neo4j':p.error('query-only upstreams need Neo4j mode')
     sys.path.insert(0,str(ROOT));sys.path.insert(0,str(source))
     from ops.warehouse_live_runtime import WarehouseLiveRuntime
     from backend.query_catalog import QueryCatalogService
@@ -241,10 +279,25 @@ def main(argv=None):
     active_datasets={key:spec for key,spec in datasets.items() if available.get(key)}
     runtime=WarehouseLiveRuntime(source_root=source,output_root=args.output_root,datasets=active_datasets,dataset_id=selected,
         commit_seconds=args.commit_seconds,knowledge_mode=args.mode,knowledge_backend=args.knowledge_backend,
-        wall_interval=1.,resume_run_id=args.resume_run_id,expected_neo4j_uri=args.expected_neo4j_uri,resource_graph=args.resource_graph)
-    factory=(lambda:QueryCatalogService.from_env(timeout=15,pool_size=1)) if args.knowledge_backend=='neo4j' else None
+        wall_interval=1.,resume_run_id=args.resume_run_id,expected_neo4j_uri=args.expected_neo4j_uri,resource_graph=args.resource_graph,
+        query_summary_root=(args.summary_root or args.output_root) if args.query_acceleration=='summary' else None,
+        query_summary_cache=args.query_summary_cache if args.query_acceleration=='summary' else None,
+        query_point_path=args.query_point_file)
+    if args.query_point_file is not None:
+        print(json.dumps({'live_query_owner':{'runtime_instance_id':runtime.runtime_instance_id,
+            'point':runtime.query_point(),'query_point_file':str(runtime.query_point_path)}}),flush=True)
+    query_options=({'summary_root':args.summary_root or args.output_root,'summary_cache_root':args.query_summary_cache,
+                    'cache_fleet':True} if args.query_acceleration=='summary' else {})
+    factory=(lambda:QueryCatalogService.from_env(timeout=15,pool_size=1,**query_options)) if args.knowledge_backend=='neo4j' and not args.query_upstream else None
     try:
-        app=create_app(runtime,datasets,args.dist,catalog_factory=factory,catalog_description=QueryCatalogService.describe(),own_runtime=False)
+        if args.query_acceleration=='summary' and factory is not None:
+            # Startup prewarm is before HTTP readiness and explicitly reported;
+            # later request-side catch-up remains included in API service time.
+            warm=factory()
+            try:print(json.dumps({'query_summary_startup':warm.prepare_run(runtime.latest()['runId'])}),flush=True)
+            finally:warm.close()
+        app=create_app(runtime,datasets,args.dist,catalog_factory=factory,catalog_description=QueryCatalogService.describe(),
+                       own_runtime=False,catalog_workers=args.query_workers,catalog_upstreams=args.query_upstream)
         import uvicorn
         uvicorn.run(app,host=args.host,port=args.port,workers=1,timeout_graceful_shutdown=120)
     finally:runtime.shutdown()

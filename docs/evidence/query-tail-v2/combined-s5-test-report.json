@@ -1,0 +1,17 @@
+{
+  "source_manifest_sha256": "a5a948792233b66ee9e43ba868d8de2f8ae1219a313b3312ef6c0c3ec83e8a41",
+  "all_237_source_files_identical_to_full_tested_local_tree": true,
+  "Python_tests": 825,
+  "Python_pass": 820,
+  "Python_optional_skips": 5,
+  "Python_exit": 0,
+  "frontend_tests": 86,
+  "frontend_pass": 86,
+  "frontend_exit": 0,
+  "files": {
+    "frontend-s5-tests-v1.exit": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "frontend-s5-tests-v1.log": "1e34b7b85f0110b4014d3f873ab7691f4c9338e3e1eefe4e0144727311febc8e",
+    "local-combined-s5-tests-v1.exit": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "local-combined-s5-tests-v1.log": "bfc91d5646f4fea25e0292b5e65ba87d61a8fe5ab396373272d814e2ef4404d5"
+  }
+}

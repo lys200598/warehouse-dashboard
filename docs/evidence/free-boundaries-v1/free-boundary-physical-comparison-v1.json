@@ -1,0 +1,35 @@
+{
+  "version": "warehouse-free-boundary-event-ref-equivalence-v1",
+  "scope": "Exact additional normalization of binding source-event run prefixes; no physical field removed",
+  "original_v1_audit_sha256": "42b6b0174a58fef25eecc5d3b426797fbb455a0e3be583b53dc4e7a227c8424c",
+  "auditor_sha256": "0811f35df5381b51b010333a8c5474ca70528efc5101f422d3f34039a8b686e4",
+  "comparison": {
+    "passed": true,
+    "checks": {
+      "tasks": true,
+      "goods": true,
+      "robots": true,
+      "events": true,
+      "sample_times_equal": true,
+      "sampled_physical_frames_equal": true
+    },
+    "compared_sample_frames": 418,
+    "different_sample_seconds": [],
+    "different_sample_count": 0,
+    "comparison_semantics": "All final task/goods/robot fields and every journal event retained. Only run_id/event_id run prefixes normalized; worker PID wrappers excluded. Sample frames retain all robot fields plus physical counters, stock and timing; backend/scheduler/knowledge/source metadata and wall-clock performance counters are excluded."
+  },
+  "relief_counters": {
+    "free-base": {
+      "port_relief_rows": 0,
+      "v5_port_rewarded_rows": 0,
+      "v5_rewarded_rows": 0
+    },
+    "free-online": {
+      "port_relief_rows": 0,
+      "v5_port_rewarded_rows": 0,
+      "v5_rewarded_rows": 0
+    }
+  },
+  "normalization": "boundary_bindings[*].event_id run prefix only, after verifying exact event_seq correspondence",
+  "policy_coverage": "Logical waiting source is INBOUND, not a physical full port; online donor rows are zero. Do not attribute this scenario gain to port relief."
+}

@@ -1,0 +1,20 @@
+{
+  "checked_at_ns": 1793223117500362122,
+  "static_ports": [
+    14220,
+    14221,
+    14222,
+    14223,
+    14224,
+    14225,
+    14226,
+    14227,
+    14289
+  ],
+  "static_still_listening": [],
+  "dynamic_ports_listening": [
+    14189,
+    14190
+  ],
+  "only_owned_static_children_stopped": true
+}

@@ -1,0 +1,152 @@
+summary startup {'head': 5073, 'consumed': 5073, 'wall_seconds': 34.81705744937062, 'run_id': 'wh-density120-week-required-20261028', 'created_version': '2026-10-28T08:43:59.115Z', 'phase': 'explicit startup warmup', 'total_wall_seconds': 34.88804861065}
+{'request_id': 'baseline-first-global-1', 'method': 'baseline', 'phase': 'first-global', 'query_id': 'global', 'end_to_end_ms': 4506.5665720030665, 'service_metrics': {'statements': 3, 'observed_heads': [5073, 5073, 5073], 'service_ms': 4498.44981264323}, 'error': None}
+{'request_id': 'accelerated-first-global-1', 'method': 'accelerated', 'phase': 'first-global', 'query_id': 'global', 'end_to_end_ms': 148.24882429093122, 'service_metrics': {'statements': 4, 'observed_heads': [5073, 5073, 5073, 5073], 'fleet_fragment_cache_hit': False, 'task_summary_source': 'original-journal-derived-exact-point', 'summary_entity_budget_head': 5073, 'summary_entity_count': 50112, 'service_ms': 142.44328532367945}, 'error': None}
+{'request_id': 'baseline-first-local_awareness-1', 'method': 'baseline', 'phase': 'first-local_awareness', 'query_id': 'local_awareness', 'end_to_end_ms': 1250.2713929861784, 'service_metrics': {'statements': 3, 'observed_heads': [5073, 5073, 5073], 'service_ms': 1246.8324759975076}, 'error': None}
+{'request_id': 'accelerated-first-local_awareness-1', 'method': 'accelerated', 'phase': 'first-local_awareness', 'query_id': 'local_awareness', 'end_to_end_ms': 23.451952263712883, 'service_metrics': {'statements': 3, 'observed_heads': [5073, 5073, 5073], 'fleet_fragment_cache_hit': True, 'task_summary_source': 'original-journal-derived-exact-point', 'summary_entity_budget_head': 5073, 'summary_entity_count': 50112, 'service_ms': 20.09950764477253}, 'error': None}
+{'request_id': 'baseline-first-similar_history-1', 'method': 'baseline', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 3505.7771783322096, 'service_metrics': {'statements': 0, 'observed_heads': [], 'service_ms': 3496.4070403948426}, 'error': None}
+{'request_id': 'accelerated-first-similar_history-1', 'method': 'accelerated', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 62.84536700695753, 'service_metrics': {'statements': 0, 'observed_heads': [], 'service_ms': 54.17417176067829}, 'error': None}
+{'request_id': 'baseline-first-self-1', 'method': 'baseline', 'phase': 'first-self', 'query_id': 'self', 'end_to_end_ms': 165.7735789194703, 'service_metrics': {'statements': 0, 'observed_heads': [], 'service_ms': 162.8807196393609}, 'error': None}
+{'request_id': 'accelerated-first-self-1', 'method': 'accelerated', 'phase': 'first-self', 'query_id': 'self', 'end_to_end_ms': 5.024355836212635, 'service_metrics': {'statements': 0, 'observed_heads': [], 'service_ms': 2.182657830417156}, 'error': None}
+baseline 1 global {'count': 100, 'mean_ms': 4601.091512367129, 'p99_ms': 8123.215450905263, 'max_ms': 8142.227506265044, 'over_500ms': 100}
+accelerated 1 global {'count': 100, 'mean_ms': 429.978442620486, 'p99_ms': 638.7764466926455, 'max_ms': 649.5735505595803, 'over_500ms': 21}
+accelerated 2 local_awareness {'count': 100, 'mean_ms': 252.45049880817533, 'p99_ms': 375.0523766502738, 'max_ms': 387.5952195376158, 'over_500ms': 0}
+baseline 2 local_awareness {'count': 100, 'mean_ms': 4602.853596089408, 'p99_ms': 8110.008700750768, 'max_ms': 8265.63625689596, 'over_500ms': 100}
+baseline 3 self {'count': 100, 'mean_ms': 32.46724243275821, 'p99_ms': 50.4003232344985, 'max_ms': 50.62603671103716, 'over_500ms': 0}
+accelerated 3 self {'count': 100, 'mean_ms': 38.44035770744085, 'p99_ms': 61.680689454078674, 'max_ms': 63.69377952069044, 'over_500ms': 0}
+accelerated 4 similar_history {'count': 100, 'mean_ms': 1615.9344911202788, 'p99_ms': 2662.2926872223616, 'max_ms': 2708.7260745465755, 'over_500ms': 100}
+baseline 4 similar_history {'count': 100, 'mean_ms': 223.3554200362414, 'p99_ms': 466.660650447011, 'max_ms': 480.05876410752535, 'over_500ms': 0}
+baseline 5 similar_history {'count': 100, 'mean_ms': 235.6753434240818, 'p99_ms': 532.4213318526745, 'max_ms': 539.0089591965079, 'over_500ms': 3}
+accelerated 5 similar_history {'count': 100, 'mean_ms': 222.0287581998855, 'p99_ms': 432.54070170223713, 'max_ms': 433.5936577990651, 'over_500ms': 0}
+{
+  "version": "catalog-tail-static-api-v1",
+  "groups": [
+    {
+      "method": "baseline",
+      "query_id": "global",
+      "count": 101,
+      "mean_ms": 4600.1556218684755,
+      "p99_ms": 8123.215450905263,
+      "max_ms": 8142.227506265044,
+      "over_500ms": 101,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 101,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "baseline",
+      "query_id": "local_awareness",
+      "count": 101,
+      "mean_ms": 4569.659712890366,
+      "p99_ms": 8110.008700750768,
+      "max_ms": 8265.63625689596,
+      "over_500ms": 101,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 101,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "baseline",
+      "query_id": "self",
+      "count": 101,
+      "mean_ms": 33.78710715044843,
+      "p99_ms": 50.62603671103716,
+      "max_ms": 165.7735789194703,
+      "over_500ms": 0,
+      "errors": 0,
+      "actual_API_peak": 83,
+      "server_requests_recorded": 101,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "baseline",
+      "query_id": "similar_history",
+      "count": 201,
+      "mean_ms": 245.81519166350512,
+      "p99_ms": 532.4213318526745,
+      "max_ms": 3505.7771783322096,
+      "over_500ms": 4,
+      "errors": 0,
+      "actual_API_peak": 98,
+      "server_requests_recorded": 201,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "accelerated",
+      "query_id": "global",
+      "count": 101,
+      "mean_ms": 427.18904045880726,
+      "p99_ms": 638.7764466926455,
+      "max_ms": 649.5735505595803,
+      "over_500ms": 21,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 101,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "accelerated",
+      "query_id": "local_awareness",
+      "count": 101,
+      "mean_ms": 250.18318646615094,
+      "p99_ms": 375.0523766502738,
+      "max_ms": 387.5952195376158,
+      "over_500ms": 0,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 101,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "accelerated",
+      "query_id": "self",
+      "count": 101,
+      "mean_ms": 38.10950620376533,
+      "p99_ms": 61.680689454078674,
+      "max_ms": 63.69377952069044,
+      "over_500ms": 0,
+      "errors": 0,
+      "actual_API_peak": 50,
+      "server_requests_recorded": 101,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "accelerated",
+      "query_id": "similar_history",
+      "count": 201,
+      "mean_ms": 914.7222402936487,
+      "p99_ms": 2631.2038097530603,
+      "max_ms": 2708.7260745465755,
+      "over_500ms": 100,
+      "errors": 0,
+      "actual_API_peak": 100,
+      "server_requests_recorded": 201,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    }
+  ],
+  "requests": 1008,
+  "source": {
+    "run_id": "wh-density120-week-required-20261028",
+    "head": 5073,
+    "mirrored_seq": 5073,
+    "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+    "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+    "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "actual_same_run_nodes_at_final_head": 1652135
+  },
+  "no_samples_filtered": true,
+  "warmup": {
+    "head": 5073,
+    "consumed": 5073,
+    "wall_seconds": 34.81705744937062,
+    "run_id": "wh-density120-week-required-20261028",
+    "created_version": "2026-10-28T08:43:59.115Z",
+    "phase": "explicit startup warmup",
+    "total_wall_seconds": 34.88804861065
+  },
+  "production_vs_verifier_separated": true,
+  "joint_live_control_acceptance": false
+}

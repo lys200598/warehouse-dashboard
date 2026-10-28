@@ -1,0 +1,30 @@
+{
+  "original_evidence_manifest_sha256": "fd662971721bc11244976810fa49ab2bff09d1a467dbf5df80599b34d107e571",
+  "files": [
+    {
+      "path": "evidence/cold-global-analysis.json",
+      "bytes": 2716,
+      "sha256": "07e785ca40e8c5136cbe4c594ffee581c330b7cc06a6e94f36cf9f606ee19cab"
+    },
+    {
+      "path": "evidence/ports-after.json",
+      "bytes": 300,
+      "sha256": "7fa9f9f8c31575f741831a50b38d98c3b35678f45ddb6ddf267004b960700c84"
+    },
+    {
+      "path": "logs/verify.log",
+      "bytes": 19007,
+      "sha256": "1dd141f52c5aa1b2c54fc09024333b947ceb684defd37f87886b2c71394ff741"
+    },
+    {
+      "path": "logs/client.log",
+      "bytes": 1657,
+      "sha256": "f23a1e7d23ba1254c227cf3d97ccd0b141287490b72889d46764ef360bb750b6"
+    },
+    {
+      "path": "logs/supervisor.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

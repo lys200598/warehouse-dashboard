@@ -1,0 +1,77 @@
+{
+  "fixed-control": {
+    "min_deadline_margin_seconds": -149,
+    "tightest_five": [
+      {
+        "margin": -149,
+        "task_id": "V3-T-0000447"
+      },
+      {
+        "margin": -141,
+        "task_id": "V3-T-0000500"
+      },
+      {
+        "margin": -123,
+        "task_id": "V3-T-0001487"
+      },
+      {
+        "margin": -103,
+        "task_id": "V3-T-0001728"
+      },
+      {
+        "margin": -102,
+        "task_id": "V3-T-0001006"
+      }
+    ]
+  },
+  "free-base": {
+    "min_deadline_margin_seconds": 108,
+    "tightest_five": [
+      {
+        "margin": 108,
+        "task_id": "V3-T-0000447"
+      },
+      {
+        "margin": 113,
+        "task_id": "V3-T-0000274"
+      },
+      {
+        "margin": 116,
+        "task_id": "V3-T-0001640"
+      },
+      {
+        "margin": 117,
+        "task_id": "V3-T-0001705"
+      },
+      {
+        "margin": 160,
+        "task_id": "V3-T-0000168"
+      }
+    ]
+  },
+  "free-online": {
+    "min_deadline_margin_seconds": 108,
+    "tightest_five": [
+      {
+        "margin": 108,
+        "task_id": "V3-T-0000447"
+      },
+      {
+        "margin": 113,
+        "task_id": "V3-T-0000274"
+      },
+      {
+        "margin": 116,
+        "task_id": "V3-T-0001640"
+      },
+      {
+        "margin": 117,
+        "task_id": "V3-T-0001705"
+      },
+      {
+        "margin": 160,
+        "task_id": "V3-T-0000168"
+      }
+    ]
+  }
+}

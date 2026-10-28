@@ -1,0 +1,465 @@
+{
+  "scope": "read-only EXPLAIN and final immutable point existence; cannot reconstruct transient failed request",
+  "run": "wh-live-20261028T190757Z-07511643",
+  "requested_seq": 34,
+  "source": "/data/workspace/wz/warehouse-free-ports-20261029/source-combined-v1",
+  "plans": {
+    "original": {
+      "query": "MATCH (r:WHRun {run_id:$run}) WHERE r.committed_seq >= $seq\n    MATCH (s:WHStep {key:$run+':'+toString($seq)})\n    MATCH (h:WHStep {key:$run+':'+toString(r.committed_seq)})\n    RETURN r.run_id AS run_id,r.committed_seq AS head,toString(r.created_at) AS created_at,\n        s.checksum AS batch_checksum,h.checksum AS head_checksum,\n        r.real_source_run AS source_run,r.metadata_json AS metadata,r.config_json AS config,\n        s{.seq,.tick,.sim_time,.completed,.running} AS step",
+      "query_sha256": "819e2d28e1ff772b35be7d1610adf3441d4730084af885b8fd204532004572b3",
+      "plan": {
+        "args": {
+          "planner-impl": "IDP",
+          "Details": "run_id, head, created_at, batch_checksum, head_checksum, source_run, metadata, config, step",
+          "planner-version": "5.26.32",
+          "string-representation": "Cypher 5\n\nPlanner COST\n\nRuntime SLOTTED\n\nRuntime version 5.26.32\n\n+------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\n| Operator               | Id | Details                                                                                              | Estimated Rows |\n+------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\n| +ProduceResults        |  0 | run_id, head, created_at, batch_checksum, head_checksum, source_run, metadata, config, step          |              0 |\n| |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Projection            |  1 | cache[r.run_id] AS run_id, cache[r.committed_seq] AS head, cache[r.real_source_run] AS source_run,   |              0 |\n| |                      |    | cache[r.config_json] AS config, cache[s.checksum] AS batch_checksum,                                 |                |\n| |                      |    | toString(cache[r.created_at]) AS created_at, h.checksum AS head_checksum,                            |                |\n| |                      |    | cache[r.metadata_json] AS metadata, s{seq: cache[s.seq], tick: cache[s.tick], sim_time: cache[s.sim_ |                |\n| |                      |    | time], completed: cache[s.completed], running: cache[s.running]} AS step                             |                |\n| |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| +CacheProperties       |  2 | cache[s.seq], cache[r.metadata_json], cache[s.sim_time], cache[s.checksum],                          |              0 |\n| |                      |    | cache[r.real_source_run], cache[s.running], cache[r.created_at], cache[s.completed], cache[s.tick],  |                |\n| |                      |    | cache[r.config_json]                                                                                 |                |\n| |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Apply                 |  3 |                                                                                                      |              0 |\n| |\\                     +----+------------------------------------------------------------------------------------------------------+----------------+\n| | +NodeUniqueIndexSeek |  4 | UNIQUE h:WHStep(key) WHERE key = ($run + $autostring_1) + toString(cache[r.committed_seq])           |              0 |\n| |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| +CartesianProduct      |  5 |                                                                                                      |              0 |\n| |\\                     +----+------------------------------------------------------------------------------------------------------+----------------+\n| | +NodeUniqueIndexSeek |  6 | UNIQUE s:WHStep(key) WHERE key = ($run + $autostring_0) + toString($seq)                             |              0 |\n| |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Filter                |  7 | cache[r.committed_seq] >= $seq                                                                       |              0 |\n| |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| +NodeUniqueIndexSeek   |  8 | UNIQUE r:WHRun(run_id) WHERE run_id = $run, cache[r.run_id]                                          |              1 |\n+------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\n\nTotal database accesses: ?\n",
+          "runtime-version": "5.26.32",
+          "runtime": "SLOTTED",
+          "Id": 0,
+          "runtime-impl": "SLOTTED",
+          "EstimatedRows": 0.4,
+          "planner": "COST",
+          "version": "5"
+        },
+        "children": [
+          {
+            "args": {
+              "Details": "cache[r.run_id] AS run_id, cache[r.committed_seq] AS head, cache[r.real_source_run] AS source_run, cache[r.config_json] AS config, cache[s.checksum] AS batch_checksum, toString(cache[r.created_at]) AS created_at, h.checksum AS head_checksum, cache[r.metadata_json] AS metadata, s{seq: cache[s.seq], tick: cache[s.tick], sim_time: cache[s.sim_time], completed: cache[s.completed], running: cache[s.running]} AS step",
+              "Id": 1,
+              "EstimatedRows": 0.4
+            },
+            "children": [
+              {
+                "args": {
+                  "Details": "cache[s.seq], cache[r.metadata_json], cache[s.sim_time], cache[s.checksum], cache[r.real_source_run], cache[s.running], cache[r.created_at], cache[s.completed], cache[s.tick], cache[r.config_json]",
+                  "Id": 2,
+                  "EstimatedRows": 0.4
+                },
+                "children": [
+                  {
+                    "args": {
+                      "EstimatedRows": 0.4,
+                      "Id": 3
+                    },
+                    "children": [
+                      {
+                        "args": {
+                          "EstimatedRows": 0.4,
+                          "Id": 5
+                        },
+                        "children": [
+                          {
+                            "args": {
+                              "Details": "cache[r.committed_seq] >= $seq",
+                              "Id": 7,
+                              "EstimatedRows": 0.4000000000000001
+                            },
+                            "children": [
+                              {
+                                "args": {
+                                  "Details": "UNIQUE r:WHRun(run_id) WHERE run_id = $run, cache[r.run_id]",
+                                  "Id": 8,
+                                  "EstimatedRows": 1.0
+                                },
+                                "identifiers": [
+                                  "r"
+                                ],
+                                "operatorType": "NodeUniqueIndexSeek@neo4j"
+                              }
+                            ],
+                            "identifiers": [
+                              "r"
+                            ],
+                            "operatorType": "Filter@neo4j"
+                          },
+                          {
+                            "args": {
+                              "Details": "UNIQUE s:WHStep(key) WHERE key = ($run + $autostring_0) + toString($seq)",
+                              "Id": 6,
+                              "EstimatedRows": 0.4000000000000001
+                            },
+                            "identifiers": [
+                              "s"
+                            ],
+                            "operatorType": "NodeUniqueIndexSeek@neo4j"
+                          }
+                        ],
+                        "identifiers": [
+                          "r",
+                          "s"
+                        ],
+                        "operatorType": "CartesianProduct@neo4j"
+                      },
+                      {
+                        "args": {
+                          "Details": "UNIQUE h:WHStep(key) WHERE key = ($run + $autostring_1) + toString(cache[r.committed_seq])",
+                          "Id": 4,
+                          "EstimatedRows": 0.4
+                        },
+                        "identifiers": [
+                          "r",
+                          "s",
+                          "h"
+                        ],
+                        "operatorType": "NodeUniqueIndexSeek@neo4j"
+                      }
+                    ],
+                    "identifiers": [
+                      "r",
+                      "s",
+                      "h"
+                    ],
+                    "operatorType": "Apply@neo4j"
+                  }
+                ],
+                "identifiers": [
+                  "r",
+                  "s",
+                  "h"
+                ],
+                "operatorType": "CacheProperties@neo4j"
+              }
+            ],
+            "identifiers": [
+              "head_checksum",
+              "s",
+              "step",
+              "head",
+              "batch_checksum",
+              "run_id",
+              "metadata",
+              "created_at",
+              "h",
+              "r",
+              "config",
+              "source_run"
+            ],
+            "operatorType": "Projection@neo4j"
+          }
+        ],
+        "identifiers": [
+          "head_checksum",
+          "s",
+          "step",
+          "head",
+          "batch_checksum",
+          "run_id",
+          "metadata",
+          "created_at",
+          "h",
+          "r",
+          "config",
+          "source_run"
+        ],
+        "operatorType": "ProduceResults@neo4j"
+      },
+      "seconds": 0.3390161981806159
+    },
+    "single_head_WITH": {
+      "query": "MATCH (r:WHRun {run_id:$run}) WITH r,r.committed_seq AS fixed_head WHERE fixed_head >= $seq\n    MATCH (s:WHStep {key:$run+':'+toString($seq)})\n    MATCH (h:WHStep {key:$run+':'+toString(fixed_head)})\n    RETURN r.run_id AS run_id,fixed_head AS head,toString(r.created_at) AS created_at,\n        s.checksum AS batch_checksum,h.checksum AS head_checksum,\n        r.real_source_run AS source_run,r.metadata_json AS metadata,r.config_json AS config,\n        s{.seq,.tick,.sim_time,.completed,.running} AS step",
+      "query_sha256": "949ea8185f0dec2defe7d1d6bfa223519a3c6d6716d7e1819692510315624e6e",
+      "plan": {
+        "args": {
+          "planner-impl": "IDP",
+          "Details": "run_id, head, created_at, batch_checksum, head_checksum, source_run, metadata, config, step",
+          "planner-version": "5.26.32",
+          "string-representation": "Cypher 5\n\nPlanner COST\n\nRuntime SLOTTED\n\nRuntime version 5.26.32\n\n+--------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\n| Operator                 | Id | Details                                                                                              | Estimated Rows |\n+--------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\n| +ProduceResults          |  0 | run_id, head, created_at, batch_checksum, head_checksum, source_run, metadata, config, step          |              0 |\n| |                        +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Projection              |  1 | cache[r.run_id] AS run_id, fixed_head AS head, cache[r.real_source_run] AS source_run,               |              0 |\n| |                        |    | cache[r.config_json] AS config, cache[s.checksum] AS batch_checksum,                                 |                |\n| |                        |    | toString(cache[r.created_at]) AS created_at, h.checksum AS head_checksum,                            |                |\n| |                        |    | cache[r.metadata_json] AS metadata, s{seq: cache[s.seq], tick: cache[s.tick], sim_time: cache[s.sim_ |                |\n| |                        |    | time], completed: cache[s.completed], running: cache[s.running]} AS step                             |                |\n| |                        +----+------------------------------------------------------------------------------------------------------+----------------+\n| +CacheProperties         |  2 | cache[s.seq], cache[r.metadata_json], cache[s.sim_time], cache[s.checksum],                          |              0 |\n| |                        |    | cache[r.real_source_run], cache[s.running], cache[r.created_at], cache[s.completed], cache[s.tick],  |                |\n| |                        |    | cache[r.config_json]                                                                                 |                |\n| |                        +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Apply                   |  3 |                                                                                                      |              0 |\n| |\\                       +----+------------------------------------------------------------------------------------------------------+----------------+\n| | +CartesianProduct      |  4 |                                                                                                      |              0 |\n| | |\\                     +----+------------------------------------------------------------------------------------------------------+----------------+\n| | | +NodeUniqueIndexSeek |  5 | UNIQUE h:WHStep(key) WHERE key = ($run + $autostring_1) + toString(fixed_head)                       |              0 |\n| | |                      +----+------------------------------------------------------------------------------------------------------+----------------+\n| | +NodeUniqueIndexSeek   |  6 | UNIQUE s:WHStep(key) WHERE key = ($run + $autostring_0) + toString($seq)                             |              0 |\n| |                        +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Filter                  |  7 | fixed_head >= $seq                                                                                   |              0 |\n| |                        +----+------------------------------------------------------------------------------------------------------+----------------+\n| +Projection              |  8 | r.committed_seq AS fixed_head                                                                        |              1 |\n| |                        +----+------------------------------------------------------------------------------------------------------+----------------+\n| +NodeUniqueIndexSeek     |  9 | UNIQUE r:WHRun(run_id) WHERE run_id = $run, cache[r.run_id]                                          |              1 |\n+--------------------------+----+------------------------------------------------------------------------------------------------------+----------------+\n\nTotal database accesses: ?\n",
+          "runtime-version": "5.26.32",
+          "runtime": "SLOTTED",
+          "Id": 0,
+          "runtime-impl": "SLOTTED",
+          "EstimatedRows": 0.29999999999999993,
+          "planner": "COST",
+          "version": "5"
+        },
+        "children": [
+          {
+            "args": {
+              "Details": "cache[r.run_id] AS run_id, fixed_head AS head, cache[r.real_source_run] AS source_run, cache[r.config_json] AS config, cache[s.checksum] AS batch_checksum, toString(cache[r.created_at]) AS created_at, h.checksum AS head_checksum, cache[r.metadata_json] AS metadata, s{seq: cache[s.seq], tick: cache[s.tick], sim_time: cache[s.sim_time], completed: cache[s.completed], running: cache[s.running]} AS step",
+              "Id": 1,
+              "EstimatedRows": 0.29999999999999993
+            },
+            "children": [
+              {
+                "args": {
+                  "Details": "cache[s.seq], cache[r.metadata_json], cache[s.sim_time], cache[s.checksum], cache[r.real_source_run], cache[s.running], cache[r.created_at], cache[s.completed], cache[s.tick], cache[r.config_json]",
+                  "Id": 2,
+                  "EstimatedRows": 0.29999999999999993
+                },
+                "children": [
+                  {
+                    "args": {
+                      "EstimatedRows": 0.29999999999999993,
+                      "Id": 3
+                    },
+                    "children": [
+                      {
+                        "args": {
+                          "Details": "fixed_head >= $seq",
+                          "Id": 7,
+                          "EstimatedRows": 0.3
+                        },
+                        "children": [
+                          {
+                            "args": {
+                              "Details": "r.committed_seq AS fixed_head",
+                              "Id": 8,
+                              "EstimatedRows": 1.0
+                            },
+                            "children": [
+                              {
+                                "args": {
+                                  "Details": "UNIQUE r:WHRun(run_id) WHERE run_id = $run, cache[r.run_id]",
+                                  "Id": 9,
+                                  "EstimatedRows": 1.0
+                                },
+                                "identifiers": [
+                                  "r"
+                                ],
+                                "operatorType": "NodeUniqueIndexSeek@neo4j"
+                              }
+                            ],
+                            "identifiers": [
+                              "r",
+                              "fixed_head"
+                            ],
+                            "operatorType": "Projection@neo4j"
+                          }
+                        ],
+                        "identifiers": [
+                          "r",
+                          "fixed_head"
+                        ],
+                        "operatorType": "Filter@neo4j"
+                      },
+                      {
+                        "args": {
+                          "EstimatedRows": 0.29999999999999993,
+                          "Id": 4
+                        },
+                        "children": [
+                          {
+                            "args": {
+                              "Details": "UNIQUE s:WHStep(key) WHERE key = ($run + $autostring_0) + toString($seq)",
+                              "Id": 6,
+                              "EstimatedRows": 0.3
+                            },
+                            "identifiers": [
+                              "r",
+                              "fixed_head",
+                              "s"
+                            ],
+                            "operatorType": "NodeUniqueIndexSeek@neo4j"
+                          },
+                          {
+                            "args": {
+                              "Details": "UNIQUE h:WHStep(key) WHERE key = ($run + $autostring_1) + toString(fixed_head)",
+                              "Id": 5,
+                              "EstimatedRows": 0.3
+                            },
+                            "identifiers": [
+                              "r",
+                              "fixed_head",
+                              "h"
+                            ],
+                            "operatorType": "NodeUniqueIndexSeek@neo4j"
+                          }
+                        ],
+                        "identifiers": [
+                          "r",
+                          "fixed_head",
+                          "s",
+                          "h"
+                        ],
+                        "operatorType": "CartesianProduct@neo4j"
+                      }
+                    ],
+                    "identifiers": [
+                      "r",
+                      "fixed_head",
+                      "s",
+                      "h"
+                    ],
+                    "operatorType": "Apply@neo4j"
+                  }
+                ],
+                "identifiers": [
+                  "r",
+                  "fixed_head",
+                  "s",
+                  "h"
+                ],
+                "operatorType": "CacheProperties@neo4j"
+              }
+            ],
+            "identifiers": [
+              "head_checksum",
+              "s",
+              "step",
+              "head",
+              "batch_checksum",
+              "run_id",
+              "created_at",
+              "h",
+              "r",
+              "config",
+              "source_run",
+              "fixed_head",
+              "metadata"
+            ],
+            "operatorType": "Projection@neo4j"
+          }
+        ],
+        "identifiers": [
+          "head_checksum",
+          "s",
+          "step",
+          "head",
+          "batch_checksum",
+          "run_id",
+          "created_at",
+          "h",
+          "r",
+          "config",
+          "source_run",
+          "fixed_head",
+          "metadata"
+        ],
+        "operatorType": "ProduceResults@neo4j"
+      },
+      "seconds": 0.08450729306787252
+    },
+    "latest_original": {
+      "query": "MATCH (r:WHRun {run_id:$run})\n    MATCH (h:WHStep {key:$run+':'+toString(r.committed_seq)})\n    RETURN r.run_id AS run_id,r.committed_seq AS head,toString(r.created_at) AS created_at,\n        h.checksum AS batch_checksum",
+      "query_sha256": "e88b5146aff7fb686b5ea791b64742f761cf9f00ba48912974af741172ff8e7a",
+      "plan": {
+        "args": {
+          "planner-impl": "IDP",
+          "Details": "run_id, head, created_at, batch_checksum",
+          "planner-version": "5.26.32",
+          "string-representation": "Cypher 5\n\nPlanner COST\n\nRuntime SLOTTED\n\nRuntime version 5.26.32\n\n+------------------------+----+--------------------------------------------------------------------------------------------------+----------------+\n| Operator               | Id | Details                                                                                          | Estimated Rows |\n+------------------------+----+--------------------------------------------------------------------------------------------------+----------------+\n| +ProduceResults        |  0 | run_id, head, created_at, batch_checksum                                                         |              1 |\n| |                      +----+--------------------------------------------------------------------------------------------------+----------------+\n| +Projection            |  1 | cache[r.run_id] AS run_id, cache[r.committed_seq] AS head, toString(r.created_at) AS created_at, |              1 |\n| |                      |    | h.checksum AS batch_checksum                                                                     |                |\n| |                      +----+--------------------------------------------------------------------------------------------------+----------------+\n| +Apply                 |  2 |                                                                                                  |              1 |\n| |\\                     +----+--------------------------------------------------------------------------------------------------+----------------+\n| | +NodeUniqueIndexSeek |  3 | UNIQUE h:WHStep(key) WHERE key = ($run + $autostring_0) + toString(cache[r.committed_seq])       |              1 |\n| |                      +----+--------------------------------------------------------------------------------------------------+----------------+\n| +NodeUniqueIndexSeek   |  4 | UNIQUE r:WHRun(run_id) WHERE run_id = $run, cache[r.run_id]                                      |              1 |\n+------------------------+----+--------------------------------------------------------------------------------------------------+----------------+\n\nTotal database accesses: ?\n",
+          "runtime-version": "5.26.32",
+          "runtime": "SLOTTED",
+          "Id": 0,
+          "runtime-impl": "SLOTTED",
+          "EstimatedRows": 1.0,
+          "planner": "COST",
+          "version": "5"
+        },
+        "children": [
+          {
+            "args": {
+              "Details": "cache[r.run_id] AS run_id, cache[r.committed_seq] AS head, toString(r.created_at) AS created_at, h.checksum AS batch_checksum",
+              "Id": 1,
+              "EstimatedRows": 1.0
+            },
+            "children": [
+              {
+                "args": {
+                  "EstimatedRows": 1.0,
+                  "Id": 2
+                },
+                "children": [
+                  {
+                    "args": {
+                      "Details": "UNIQUE r:WHRun(run_id) WHERE run_id = $run, cache[r.run_id]",
+                      "Id": 4,
+                      "EstimatedRows": 1.0
+                    },
+                    "identifiers": [
+                      "r"
+                    ],
+                    "operatorType": "NodeUniqueIndexSeek@neo4j"
+                  },
+                  {
+                    "args": {
+                      "Details": "UNIQUE h:WHStep(key) WHERE key = ($run + $autostring_0) + toString(cache[r.committed_seq])",
+                      "Id": 3,
+                      "EstimatedRows": 1.0
+                    },
+                    "identifiers": [
+                      "r",
+                      "h"
+                    ],
+                    "operatorType": "NodeUniqueIndexSeek@neo4j"
+                  }
+                ],
+                "identifiers": [
+                  "r",
+                  "h"
+                ],
+                "operatorType": "Apply@neo4j"
+              }
+            ],
+            "identifiers": [
+              "head",
+              "batch_checksum",
+              "run_id",
+              "created_at",
+              "h",
+              "r"
+            ],
+            "operatorType": "Projection@neo4j"
+          }
+        ],
+        "identifiers": [
+          "head",
+          "batch_checksum",
+          "run_id",
+          "created_at",
+          "h",
+          "r"
+        ],
+        "operatorType": "ProduceResults@neo4j"
+      },
+      "seconds": 0.01485190074890852
+    }
+  },
+  "current_points": [
+    {
+      "head": 70,
+      "real_head": 70,
+      "seq": 33,
+      "step_seq": 33,
+      "checksum": "a41183b240162f1330ac3972691dae5f2d3e0020b76883a7eb30014b3e8a5ac1"
+    },
+    {
+      "head": 70,
+      "real_head": 70,
+      "seq": 34,
+      "step_seq": 34,
+      "checksum": "cec3478a6fab4b0ad17b22fa8462c989e53fb72e4d81197ffde574de3503e1b2"
+    },
+    {
+      "head": 70,
+      "real_head": 70,
+      "seq": 35,
+      "step_seq": 35,
+      "checksum": "360673a1dcf9d6083af5f765c73f36fb9193eff381a916050f02b73d246d0a6f"
+    },
+    {
+      "head": 70,
+      "real_head": 70,
+      "seq": 70,
+      "step_seq": 70,
+      "checksum": "5ccad8887431773dcd5c5209409cc18770ed476ea475b108dcdc691ab1627b98"
+    }
+  ],
+  "current_fence": [
+    {
+      "run_id": "wh-live-20261028T190757Z-07511643",
+      "head": 70,
+      "created_at": "2026-10-28T19:08:04.203Z",
+      "batch_checksum": "cec3478a6fab4b0ad17b22fa8462c989e53fb72e4d81197ffde574de3503e1b2",
+      "head_checksum": "5ccad8887431773dcd5c5209409cc18770ed476ea475b108dcdc691ab1627b98",
+      "source_run": "wh-live-20261028T190757Z-07511643",
+      "step": {
+        "running": true,
+        "sim_time": 903,
+        "tick": 903,
+        "completed": 9,
+        "seq": 34
+      }
+    }
+  ]
+}

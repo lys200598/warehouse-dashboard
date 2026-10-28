@@ -1,0 +1,64 @@
+preparation {'not_index_selection': True, 'source': 'unchanged production ANN32D', 'pressure_requests': 128, 'distinct_robots': 100, 'client_timing': 'body read + JSON parse separate'}
+{'request_id': 'one-first-similar_history-1', 'method': 'one', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 57.9402819275856, 'response_body_ms': 53.78977209329605, 'client_json_parse_ms': 4.142078571021557, 'service_metrics': {'statements': 0, 'observed_heads': [], 'full_ann_store': {'query_bolt_ms': 37.90595754981041, 'bolt_statements': 1, 'metadata_cache_hit': False, 'metadata_wire_chars': 67159, 'decode_assemble_ms': 5.2151158452034, 'json_roundtrip_ms': 1.5176115557551384, 'fragment_cache_hit': False, 'fragment_encoding_ms': 1.999865286052227, 'fragment_static_json_chars': 58498, 'fragment_encoding_enabled': True, 'ann_fused': True, 'ann100_eligible': 5, 'ann1000_eligible': 0, 'header_parse_reused': False, 'returned_json_chars': 69771}, 'json_roundtrip_ms': 3.2871151342988014, 'service_ms': 48.224570229649544}, 'error': None}
+{'request_id': 'many-first-similar_history-1', 'method': 'many', 'phase': 'first-similar_history', 'query_id': 'similar_history', 'end_to_end_ms': 45.907448045909405, 'response_body_ms': 41.710903868079185, 'client_json_parse_ms': 4.189609549939632, 'service_metrics': {'statements': 0, 'observed_heads': [], 'full_ann_store': {'query_bolt_ms': 27.258142828941345, 'bolt_statements': 1, 'metadata_cache_hit': False, 'metadata_wire_chars': 67159, 'decode_assemble_ms': 4.481719806790352, 'json_roundtrip_ms': 1.3991910964250565, 'fragment_cache_hit': False, 'fragment_encoding_ms': 1.8179984763264656, 'fragment_static_json_chars': 58498, 'fragment_encoding_enabled': True, 'ann_fused': True, 'ann100_eligible': 5, 'ann1000_eligible': 0, 'header_parse_reused': False, 'returned_json_chars': 69771}, 'json_roundtrip_ms': 3.05371917784214, 'service_ms': 36.496132612228394}, 'error': None}
+one 1 similar_history {'count': 128, 'mean_ms': 259.94651867222274, 'p99_ms': 574.7324647381902, 'max_ms': 577.8491143137217, 'over_500ms': 16}
+many 1 similar_history {'count': 128, 'mean_ms': 140.76390660193283, 'p99_ms': 313.00592608749866, 'max_ms': 318.077121861279, 'over_500ms': 0}
+many 2 similar_history {'count': 128, 'mean_ms': 121.67952048184816, 'p99_ms': 248.4493525698781, 'max_ms': 264.2204202711582, 'over_500ms': 0}
+one 2 similar_history {'count': 128, 'mean_ms': 305.5375858239131, 'p99_ms': 637.7809103578329, 'max_ms': 642.3082053661346, 'over_500ms': 30}
+one 3 similar_history {'count': 128, 'mean_ms': 294.90951609477634, 'p99_ms': 552.8764454647899, 'max_ms': 570.3108049929142, 'over_500ms': 18}
+many 3 similar_history {'count': 128, 'mean_ms': 116.9196076298249, 'p99_ms': 243.1710073724389, 'max_ms': 251.9887713715434, 'over_500ms': 0}
+many 4 similar_history {'count': 128, 'mean_ms': 115.85544662375469, 'p99_ms': 225.02762265503407, 'max_ms': 234.05959084630013, 'over_500ms': 0}
+one 4 similar_history {'count': 128, 'mean_ms': 323.60723162128124, 'p99_ms': 666.6472926735878, 'max_ms': 682.4457300826907, 'over_500ms': 38}
+{
+  "version": "catalog-tail-static-api-v1",
+  "groups": [
+    {
+      "method": "one",
+      "query_id": "similar_history",
+      "count": 521,
+      "mean_ms": 291.7337277207002,
+      "p99_ms": 643.733911216259,
+      "max_ms": 682.4457300826907,
+      "over_500ms": 102,
+      "errors": 0,
+      "actual_API_peak": 126,
+      "server_requests_recorded": 521,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    },
+    {
+      "method": "many",
+      "query_id": "similar_history",
+      "count": 521,
+      "mean_ms": 122.51967455541104,
+      "p99_ms": 263.2588157430291,
+      "max_ms": 318.077121861279,
+      "over_500ms": 0,
+      "errors": 0,
+      "actual_API_peak": 126,
+      "server_requests_recorded": 521,
+      "scope": "fixed final committed million-prefix, no concurrent physical writer"
+    }
+  ],
+  "requests": 1042,
+  "source": {
+    "run_id": "wh-density120-week-required-20261028",
+    "head": 5073,
+    "mirrored_seq": 5073,
+    "source_journal": "/data/workspace/wz/warehouse-platform-density120-20261028/runs/week-required-v2/journal.sqlite",
+    "snapshot_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite",
+    "snapshot_sha256": "0e00da2577e0f76ab29e9ecf6149d6a061d5b2b3595a63a9ed04b67fe515291c",
+    "created": "2026-10-28T08:43:59.115Z",
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "actual_same_run_nodes_at_final_head": 1652135
+  },
+  "no_samples_filtered": true,
+  "warmup": {
+    "not_index_selection": true,
+    "source": "unchanged production ANN32D",
+    "pressure_requests": 128,
+    "distinct_robots": 100,
+    "client_timing": "body read + JSON parse separate"
+  },
+  "production_vs_verifier_separated": true,
+  "joint_live_control_acceptance": false
+}

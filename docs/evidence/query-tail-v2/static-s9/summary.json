@@ -1,0 +1,151 @@
+{
+  "state": "complete_with_negative_strict_qualification",
+  "strict_passed": false,
+  "full_JSON_verified": 2084,
+  "HTTP_errors": 0,
+  "same_run_nodes": 1652135,
+  "actual_32d_vectors": 507300,
+  "seq": 5073,
+  "source_manifest_sha256": "d057e847ff37f1ea4d29510e5dc81d66889b3ca0e14acd4aea894500626b42d7",
+  "scope": "fixed final original same-run million-node prefix; no Runtime, no live control or concurrent source writer",
+  "rows": [
+    {
+      "query": "global",
+      "requests": 521,
+      "HTTP": {
+        "n": 521,
+        "mean_ms": 110.30480096161229,
+        "p99_ms": 240.097314,
+        "max_ms": 601.353968,
+        "over500": 1
+      },
+      "Native_API": {
+        "n": 521,
+        "mean_ms": 108.28406909788868,
+        "p99_ms": 239.0,
+        "max_ms": 599.0,
+        "over500": 1
+      },
+      "sidecar_API": {
+        "n": 521,
+        "mean_ms": 105.51511149520154,
+        "p99_ms": 234.082331,
+        "max_ms": 597.406981,
+        "over500": 1
+      },
+      "pressure_API_peaks": [
+        128,
+        128,
+        128,
+        128
+      ]
+    },
+    {
+      "query": "local_awareness",
+      "requests": 521,
+      "HTTP": {
+        "n": 521,
+        "mean_ms": 111.74851090019193,
+        "p99_ms": 275.952399,
+        "max_ms": 340.165752,
+        "over500": 0
+      },
+      "Native_API": {
+        "n": 521,
+        "mean_ms": 110.27831094049904,
+        "p99_ms": 275.0,
+        "max_ms": 338.0,
+        "over500": 0
+      },
+      "sidecar_API": {
+        "n": 521,
+        "mean_ms": 107.92084521113243,
+        "p99_ms": 261.254723,
+        "max_ms": 336.039019,
+        "over500": 0
+      },
+      "pressure_API_peaks": [
+        128,
+        123,
+        128,
+        128
+      ]
+    },
+    {
+      "query": "self",
+      "requests": 521,
+      "HTTP": {
+        "n": 521,
+        "mean_ms": 18.37832162571977,
+        "p99_ms": 53.175496,
+        "max_ms": 58.463767,
+        "over500": 0
+      },
+      "Native_API": {
+        "n": 521,
+        "mean_ms": 17.12476007677543,
+        "p99_ms": 52.0,
+        "max_ms": 58.0,
+        "over500": 0
+      },
+      "sidecar_API": {
+        "n": 521,
+        "mean_ms": 14.32348953934741,
+        "p99_ms": 42.466653,
+        "max_ms": 48.520608,
+        "over500": 0
+      },
+      "pressure_API_peaks": [
+        78,
+        84,
+        87,
+        85
+      ]
+    },
+    {
+      "query": "similar_history",
+      "requests": 521,
+      "HTTP": {
+        "n": 521,
+        "mean_ms": 178.15743519385796,
+        "p99_ms": 412.851542,
+        "max_ms": 457.301423,
+        "over500": 0
+      },
+      "Native_API": {
+        "n": 521,
+        "mean_ms": 174.08637236084454,
+        "p99_ms": 411.0,
+        "max_ms": 451.0,
+        "over500": 0
+      },
+      "sidecar_API": {
+        "n": 521,
+        "mean_ms": 167.6208881727447,
+        "p99_ms": 385.608555,
+        "max_ms": 405.512108,
+        "over500": 0
+      },
+      "pressure_API_peaks": [
+        108,
+        124,
+        119,
+        114
+      ]
+    }
+  ],
+  "negative_qualification_reasons": [
+    "first cold global HTTP601.353968ms retained",
+    "self true API peaks78/84/87/85 below100 retained"
+  ],
+  "final_report_sha256": "ab9dd5d17edcf0139c687d2a9ba9347e04f0b6559a5dd7bc07de25a932bc07e1",
+  "request_sha256": "f095a50513ea764555c7de5ed00eacc726e50769833b2c2a48174be59e5b1a83",
+  "response_sha256": "aeeb47cc2e1bf0d0ff1de931fafb10bf4eb275312acd19ca0a26eb7172389027",
+  "download_verification": {
+    "all_downloaded_bytes_match_remote_manifests": true,
+    "checks": 56,
+    "unique_files": 56,
+    "evidence_manifest_sha256": "fd662971721bc11244976810fa49ab2bff09d1a467dbf5df80599b34d107e571",
+    "supplement_manifest_sha256": "4581b972f6b2d670cec1caa0c7425f9ccc30988b995a9c10b8034c209c072b51"
+  }
+}

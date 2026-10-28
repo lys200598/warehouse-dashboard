@@ -1,0 +1,13 @@
+{
+  "wall_seconds": 34.198291406966746,
+  "result": {
+    "head": 5073,
+    "consumed": 5073,
+    "wall_seconds": 33.93481728434563,
+    "run_id": "wh-density120-week-required-20261028",
+    "created_version": "2026-10-28T08:43:59.115Z",
+    "phase": "explicit startup warmup"
+  },
+  "phase": "explicit new S9 cache startup before any measured HTTP readiness",
+  "old_cache_used": false
+}
