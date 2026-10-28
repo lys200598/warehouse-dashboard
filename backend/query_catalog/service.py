@@ -18,6 +18,7 @@ from . import VERSION
 
 
 CATALOG = {
+    'rack_inventory':'Rack occupancy and actual goods custody at a committed historical cutoff',
     'self': 'Specified robot and its task at the committed point',
     'readiness': 'Snapshot identity, source watermark and observed readiness',
     'task': 'Exact task version plus cargo and cooperation provenance',
@@ -230,7 +231,7 @@ class QueryCatalogService:
         return {'version':VERSION,'queries':deepcopy(CATALOG),
             'required_common':['query_id','run_id','seq'],
             'optional_common':['robot_id','task_id','goods_id','start_seq','event_limit','history_limit',
-                'max_tasks','zone','radius_m','min_soc','limit','variant','window_steps','embargo_steps','max_candidates'],
+                'max_tasks','zone','radius_m','min_soc','limit','variant','window_steps','embargo_steps','max_candidates','rack_id','include_empty'],
             'time_semantics':'explicit committed cutoff; window is inclusive commit sequence, not uniform elapsed duration',
             'control_use':'catalog is read-only/advisory; knowledge_runtime separately consumes cooperation_context',
             'mapping_file':'backend/query_catalog/kg56_mapping.json'}
@@ -372,7 +373,12 @@ class QueryCatalogService:
             if request.get(field) is not None:identity(request[field],field)
         started=time.perf_counter();self._metrics={'statements':0,'observed_heads':[]}
         try:
-            if query in ('self','readiness'):
+            if query=='rack_inventory':
+                from ..resource_graph import RackInventoryService
+                result=RackInventoryService(self.store.mirror,timeout=self.store.timeout).inventory(
+                    run,seq,identity(request.get('rack_id'),'rack'),include_empty=request.get('include_empty',True))
+                self._metrics['statements']=1
+            elif query in ('self','readiness'):
                 value=self.store.robot_context(run,seq,[robot])
                 if (value['run_id']!=run or type(value['seq']) is not int or value['seq']!=seq
                         or type(value['graph_committed_seq']) is not int or value['graph_committed_seq']<seq):

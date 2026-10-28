@@ -109,8 +109,10 @@ class LiveHTTPTests(unittest.TestCase):
     def test_registry_describes_availability_and_resolves_relative(self):
         file=self.root/'registry.json'
         file.write_text(json.dumps({'version':'warehouse-live-datasets-v1','base_directory':'.','default_dataset':'s',
-            'datasets':{'s':{'scene':'scene.json','dataset':'sample'}}}))
+            'datasets':{'s':{'scene':'scene.json','dataset':'sample','config_json':'profile.json'}}}))
+        (self.root/'profile.json').write_text('{}')
         datasets,selected=live.load_registry(file)
+        self.assertEqual(datasets['s']['config_json'],str((self.root/'profile.json').resolve()))
         self.assertEqual(selected,'s');self.assertEqual(datasets['s']['dataset'],str((self.root/'sample').resolve()))
         self.assertEqual(live.dataset_descriptions(datasets)['datasets'][0]['task_count'],19)
         (self.root/'sample/tasks.csv').unlink()

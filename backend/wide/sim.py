@@ -20,11 +20,24 @@ from ..scheduling_v2.motion import continuous_clear
 from ..scheduling_v3.sim import Simulation as V3Simulation, Config as V3Config
 from .data import load_scene, read_dataset, validate_dataset
 from .motion import WideNavigator, WideRoadmap, WideMotionTable, idle_guard, terminal_tail
+from .capabilities import fleet_assignment, slot_requirement, access_reason, spare_cost, profile, VERSION as CAPABILITY_VERSION
 
 
 @dataclass
 class Config(V3Config):
     chargers: int = 100
+    fleet_mode: str = 'all-x3'
+    fleet_counts: dict | None = None
+    capability_spare_cost_seconds: float = 15.
+
+    def __post_init__(self):
+        super().__post_init__()
+        fleet_assignment(self.fleet_mode, self.fleet_counts, self.robot_count)
+        if (isinstance(self.capability_spare_cost_seconds, bool) or
+                not isinstance(self.capability_spare_cost_seconds, (int, float)) or
+                not math.isfinite(self.capability_spare_cost_seconds) or
+                not 0 <= self.capability_spare_cost_seconds <= 300):
+            raise ValueError('capability spare cost must be finite in [0,300] seconds')
 
 
 class Simulation(V3Simulation):
@@ -94,7 +107,16 @@ class Simulation(V3Simulation):
         self.jobs={}
         self.running=True
         rng=random.Random(config.seed)
-        self.robots={i+1:{'robot_id':i+1,'robot_type_key':'X3','x':h['point']['x'],'y':h['point']['y'],
+        self.fleet_type_by_id = fleet_assignment(config.fleet_mode, config.fleet_counts, config.robot_count)
+        self._fleet_is_mixed = config.fleet_mode == 'mixed'
+        self.capability_requirements = {key: slot_requirement(slot, self.scene) for key, slot in self.slot_spec.items()}
+        if self._fleet_is_mixed:
+            self.run_metadata['fleet_capabilities'] = {'version': CAPABILITY_VERSION, 'mode': config.fleet_mode,
+                'counts': dict(Counter(self.fleet_type_by_id.values())),
+                'profiles': {key: profile(key) for key in sorted(set(self.fleet_type_by_id.values()))},
+                'extra_extension_contract': 'explicit slot/rack required_extension_m; two-sided approach requires no undeclared extra reach',
+                'spare_cost_seconds': config.capability_spare_cost_seconds}
+        self.robots={i+1:{'robot_id':i+1,'robot_type_key':self.fleet_type_by_id[i+1],'x':h['point']['x'],'y':h['point']['y'],
             'home_id':h['id'],'location_id':h['id'],'battery':40+rng.random()*40,
             'stage':'idle','carrying':False,'cargo_id':None,'task_id':None,'dock_id':None,
             'missions':0,'completed':0,'distance':0.,'active_seconds':0,'charge_seconds':0,
@@ -116,6 +138,71 @@ class Simulation(V3Simulation):
             self.inside+=1
             self.event('initial_stock',goods_id=g,location_id=s)
         self.metrics['max_inside']=self.inside
+
+    def task_capability_requirements(self, task, *, remaining=False):
+        keys = [task['target_id']] if remaining else [task['source_id'], task['target_id']]
+        return [self.capability_requirements[key] for key in keys if key in self.capability_requirements]
+
+    def task_capability_reason(self, robot, task, *, remaining=False):
+        return access_reason(robot, self.task_capability_requirements(task, remaining=remaining))
+
+    def capability_spare_cost(self, robot, task):
+        if not self._fleet_is_mixed:
+            return 0.
+        return spare_cost(robot, self.task_capability_requirements(task), self.config.capability_spare_cost_seconds)
+
+    def _task_parts(self, robot, task, start=None):
+        # Recovery/explicit fault clearing can bypass schedule_task. A collected
+        # parcel only needs the remaining target, while an unpicked one still
+        # requires its source shelf capability.
+        reason = self.task_capability_reason(robot, task, remaining=robot['carrying'])
+        if reason:
+            self._last_block = {'reason': reason, 'owners': [], 'at': self.elapsed}
+            return None
+        return super()._task_parts(robot, task, start)
+
+    def schedule_task(self, robot, task, extra=None):
+        # Last admission guard also protects callers outside the batch matcher.
+        # Both legs matter: outbound pickup may require a higher shelf even
+        # though its final warehouse boundary is on the ground.
+        for candidate in [task] + ([extra] if extra is not None else []):
+            reason = self.task_capability_reason(robot, candidate)
+            if reason:
+                self._last_block = {'reason': reason, 'owners': [], 'at': self.elapsed}
+                return False
+        return super().schedule_task(robot, task, extra)
+
+    def _coordinated_replan(self, required, preferred=()):
+        # Multi-owner recovery commits supplied plans directly, so enforce the
+        # same capability gate before considering any reservation replacement.
+        for owner, (_, job) in required.items():
+            task = self.tasks.get(job.get('task_id'))
+            if task is None or task['status'] == 'completed':
+                continue
+            robot = self.robots[owner]
+            remaining = robot['carrying'] or 'assist_donor' in job
+            reason = self.task_capability_reason(robot, task, remaining=remaining)
+            if reason:
+                self._last_block = {'reason': reason, 'owners': [], 'at': self.elapsed}
+                return False
+        return super()._coordinated_replan(required, preferred)
+
+    def _assistance_helpers(self, donor, task):
+        candidates = super()._assistance_helpers(donor, task)
+        # Pickup already happened: the receiver needs the remaining target
+        # capability, not the donor's completed high-shelf pickup capability.
+        candidates = [r for r in candidates if self.task_capability_reason(r, task, remaining=True) is None]
+        return candidates
+
+    def marker(self, robot, job, marker, task_id=None):
+        if marker in {'picked', 'delivered', 'handoff_received'}:
+            task = self.tasks[task_id or job['task_id']]
+            keys = [task['source_id']] if marker == 'picked' else [task['target_id']]
+            requirements = [self.capability_requirements[key] for key in keys if key in self.capability_requirements]
+            reason = access_reason(robot, requirements)
+            if reason:
+                raise AssertionError(f'robot capability rejected before {marker}: {reason}')
+        return super().marker(robot, job, marker, task_id)
 
     def _reservation_parts(self, owner, parts):
         return terminal_tail(parts)
@@ -203,6 +290,15 @@ class Simulation(V3Simulation):
         # V3 restores actual jobs first. Reconstruct the same terminal tails and
         # idle bodies, never silently restore an empty parking aisle.
         super().restore(state)
+        if any(r.get('robot_type_key') != self.fleet_type_by_id[i] for i, r in self.robots.items()):
+            raise ValueError('checkpoint robot type differs from configured fleet identity')
+        if self._fleet_is_mixed:
+            for owner, job in self.jobs.items():
+                for task_id in job.get('task_ids', []):
+                    task = self.tasks[task_id]
+                    remaining = task['status'] == 'carrying' or 'assist_donor' in job
+                    if task['status'] != 'completed' and self.task_capability_reason(self.robots[owner], task, remaining=remaining):
+                        raise ValueError('checkpoint has a capability-infeasible active job')
         table=self.reservation_type()
         for owner,robot in self.robots.items():
             if owner in self.jobs:

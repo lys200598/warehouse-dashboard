@@ -193,3 +193,17 @@ python -m backend.warehouse run \
 交付者完成本轮Git提交后，可以把分支链接、明确commit和下面几项一起发给lys：
 
 > 我这边把仓库布局、100机器人调度和仿真、进出库与低电接力、知识图谱记录和查询整理在`wz/warehouse-design`分支。你可以先看`docs/LYS_DATASET_HANDOFF.md`，再看`docs/dataset-contract/README.md`和位置表，运行入口统一为`python -m backend.warehouse`。地图是90×76米、1728货位、100个充电兼待命位，任务还是七字段CSV。你主要安排每天的进出数量、发布时间、空间分布和期限，连续维护库存和货物编号；电量、机器人分配和接力放在我的仿真配置里。先用一份小样例跑过`validate`，再交一天或多天数据，附初始库存、manifest、种子、地图SHA和期限规则，我们就可以固定同一输入一起回归。最新提交和实际通过范围以我附上的commit与平台指南交付记录为准。
+
+
+## 2026-10-28会议后增量：扩仓与三型号
+
+本文件原90×76m/1728位合同继续对应正式V2基线。新候选独立放在 `data/layouts/expansion-candidates/`，每个目录自带 `layout.json / task-locations.csv / manifest.json / geometry-audit.json`。balanced为100×90m/40架1920位，medium为120×90m/48架2304位，large为150×100m/60架2880位；最终采用哪个版本以[会议增量交付](MEETING_DELIVERY_20261028.md)的实际结果为准。
+
+- 七字段任务CSV与两字段初始库存保持；Robot型号/电量/派单/接力由运行配置负责。
+- 请使用所选目录的新位置表与scene SHA，manifest.capacity取该地图容量；原独立 `docs/dataset-contract/validate_package.py`仍验证固定V2交接包，新候选使用 `python -m backend.warehouse validate --scene <候选layout.json> --dataset <数据目录>`。
+- 老R01—R36和原货位编号保留，坐标已变化；新增货架ID只在相应新版本存在。
+- 原图谱资源设计已通过 `backend/resource_graph/`连接真实时序库存。Warehouse/Rack/Location规范ID按内容身份生成，Dataset包含实际输入SHA；直接沿用“版本+日期”ID容易让不同seed互相覆盖。
+- 数据集可用原三型40/40/20或其他显式比例作实验。高层任务多时需要评估X3负载；接力接收者也必须能完成剩余取放。
+- 主对照保留同CSV及原时限；额外全货架覆盖实验保持任务ID、货物ID、类型与发布时间/截止时间，仅映射货位，并记录完整映射，独立列为覆盖实验。
+
+建议先看 `docs/MEETING_DELIVERY_20261028.md` 与 `docs/RACK_RESOURCE_GRAPH_GUIDE.md`，再选择地图后生成数据。当前主线继续以共同知识与时序查询为研究目标；新增地图和型号是能够产生可信货物流转的实验环境。

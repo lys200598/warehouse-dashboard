@@ -98,7 +98,7 @@ export function knowledgeFacts(frame){
     committedTime:k.committed_sim_time??null,cadence:meta.commit_seconds??null,
     physicalTime:frame.elapsed,mode:meta.knowledge_mode??'—',error:k.last_error??null};
 }
-export function buildQuery(kind,frame,{robotId=1,taskId='',goodsId='',seq=null,variant='business-exact'}={}){
+export function buildQuery(kind,frame,{robotId=1,taskId='',goodsId='',rackId='',seq=null,variant='business-exact'}={}){
   const cutoff=seq??frame.knowledge?.mirrored_seq;
   if(!Number.isInteger(cutoff)||cutoff<1||cutoff>(frame.knowledge?.mirrored_seq??0))throw new Error('请选择已经镜像提交的知识序号');
   if(!Number.isInteger(robotId)||robotId<1||robotId>100)throw new Error('机器人编号为1–100');
@@ -106,6 +106,7 @@ export function buildQuery(kind,frame,{robotId=1,taskId='',goodsId='',seq=null,v
   for(const [key,value] of [['task_id',taskId],['goods_id',goodsId]]){
     if(value){if(typeof value!=='string'||value.trim()!==value||value.length>128)throw new Error('实体编号长度或空白无效');request[key]=value;}
   }
+  if(kind==='rack_inventory'){if(!/^R[0-9]+$/.test(rackId))throw new Error('货架查询需要实际货架编号，如R01');request.rack_id=rackId;}
   if(kind==='task'&&!taskId)throw new Error('任务查询需要任务ID');
   if(kind==='goods'&&!goodsId&&!taskId)throw new Error('货物查询需要货物ID或任务ID');
   if(kind==='similar_history'){

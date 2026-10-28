@@ -1,0 +1,20 @@
+{
+  "version": "warehouse-layout-candidate-v1",
+  "name": "large",
+  "scene_version": "warehouse100-expanded-large-v1",
+  "source_scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+  "scene_sha256": "0b286ca3a99f35836ccb265f248414b5be15c95ae756bafb2d6e3557d73e161e",
+  "files": {
+    "layout.json": "0b286ca3a99f35836ccb265f248414b5be15c95ae756bafb2d6e3557d73e161e",
+    "task-locations.csv": "a92965af1bc642aba3aba4a082a2063532101936e0cb69994726fb8add9b2c83"
+  },
+  "width": 150.0,
+  "depth": 100.0,
+  "racks": 60,
+  "capacity": 2880,
+  "task_locations": 2896,
+  "physical_bays": 100,
+  "geometric_audit_passed": true,
+  "throughput_accepted": false,
+  "default_layout_changed": false
+}

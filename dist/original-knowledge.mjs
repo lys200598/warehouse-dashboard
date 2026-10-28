@@ -7,7 +7,7 @@ export function createKnowledgePanel({getFrame,getSelected,control,toast}) {
     const r=await fetch(url,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const v=await r.json();if(!r.ok)throw new Error(v.error||v.detail||`HTTP ${r.status}`);return v;
   }
-  const labels={self:'机器人上下文',readiness:'可见性 / 就绪',task:'任务状态与协作',goods:'货物持有链',energy:'能量与充电',assistance:'协作观察',progress:'任务进展',memory:'机器人历史记忆',local_awareness:'区域态势',global:'全局态势',similar_history:'相似历史（向量）'};
+  const labels={rack_inventory:'货架库存 / 历史货位',self:'机器人上下文',readiness:'可见性 / 就绪',task:'任务状态与协作',goods:'货物持有链',energy:'能量与充电',assistance:'协作观察',progress:'任务进展',memory:'机器人历史记忆',local_awareness:'区域态势',global:'全局态势',similar_history:'相似历史（向量）'};
   $('datasetSelect').addEventListener('change',()=>{pendingDataset=$('datasetSelect').value;});
   $('stepButton').addEventListener('click',()=>control('step'));
   $('checkpointButton').addEventListener('click',()=>control('checkpoint'));
@@ -22,10 +22,11 @@ export function createKnowledgePanel({getFrame,getSelected,control,toast}) {
     const frame=getFrame();if(!frame||queryBusy)return;
     queryBusy=true;$('runQuery').disabled=true;
     try{
-      const request=buildQuery($('queryKind').value,frame,{robotId:Number($('queryRobot').value),taskId:$('queryTask').value.trim(),goodsId:$('queryGoods').value.trim(),seq:$('latestQuery').checked?null:Number($('querySeq').value),variant:$('queryVariant').value});
+      const request=buildQuery($('queryKind').value,frame,{robotId:Number($('queryRobot').value),rackId:$('queryRack').value.trim(),taskId:$('queryTask').value.trim(),goodsId:$('queryGoods').value.trim(),seq:$('latestQuery').checked?null:Number($('querySeq').value),variant:$('queryVariant').value});
       $('queryRequest').textContent=JSON.stringify(request,null,2);$('queryStatus').textContent=`查询 ${request.run_id} / seq ${request.seq}…`;
       const result=await json('/api/knowledge/query',request);
       $('queryResult').textContent=JSON.stringify(result,null,2);$('queryStatus').textContent=`已返回 ${request.query_id} · run ${request.run_id} · seq ${request.seq}`;
+      if(request.query_id==='rack_inventory')$('queryStatus').textContent=`${result.result.rack_id}：占用 ${result.result.occupied} / ${result.result.capacity} · 空位 ${result.result.empty} · seq ${request.seq}`;
       $('queryOutput').open=true;
     }catch(e){$('queryStatus').textContent=e.message;$('queryResult').textContent=JSON.stringify({error:e.message},null,2);}
     finally{queryBusy=false;apply(getFrame());}
@@ -33,7 +34,7 @@ export function createKnowledgePanel({getFrame,getSelected,control,toast}) {
   async function load(){
     const results=await Promise.allSettled([
       json('/api/datasets').then(v=>{datasets=normalizeDatasets(v);$('datasetSelect').replaceChildren(...datasets.map(d=>new Option(`${d.label} · ${d.task_count??'—'}项`,d.id)));apply(getFrame());}),
-      json('/api/knowledge/catalog').then(v=>{const q=v.queries||{};const keys=Array.isArray(q)?q.map(x=>typeof x==='string'?x:x.query_id||x.id):Object.keys(q);$('queryKind').replaceChildren(...keys.map(k=>new Option(labels[k]||k,k)));})]);
+      json('/api/knowledge/catalog').then(v=>{const q=v.queries||{};const keys=Array.isArray(q)?q.map(x=>typeof x==='string'?x:x.query_id||x.id):Object.keys(q);const selected=$('queryKind').value;$('queryKind').replaceChildren(...keys.map(k=>new Option(labels[k]||k,k)));if(keys.includes(selected))$('queryKind').value=selected;})]);
     for(const r of results)if(r.status==='rejected')toast(r.reason.message,'!');
   }
   function apply(f){

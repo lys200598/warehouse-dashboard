@@ -8,9 +8,11 @@ from .policy import authorize, DecisionRejected
 
 
 class KnowledgeSimulation(RealSimulation):
-    def __init__(self,*args,checkpoint=None,knowledge_mode='required',**kwargs):
+    def __init__(self,*args,checkpoint=None,knowledge_mode='required',resource_graph=False,**kwargs):
         if knowledge_mode not in ('required','rules'):
             raise ValueError('explicit knowledge mode required')
+        if type(resource_graph) is not bool:raise ValueError('resource_graph must be boolean')
+        self.resource_graph_enabled=resource_graph
         self.knowledge_mode=knowledge_mode
         self.history_provider=None
         self._planning_decision=None
@@ -19,6 +21,9 @@ class KnowledgeSimulation(RealSimulation):
                               'query_seconds':0.,'helper_order_changes':0}
         super().__init__(*args,checkpoint=None,**kwargs)
         self.runtime_identity={'version':VERSION,'mode':knowledge_mode,'source':self.real_identity['execution_sha256']}
+        if resource_graph:
+            from ..resource_graph import VERSION as RESOURCE_VERSION
+            self.runtime_identity['resource_graph']=RESOURCE_VERSION
         self.run_metadata['knowledge_runtime']=deepcopy(self.runtime_identity)
         self.run_metadata['execution_code_sha256']=digest(self.runtime_identity)
         if checkpoint is not None:

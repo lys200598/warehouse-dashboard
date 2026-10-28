@@ -134,7 +134,19 @@ class CandidateSimulation(EngineSimulation):
             'execution_sha256': self.v5_identity['execution_sha256']}
         return value
 
-    def _select_assignment(self, costs, pool, pair_times):
+    def _select_assignment(self, costs, pool, pair_times, candidates=None):
+        if getattr(self, '_fleet_is_mixed', False):
+            if candidates is None:
+                raise ValueError('mixed fleet matcher requires actual dispatch column identities')
+            # Filter before cardinality/priority matching, using the actual
+            # candidate columns retained after every dynamic retry round.
+            costs = [list(row) for row in costs]
+            for row, task in enumerate(pool):
+                for col, robot in enumerate(candidates):
+                    if self.task_capability_reason(robot, task):
+                        costs[row][col] = 1e12
+                    elif costs[row][col] < FORBIDDEN:
+                        costs[row][col] += self.capability_spare_cost(robot, task)
         self.metrics['v5_matching_calls'] += 1
         if self.policy == 'cost':
             return minimum_assignment(costs)
@@ -212,7 +224,7 @@ class CandidateSimulation(EngineSimulation):
             self.metrics['assignment_batches'] += 1
             successes = []
             failures = 0
-            for row, col in self._select_assignment(costs, pool, pair_times):
+            for row, col in self._select_assignment(costs, pool, pair_times, candidates):
                 if col >= len(candidates) or costs[row][col] >= 1e8:
                     continue
                 r, task = candidates[col], pool[row]

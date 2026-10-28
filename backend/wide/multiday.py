@@ -423,7 +423,7 @@ def generate_multiday(scene_path, output, *, days=7, profiles=None, tasks_per_da
             'goods': 'one stable ID per item, at most one IN and one later OUT; initial cargo can start with OUT',
             'deadline': 'static undirected warehouse road task time + via-IN-1 graph deadhead allowance + handling + fixed slack',
             'reference_completion': 'static task/deadhead/handling reference, before fixed deadline slack; not a measured schedule',
-            'capacity': 'IN reference admission requires inside<1728 and empty unreserved target; OUT releases total capacity on reference completion',
+            'capacity': f'IN reference admission requires inside<{len(slots)} and empty unreserved target; OUT releases total capacity on reference completion',
             'runtime': 'actual admission separately enforces six boxes per IN port, actual goods readiness, traffic and energy',
             'ports': 'round-robin within task direction; <=48 same-second tasks per declared pulse batch',
             'tidal': 'reference projected-stock targets 25%,75%,50% of active storage in three eight-hour phases plus passive stock',

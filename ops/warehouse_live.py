@@ -28,7 +28,7 @@ def load_registry(path):
     for ident,raw in data['datasets'].items():
         if not isinstance(ident,str) or not ident or not isinstance(raw,dict):raise ValueError('invalid dataset alias')
         entry=dict(raw)
-        for name in ('scene','dataset','disturbances_json'):
+        for name in ('scene','dataset','disturbances_json','config_json'):
             if entry.get(name) is not None:entry[name]=str((base/entry[name]).resolve())
         if not entry.get('scene') or not entry.get('dataset'):raise ValueError('dataset scene/path required')
         datasets[ident]=entry
@@ -40,6 +40,7 @@ def dataset_descriptions(datasets,selected=None):
     for ident,item in datasets.items():
         directory=Path(item['dataset']);manifest=directory/'manifest.json';scene=Path(item['scene'])
         available=scene.is_file() and all((directory/n).is_file() for n in ('tasks.csv','initial_inventory.csv','manifest.json'))
+        available=available and all(not item.get(n) or Path(item[n]).is_file() for n in ('config_json','disturbances_json'))
         row={'id':ident,'label':item.get('label',ident),'available':available,'task_count':None,'manifest_sha256':None}
         if available:
             try:
@@ -121,6 +122,9 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
 
     @app.get('/api/scene')
     async def scene():return runtime.scene()
+
+    @app.get('/api/scene-point')
+    async def scene_point():return runtime.scene_point()
 
     @app.get('/api/health')
     async def health():
@@ -218,6 +222,7 @@ def main(argv=None):
     p.add_argument('--dataset-id');p.add_argument('--mode',choices=('required','rules'),default='required')
     p.add_argument('--knowledge-backend',choices=('neo4j','journal'),default='neo4j')
     p.add_argument('--commit-seconds',type=int,default=5);p.add_argument('--resume-run-id')
+    p.add_argument('--resource-graph',action='store_true',help='same-transaction rack resources for new runs')
     p.add_argument('--expected-neo4j-uri',help='refuse startup if the live database differs from this isolated endpoint')
     p.add_argument('--host',choices=('127.0.0.1','localhost','::1'),default='127.0.0.1')
     p.add_argument('--port',type=int,default=14185)
@@ -236,7 +241,7 @@ def main(argv=None):
     active_datasets={key:spec for key,spec in datasets.items() if available.get(key)}
     runtime=WarehouseLiveRuntime(source_root=source,output_root=args.output_root,datasets=active_datasets,dataset_id=selected,
         commit_seconds=args.commit_seconds,knowledge_mode=args.mode,knowledge_backend=args.knowledge_backend,
-        wall_interval=1.,resume_run_id=args.resume_run_id,expected_neo4j_uri=args.expected_neo4j_uri)
+        wall_interval=1.,resume_run_id=args.resume_run_id,expected_neo4j_uri=args.expected_neo4j_uri,resource_graph=args.resource_graph)
     factory=(lambda:QueryCatalogService.from_env(timeout=15,pool_size=1)) if args.knowledge_backend=='neo4j' else None
     try:
         app=create_app(runtime,datasets,args.dist,catalog_factory=factory,catalog_description=QueryCatalogService.describe(),own_runtime=False)

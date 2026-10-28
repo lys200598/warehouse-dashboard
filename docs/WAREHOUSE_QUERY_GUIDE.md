@@ -12,7 +12,7 @@
 4. 调度器继续检查实际路线、电量准入和交通预约，再做接力；
 5. `progress`或`memory`回顾之后的取放、充电及协作过程。
 
-当前已经接入实际控制的`knowledge_runtime`继续使用严格的`cooperation_context`进行规划授权和交接前复核。本目录的11个知识包用于稳定的查询入口、审查、实验和后续接线，统一标为`used_by_live_control=false`，避免把可查询信息自动称为已执行决策。
+当前已经接入实际控制的`knowledge_runtime`继续使用严格的`cooperation_context`进行规划授权和交接前复核。本目录原11个知识包用于稳定的查询入口、审查、实验和后续接线，统一标为`used_by_live_control=false`，避免把可查询信息自动称为已执行决策。
 
 ## 2. 统一入口
 
@@ -236,3 +236,8 @@ finally:
 进一步实现了一个独立的[派生汇总侧车原型](evidence/platform-v1/catalog-summary-sidecar-report.md)：从原journal增量维护每个seq的完整统计，固定历史点的16条完整API返回全部通过独立来源核对；global/local平均约154.6/144.9ms。构建877批耗时6.81秒，成本单列。该原型保留图谱当前实体预算和全部原API读取，生产默认继续不变。
 
 侧车已验证静态历史点；连续追赶、发布水位同步、恢复及100-global并发仍需后续接入测试。缓存键绑定**run创建身份、配置/场景、seq、批次SHA**；若将完整API返回缓存，还需包含全部查询参数。各类原型和正式七日联合结果分别保留自己的覆盖范围。
+
+
+## 货架资源增量：第12个查询包
+
+新run启用 `--resource-graph` 后可查询 `rack_inventory`。提供 `run_id / seq / rack_id`，返回该地图货架完整容量、占用/空位和各槽位的实际货权。旧run缺少资源bootstrap时明确拒绝，不按初始库存推测当前库存。详细入口与同事务/身份说明见 [货架图谱指南](RACK_RESOURCE_GRAPH_GUIDE.md)。

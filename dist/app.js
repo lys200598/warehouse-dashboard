@@ -89,7 +89,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
   let toastTimer = 0;
   let backendConnected = false;
   let backendAuthoritative = window.location.protocol !== "file:";
-  let platformScene=null, platformFrame=null, pendingPlatform=null, platformSceneLoading=null, knowledgePanel=null;
+  let platformScene=null, platformSceneHash=null, platformFrame=null, pendingPlatform=null, platformSceneLoading=null, knowledgePanel=null;
   const platformTrails=new Map(), retiredInstances=new Set();
   let controlBusy=false;
   let backendSocket = null;
@@ -1491,7 +1491,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     $("#selectedRobotPosition").textContent = robot.platform ? `坐标 ${robot.x.toFixed(1)}, ${robot.y.toFixed(1)}m · ${robot.location_id||"移动中"}` : `坐标 ${robot.x.toFixed(1)}, ${robot.y.toFixed(1)} · 通道 ${pad(Math.max(1, Math.round(robot.y / 2)), 2)}`;
     $("#selectedRobotType").textContent = robot.type.name;
     $("#selectedRobotType").style.color = robot.type.accent;
-    $("#selectedReach").textContent = `最高 L${robot.type.maxLevel} · ${robot.type.maxHeight.toFixed(2)}m`;
+    $("#selectedReach").textContent = `L${robot.type.maxLevel} · ${robot.type.maxHeight.toFixed(2)}m · 伸臂+${Math.round(robot.type.extension*100)}cm`;
     status.className = `state-pill ${category}`;
     status.innerHTML = `<i></i>${stageLabel(robot)}`;
     $("#batteryValue").textContent = `${Math.round(robot.battery)}%`;
@@ -1615,7 +1615,10 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
   function applyBackendSnapshot(snapshot) {
     snapshot=snapshot.snapshot||snapshot;
     if(snapshot.sourceKind==='live_simulation_memory'){
-      if(!platformScene){pendingPlatform=snapshot;loadPlatformScene();return;}
+      if(!platformScene||platformSceneHash!==snapshot.metadata?.scene_sha256){
+        if(!acceptsFrame(platformFrame,snapshot,retiredInstances)||!acceptsFrame(pendingPlatform,snapshot,retiredInstances))return;
+        pendingPlatform=snapshot;loadPlatformScene();return;
+      }
       if(!acceptsFrame(platformFrame,snapshot,retiredInstances))return;
       if(platformFrame?.runtimeInstanceId&&platformFrame.runtimeInstanceId!==snapshot.runtimeInstanceId)retiredInstances.add(platformFrame.runtimeInstanceId);
       const raw=snapshot;snapshot=adaptPlatformFrame(raw,platformScene,platformFrame,platformTrails);platformFrame=raw;
@@ -1722,10 +1725,16 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
 
   async function loadPlatformScene(){
     if(platformSceneLoading)return platformSceneLoading;
-    platformSceneLoading=(async()=>{const response=await fetch('/api/scene',{cache:'no-store'});
-      if(!response.ok)throw new Error(`真实场景读取失败 HTTP ${response.status}`);
-      const scene=await response.json();if(!scene.spec)return;
-      platformScene=scene;
+    platformSceneLoading=(async()=>{
+      let response=await fetch('/api/scene-point',{cache:'no-store'}),point;
+      if(response.status===404){response=await fetch('/api/scene',{cache:'no-store'});point={scene:await response.json(),scene_sha256:pendingPlatform?.metadata?.scene_sha256};}
+      else{if(!response.ok)throw new Error(`真实场景读取失败 HTTP ${response.status}`);point=await response.json();}
+      if(point.run_id&&pendingPlatform&&point.run_id!==pendingPlatform.runId){
+        pendingPlatform=null;const next=await (await fetch('/api/snapshot',{cache:'no-store'})).json();
+        platformSceneLoading=null;applyBackendSnapshot(next);return;
+      }
+      if(!point.scene?.spec)throw new Error('真实场景协议无效');
+      platformScene=point.scene;platformSceneHash=point.scene_sha256;rackSprites.clear();
       if(pendingPlatform){const pending=pendingPlatform;pendingPlatform=null;applyBackendSnapshot(pending);}
     })().catch(e=>showToast(e.message,'!')).finally(()=>{platformSceneLoading=null;});return platformSceneLoading;
   }

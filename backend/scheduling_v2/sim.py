@@ -198,7 +198,7 @@ class Simulation(BaselineSimulation):
             if task['task_type'] != 'INBOUND' or task['status'] != 'waiting':
                 continue
             slot = self.slots[task['target_id']]
-            if self.inside >= 1728 or slot['occupied'] or slot['reservedBy'] or self.ports[task['source_id']] >= 6:
+            if self.inside >= len(self.slots) or slot['occupied'] or slot['reservedBy'] or self.ports[task['source_id']] >= 6:
                 continue
             task.update(status='accepted', received_at=self.elapsed)
             slot['reservedBy'] = key

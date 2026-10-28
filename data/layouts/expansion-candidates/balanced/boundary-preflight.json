@@ -1,0 +1,51 @@
+{
+  "nominal_dimensions_m": [
+    100.0,
+    90.0
+  ],
+  "rows": 10,
+  "columns": 4,
+  "rack_span_exact_formula": "10*1.2 + 8*5 + 1*8 = 60m",
+  "minimum_nominal_depth_formula": "60 + 2*14 = 88m",
+  "factory_accumulated_span_x_m": 56.400000000000006,
+  "factory_accumulated_span_y_m": 60.000000000000014,
+  "minimum_top_margin_unchanged_m": 14.0,
+  "configuration_depth_m": 90.0,
+  "explicit_extra_total_depth_over_mathematical_minimum_m": 2.0,
+  "extra_margin_per_side_over_mathematical_minimum_m": 1.0,
+  "floating_representation_adjustment_used": false,
+  "core_thresholds_changed": false,
+  "attempts": [
+    {
+      "requested_depth_m": 84.0,
+      "rack_span_y_m": 60.000000000000014,
+      "actual_factory_top_margin_m": 11.999999999999993,
+      "accepted_by_existing_factory": false,
+      "error": "candidate does not retain boundary circulation space"
+    },
+    {
+      "requested_depth_m": 88.0,
+      "rack_span_y_m": 60.000000000000014,
+      "actual_factory_top_margin_m": 13.999999999999993,
+      "accepted_by_existing_factory": false,
+      "error": "candidate does not retain boundary circulation space"
+    },
+    {
+      "requested_depth_m": 90.0,
+      "rack_span_y_m": 60.000000000000014,
+      "actual_factory_top_margin_m": 14.999999999999993,
+      "accepted_by_existing_factory": true,
+      "error": null
+    }
+  ],
+  "interpretation": "84m violates this generator circulation contract; this is not a proof every possible 84m design is physically impossible",
+  "source_identity": {
+    "core_factory_sha256": "1eb153bae7f07cbb72a7a5e5909069e5ca15d873492020c74cbf5fd0d05af090",
+    "base_scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24"
+  },
+  "source_files_unchanged": true,
+  "scene_sha256": "2688227a87fad53a6c50c67ce9f23b54396990de4b574fab2716388689232693",
+  "geometric_audit_passed": true,
+  "throughput_accepted": false,
+  "default_layout_changed": false
+}

@@ -110,7 +110,7 @@ class WarehouseLiveRuntime:
     def __init__(self, *, source_root, output_root, datasets, dataset_id,
                  run_id=None, config=None, commit_seconds=5, knowledge_mode='rules',
                  knowledge_backend='journal', wall_interval=1., disturbances_json=None,
-                 resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180):
+                 resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False):
         if knowledge_mode not in ('rules', 'required') or knowledge_backend not in ('journal', 'neo4j'):
             raise ValueError('explicit rules/required and journal/neo4j modes required')
         if knowledge_mode == 'required' and knowledge_backend != 'neo4j':
@@ -142,6 +142,9 @@ class WarehouseLiveRuntime:
         self.default_disturbances = str(Path(disturbances_json).resolve(strict=True)) if disturbances_json else None
         self.commit_seconds = commit_seconds
         self.knowledge_mode = knowledge_mode
+        if type(resource_graph) is not bool or resource_graph and knowledge_backend!='neo4j':
+            raise ValueError('resource_graph requires explicit Neo4j mode')
+        self.resource_graph_enabled=resource_graph
         self.knowledge_backend = knowledge_backend
         self.wall_interval = float(wall_interval)
         self.expected_neo4j_uri = expected_neo4j_uri
@@ -178,6 +181,12 @@ class WarehouseLiveRuntime:
     def scene(self):
         with self._lock:
             return deepcopy(self._scene)
+
+    def scene_point(self):
+        with self._lock:
+            return {'run_id':self._latest['runId'],
+                    'scene_sha256':self._latest['metadata']['scene_sha256'],
+                    'scene':deepcopy(self._published_scene)}
 
     def datasets(self):
         return [{'dataset_id': alias, 'label': spec.get('label', alias)} for alias, spec in self.registry.items()]
@@ -301,6 +310,7 @@ class WarehouseLiveRuntime:
                     'manifest_sha256': file_sha(Path(spec['dataset']) / 'manifest.json'),
                     'config': asdict(physical_config), 'commit_seconds': self.commit_seconds,
                     'knowledge_mode': self.knowledge_mode, 'knowledge_backend': self.knowledge_backend,
+                    'resource_graph':self.resource_graph_enabled,
                     'disturbance_sha256': digest(disturbances)}
         checkpoint = None
         if resume:
@@ -317,12 +327,17 @@ class WarehouseLiveRuntime:
                 raise ValueError('live Neo4j URI differs from its explicit isolated target')
         # Validate core/input before closing a previous completed/paused run.
         sim = self._core.sim.KnowledgeSimulation(spec['scene'], spec['dataset'], run_id,
-            physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode)
+            physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode,
+            **({'resource_graph':True} if self.resource_graph_enabled else {}))
         layout = self._core.layout.audit_roadmap(sim.roadmap, circle_probes=False)
         if not layout['initial_roadmap_usable']:
             raise ValueError('layout static safety gate failed')
         output.mkdir(parents=False, exist_ok=resume)
-        mirror = self._core.writer.RealMirror.from_env() if self.knowledge_backend == 'neo4j' else None
+        mirror_class=self._core.writer.RealMirror
+        if self.resource_graph_enabled:
+            from backend.resource_graph_mirror import ResourceMirror
+            mirror_class=ResourceMirror
+        mirror = mirror_class.from_env() if self.knowledge_backend == 'neo4j' else None
         try:
             if mirror and not resume and mirror.query('MATCH (r:WHRun {run_id:$run}) RETURN count(r) AS runs', {'run': run_id})[0]['runs']:
                 raise ValueError('graph run_id already exists; old run is protected')
@@ -548,11 +563,16 @@ class WarehouseLiveRuntime:
                         'manifest_sha256': self._identity['manifest_sha256'], 'source_sha256': self._source_sha,
                         'adapter_sha256': self._identity['adapter_sha256'], 'commit_seconds': self.commit_seconds,
                         'knowledge_mode': self.knowledge_mode, 'knowledge_backend': self.knowledge_backend,
-                        'output': str(self._output), 'motion_speed_mps': self._sim.config.speed})
+                        'output': str(self._output), 'motion_speed_mps': self._sim.config.speed,
+                        'resource_graph':self.resource_graph_enabled,
+                        'fleet_mode':getattr(self._sim.config,'fleet_mode','all-x3'),
+                        'fleet_capabilities':self._sim.run_metadata.get('fleet_capabilities')})
         self._core.persistence.write_checkpoint(self._output / 'latest.json', snap)
         with self._changed:
             self._revision += 1
             snap['liveRevision'] = self._revision
+            if self._latest is None or self._latest['metadata']['scene_sha256']!=snap['metadata']['scene_sha256']:
+                self._published_scene=deepcopy(self._scene)
             self._latest = snap
             self._changed.notify_all()
 

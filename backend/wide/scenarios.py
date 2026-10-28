@@ -41,7 +41,7 @@ def generate_scenario(scene_path, output, *, scenario="uniform", duration_second
     """Generate a fresh directory and return (manifest, reference_validation).
 
     ``active_slots`` restricts which storage slots receive tasks, NOT the actual
-    1728-slot capacity or the unchanged 864-item initial stock. Turnover is a
+    physical map capacity or the map's half-capacity initial stock. Turnover is a
     release-plan parameter, not a promise the fleet can sustain this demand.
     Duration has no fixed calendar cap. ``max_tasks`` is a configurable resource
     budget; actual release/due timestamps must fit ISO8601 datetime arithmetic.

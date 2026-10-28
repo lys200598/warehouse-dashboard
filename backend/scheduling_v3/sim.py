@@ -942,7 +942,7 @@ class Simulation(V2Simulation):
                 for r in self.robots.values()))
         if self.metrics['min_soc'] < self.config.emergency_reserve_soc - 1e-6:
             raise AssertionError('v3 hard emergency SOC reserve violated')
-        if not 0 <= self.inside <= 1728 or any(not 0 <= n <= 6 for n in self.ports.values()):
+        if not 0 <= self.inside <= len(self.slots) or any(not 0 <= n <= 6 for n in self.ports.values()):
             raise AssertionError('v3 capacity invariant violated')
         if sum(self.counts()[k] for k in ['moving', 'handling', 'queued', 'charging', 'standby']) != 100:
             raise AssertionError('v3 robot accounting mismatch')
