@@ -118,20 +118,30 @@ class Neo4jMirror:
               MERGE (v:WH{label}State {{key:p.version_key}}) SET v = p{{.*, key:p.version_key}}
               MERGE (v)-[:OF_{label.upper()}]->(a) MERGE (v)-[:IN_STEP]->(s)""", rows=rows).consume()
         tx.run("""UNWIND $rows AS p MATCH (a:WHSlot {key:p.key}), (r:WHRack {key:$run+':'+toString(p.rack_id)})
-          MERGE (a)-[:IN_RACK]->(r)
-          FOREACH (_ IN CASE WHEN p.cargo_id IS NULL THEN [] ELSE [1] END |
-            MERGE (c:WHCargo {key:$run+':'+p.cargo_id}) SET c.run_id=$run,c.cargo_id=p.cargo_id)""", run=run, rows=slots).consume()
+          MERGE (a)-[:IN_RACK]->(r)""", run=run, rows=slots).consume()
+        cargo_slots = [row for row in slots if row.get('cargo_id') is not None]
+        if cargo_slots:
+            tx.run("""UNWIND $rows AS p
+              MERGE (c:WHCargo {key:$run+':'+p.cargo_id}) SET c.run_id=$run,c.cargo_id=p.cargo_id""",
+                   run=run, rows=cargo_slots).consume()
         tx.run("""UNWIND $rows AS p MATCH (t:WHTask {key:p.key}), (a:WHRobot {key:$run+':'+toString(p.robot_id)}),
           (s:WHSlot {key:$run+':'+p.slot_id})
           MERGE (t)-[:EXECUTED_BY]->(a) MERGE (t)-[:TARGETS]->(s)
           MERGE (c:WHCargo {key:$run+':'+p.cargo_id}) SET c.run_id=$run,c.cargo_id=p.cargo_id
           MERGE (t)-[:MOVES]->(c)""", run=run, rows=tasks).consume()
         tx.run("""UNWIND $rows AS p MATCH (r:WHRun {run_id:p.run_id}), (s:WHStep {key:p.step_key})
-          MERGE (e:WHEvent {key:p.key}) SET e += p MERGE (e)-[:IN_RUN]->(r) MERGE (e)-[:IN_STEP]->(s)
-          FOREACH (_ IN CASE WHEN p.robot_id IS NULL THEN [] ELSE [1] END |
-            MERGE (a:WHRobot {key:p.run_id+':'+toString(p.robot_id)}) MERGE (e)-[:ABOUT_ROBOT]->(a))
-          FOREACH (_ IN CASE WHEN p.task_id IS NULL THEN [] ELSE [1] END |
-            MERGE (t:WHTask {key:p.run_id+':'+p.task_id}) MERGE (e)-[:ABOUT_TASK]->(t))""", rows=events).consume()
+          MERGE (e:WHEvent {key:p.key}) SET e += p MERGE (e)-[:IN_RUN]->(r) MERGE (e)-[:IN_STEP]->(s)""",
+               rows=events).consume()
+        robot_events = [row for row in events if row.get('robot_id') is not None]
+        if robot_events:
+            tx.run("""UNWIND $rows AS p MATCH (e:WHEvent {key:p.key}),
+              (a:WHRobot {key:p.run_id+':'+toString(p.robot_id)}) MERGE (e)-[:ABOUT_ROBOT]->(a)""",
+                   rows=robot_events).consume()
+        task_events = [row for row in events if row.get('task_id') is not None]
+        if task_events:
+            tx.run("""UNWIND $rows AS p MATCH (e:WHEvent {key:p.key}),
+              (t:WHTask {key:p.run_id+':'+p.task_id}) MERGE (e)-[:ABOUT_TASK]->(t)""",
+                   rows=task_events).consume()
         tx.run("""MATCH (r:WHRun {run_id:$run}) SET r.committed_seq=$seq,r.tick=$tick,r.updated_at=datetime(),
                r.current_config_json=$config,r.current_metadata_json=$metadata""",
                run=run, seq=batches[-1]["seq"], tick=batches[-1]["tick"],

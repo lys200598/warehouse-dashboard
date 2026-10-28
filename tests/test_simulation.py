@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 from backend.checkpoint import read_checkpoint, write_checkpoint
@@ -53,6 +54,16 @@ class SimulationCoordinatorTest(unittest.TestCase):
                 self.assertEqual(original_next["racks"], restored_next["racks"])
             finally:
                 restored.close()
+
+    def test_checkpoint_accepts_legacy_dataset_path_configuration_field(self):
+        payload = deepcopy(self.simulation.checkpoint_payload())
+        payload["config"]["dataset_path"] = "data/generated/legacy/tasks.csv"
+        restored = SimulationCoordinator(LocalRobotRuntime(), self.config)
+        try:
+            restored.restore_checkpoint(payload)
+            self.assertEqual(restored.run_id, self.simulation.run_id)
+        finally:
+            restored.close()
 
     def test_priority_task_is_queued_when_all_robots_are_busy(self):
         result = self.simulation.inject_priority_task()

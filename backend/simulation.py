@@ -532,7 +532,12 @@ class SimulationCoordinator:
     def restore_checkpoint(self, payload: dict[str, Any]) -> None:
         if payload.get("schema_version") != self.CHECKPOINT_SCHEMA_VERSION:
             raise ValueError("unsupported checkpoint schema version")
-        saved_config = SimulationConfig(**payload["config"])
+        # ``dataset_path`` belonged to a short-lived CSV-driven controller.
+        # It is not part of the current dashboard simulation configuration,
+        # but accepting it here keeps old local checkpoints recoverable.
+        saved_values = dict(payload["config"])
+        saved_values.pop("dataset_path", None)
+        saved_config = SimulationConfig(**saved_values)
         saved_config.validate()
         if saved_config.robot_count != self.config.robot_count:
             raise ValueError(

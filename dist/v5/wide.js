@@ -39,6 +39,12 @@ export function robotColor(robot){const phase=robot.stage||'';return phase==='ch
 
 export function startWidePage(doc=document){
   const $=id=>doc.getElementById(id),canvas=$('wideCanvas'),ctx=canvas.getContext('2d'),stage=$('wideStage');
+  const graphLink=doc.createElement('a');
+  graphLink.href='http://127.0.0.1:4173/kg.html';
+  graphLink.textContent='知识图谱追溯';
+  graphLink.title='打开同一 Neo4j 数据库的任务与机器人追溯工作台';
+  graphLink.style.cssText='padding:7px 10px;border:1px solid var(--line);border-radius:4px;font-size:12px;text-decoration:none';
+  $('refreshRun').insertAdjacentElement('afterend',graphLink);
   const state={camera:newCamera(),scene:null,status:null,frame:null,selected:null,cursor:0,latest:0,playing:false,busy:false,pending:null,manualSeq:false};
   let width=1,height=1,drag=null,lastTime=0,lastFetch=0;
   const set=(id,value)=>{$(id).textContent=String(value??'—');};

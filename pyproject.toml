@@ -1,0 +1,19 @@
+[project]
+name = "warehouse-dashboard"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110,<1",
+    "neo4j>=5.26,<6",
+    "ray[default]>=2.20,<3",
+    "uvicorn[standard]>=0.29,<1",
+]
+
+[project.scripts]
+warehouse-dashboard = "warehouse_dashboard:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"

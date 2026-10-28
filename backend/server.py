@@ -5,6 +5,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+import json
 import os
 from pathlib import Path
 import time
@@ -17,10 +18,33 @@ from .runtime import build_runtime
 from .simulation import SimulationConfig, SimulationCoordinator
 from .knowledge import build_knowledge_store, KnowledgeError, source_fingerprint
 from .knowledge_queries import WarehouseQueries, CATALOG, CATALOG_VERSION
+from .warehouse_graph_query import Neo4jWarehouseGraph, WarehouseGraphUnavailable
+from .warehouse_runtime_graph import Neo4jRuntimeGraphWriter, RuntimeGraphUnavailable
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "data" / "checkpoints" / "warehouse-latest.json"
+
+
+def dataset_id_for_package(path: Path | None) -> str | None:
+    """Resolve a static graph dataset ID without coupling V5 task ingestion to it."""
+    if path is None:
+        return None
+    try:
+        manifest = json.loads((path / "manifest.json").read_text(encoding="utf-8"))
+        return f"dataset:{manifest['version']}:{str(manifest['start'])[:10]}"
+    except (OSError, KeyError, TypeError, json.JSONDecodeError):
+        return None
+
+
+def dataset_id_for_task_file(path: Path | None) -> str | None:
+    """Compatibility helper for callers that still provide ``tasks.csv``.
+
+    The V5 contract identifies a dataset through the package-level manifest,
+    rather than the task file itself.  Retaining this narrow adapter keeps old
+    callers working while making the package directory the canonical input.
+    """
+    return dataset_id_for_package(path.parent if path is not None else None)
 
 
 @dataclass
@@ -48,12 +72,21 @@ class ServerSettings:
     start_paused: bool = False
     max_run_ticks: int = 0
     initial_occupancy: float = .52
+    warehouse_neo4j_uri: str = "bolt://127.0.0.1:47687"
+    warehouse_neo4j_user: str = "neo4j"
+    warehouse_neo4j_password: str | None = None
+    warehouse_neo4j_database: str = "neo4j"
+    warehouse_neo4j_dataset_id: str | None = None
+    warehouse_neo4j_package_dir: Path | None = None
+    warehouse_neo4j_write_enabled: bool = False
+    warehouse_neo4j_state_interval_ticks: int = 4
 
 
 class SimulationService:
     def __init__(self, settings: ServerSettings):
         self.settings = settings
         self.knowledge = build_knowledge_store(settings.knowledge_backend, settings.journal_path)
+        self.dataset_id = settings.warehouse_neo4j_dataset_id or dataset_id_for_package(settings.warehouse_neo4j_package_dir)
         runtime = build_runtime(
             settings.backend,
             ray_address=settings.ray_address,
@@ -92,6 +125,19 @@ class SimulationService:
         self.runner: asyncio.Task[None] | None = None
         self.stopping = False
         self.latest_snapshot = self.coordinator.snapshot()
+        self.warehouse_graph = Neo4jWarehouseGraph(
+            uri=settings.warehouse_neo4j_uri, user=settings.warehouse_neo4j_user,
+            password=settings.warehouse_neo4j_password, database=settings.warehouse_neo4j_database,
+            dataset_id=self.dataset_id,
+        )
+        self.runtime_graph = Neo4jRuntimeGraphWriter(
+            uri=settings.warehouse_neo4j_uri, user=settings.warehouse_neo4j_user,
+            password=settings.warehouse_neo4j_password, database=settings.warehouse_neo4j_database,
+            dataset_id=self.dataset_id, state_interval_ticks=settings.warehouse_neo4j_state_interval_ticks,
+        )
+        self.runtime_graph_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=1)
+        self.runtime_graph_runner: asyncio.Task[None] | None = None
+        self.runtime_graph_last_error: str | None = None
         self.last_error: str | None = None
         self.recovery_count = 0
         self.consecutive_recovery_attempts = 0
@@ -114,6 +160,9 @@ class SimulationService:
         await self._blocking(self._save_checkpoint_locked)
         self.stopping = False
         self.runner = asyncio.create_task(self._run_loop(), name="warehouse-simulation-loop")
+        if self.settings.warehouse_neo4j_write_enabled:
+            self.runtime_graph_runner = asyncio.create_task(self._runtime_graph_loop(), name="warehouse-neo4j-writer")
+            self._queue_runtime_graph_snapshot(self.latest_snapshot)
 
     async def stop(self) -> None:
         self.stopping = True
@@ -123,11 +172,19 @@ class SimulationService:
                 await self.runner
             except asyncio.CancelledError:
                 pass
+        if self.runtime_graph_runner:
+            self.runtime_graph_runner.cancel()
+            try:
+                await self.runtime_graph_runner
+            except asyncio.CancelledError:
+                pass
         async with self.lock:
             await self._blocking(self._save_checkpoint_locked)
             await self._blocking(self.coordinator.close)
             if self.knowledge:
                 await self._blocking(self.knowledge.close)
+            self.warehouse_graph.close()
+            self.runtime_graph.close()
         self.simulation_executor.shutdown(wait=True)
         self.query_executor.shutdown(wait=True)
 
@@ -138,6 +195,7 @@ class SimulationService:
             if action == "reset":
                 await self._blocking(self._save_checkpoint_locked)
         await self.publish(snapshot)
+        self._queue_runtime_graph_snapshot(snapshot)
         return snapshot
 
     async def inject_priority_task(self) -> dict[str, Any]:
@@ -145,6 +203,7 @@ class SimulationService:
             result = await self._blocking(self.coordinator.inject_priority_task)
             self.latest_snapshot = self.coordinator.snapshot()
         await self.publish(self.latest_snapshot)
+        self._queue_runtime_graph_snapshot(self.latest_snapshot)
         return result
 
     async def inject_task_batch(self,count=100):
@@ -184,6 +243,28 @@ class SimulationService:
             except asyncio.QueueFull:
                 pass
 
+    def _queue_runtime_graph_snapshot(self, snapshot: dict[str, Any]) -> None:
+        if not self.settings.warehouse_neo4j_write_enabled:
+            return
+        if self.runtime_graph_queue.full():
+            try:
+                self.runtime_graph_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                pass
+        try:
+            self.runtime_graph_queue.put_nowait(snapshot)
+        except asyncio.QueueFull:
+            pass
+
+    async def _runtime_graph_loop(self) -> None:
+        while not self.stopping:
+            snapshot = await self.runtime_graph_queue.get()
+            try:
+                await asyncio.to_thread(self.runtime_graph.record_snapshot, snapshot)
+                self.runtime_graph_last_error = None
+            except RuntimeGraphUnavailable as exc:
+                self.runtime_graph_last_error = str(exc)
+
     async def _run_loop(self) -> None:
         while not self.stopping:
             started = time.monotonic()
@@ -200,6 +281,7 @@ class SimulationService:
                             await self._blocking(self._save_checkpoint_locked)
                     self.last_error = None
                     self.consecutive_recovery_attempts = 0
+                    self._queue_runtime_graph_snapshot(snapshot)
                     await self.publish(snapshot)
                 except Exception as exc:  # Ray wraps actor failures in several exception types.
                     recovered = await self._recover_after_step_failure(exc)
@@ -229,6 +311,7 @@ class SimulationService:
                 )
                 self.latest_snapshot = self.coordinator.snapshot()
             self.recovery_count += 1
+            self._queue_runtime_graph_snapshot(self.latest_snapshot)
             await self.publish(self.latest_snapshot)
             return True
         except Exception as recovery_exc:
@@ -285,6 +368,11 @@ def create_app(settings: ServerSettings | None = None) -> Any:
             "lastError": service.last_error,
             "recoveryCount": service.recovery_count,
             "knowledge": snapshot["knowledge"],
+            "runtimeGraph": {
+                "enabled": service.settings.warehouse_neo4j_write_enabled,
+                "stateIntervalTicks": service.settings.warehouse_neo4j_state_interval_ticks,
+                "lastError": service.runtime_graph_last_error,
+            },
             **snapshot["runtime"],
         }
 
@@ -316,6 +404,67 @@ def create_app(settings: ServerSettings | None = None) -> Any:
             import logging
             logging.getLogger(__name__).exception('warehouse knowledge query failed')
             raise HTTPException(status_code=503, detail="knowledge query failed; inspect database status") from None
+
+    @app.get("/api/kg/warehouse/health")
+    async def warehouse_graph_health() -> dict[str, Any]:
+        return await asyncio.to_thread(service.warehouse_graph.health)
+
+    @app.get("/api/kg/warehouse/dashboard")
+    async def warehouse_graph_dashboard(dataset_id: str | None = None) -> dict[str, Any]:
+        try:
+            summary = await asyncio.to_thread(service.warehouse_graph.summary, dataset_id)
+            health = await asyncio.to_thread(service.warehouse_graph.health)
+            return {"source": "neo4j-knowledge-graph", "health": health, "summary": summary}
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/kg/warehouse/tasks")
+    async def warehouse_task_list(limit: int = 8, dataset_id: str | None = None) -> list[dict[str, Any]]:
+        try:
+            return await asyncio.to_thread(service.warehouse_graph.task_list, limit, dataset_id)
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/kg/warehouse/tasks/{task_id}/trace")
+    async def warehouse_task_trace(task_id: str, dataset_id: str | None = None) -> dict[str, Any]:
+        try:
+            return await asyncio.to_thread(service.warehouse_graph.task_execution_trace, task_id, dataset_id)
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/kg/warehouse/query-presets")
+    async def warehouse_graph_query_presets() -> dict[str, Any]:
+        return {"presets": list(service.warehouse_graph.QUERY_PRESETS), "readOnly": True, "maxRows": 200}
+
+    @app.post("/api/kg/warehouse/query-presets/{preset}")
+    async def warehouse_graph_query_preset(preset: str, request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            return await asyncio.to_thread(
+                service.warehouse_graph.query_preset, preset,
+                task_id=str(request.get("taskId", ""))[:160],
+                run_id=str(request.get("runId", ""))[:160],
+                robot_id=int(request.get("robotId", 1)), tick=int(request.get("tick", 0)),
+            )
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/kg/warehouse/runs/{run_id}/robots/{robot_id}/trace")
+    async def warehouse_robot_trace(run_id: str, robot_id: int, tick: int | None = None, history_limit: int = 20) -> dict[str, Any]:
+        try:
+            return await asyncio.to_thread(service.warehouse_graph.robot_trace_context, run_id, robot_id, tick, history_limit)
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/kg/warehouse/runs/{run_id}/runtime-trace")
+    async def warehouse_runtime_trace(run_id: str, tick: int | None = None, robot_id: int | None = None) -> dict[str, Any]:
+        try:
+            return await asyncio.to_thread(service.warehouse_graph.runtime_state_trace, run_id, tick, robot_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     @app.post("/api/control")
     async def control(request: dict[str, Any]) -> dict[str, Any]:
@@ -404,6 +553,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--knowledge-backend", choices=["none", "journal", "neo4j"], default=os.environ.get("KNOWLEDGE_BACKEND", "journal"))
     parser.add_argument("--journal-path", type=Path, default=PROJECT_ROOT / "data/knowledge/warehouse.sqlite")
     parser.add_argument("--allow-code-change", action="store_true")
+    parser.add_argument("--warehouse-neo4j-uri", default=os.environ.get("WAREHOUSE_NEO4J_URI", "bolt://127.0.0.1:47687"))
+    parser.add_argument("--warehouse-neo4j-user", default=os.environ.get("WAREHOUSE_NEO4J_USER", "neo4j"))
+    parser.add_argument("--warehouse-neo4j-database", default=os.environ.get("WAREHOUSE_NEO4J_DATABASE", "neo4j"))
+    parser.add_argument("--warehouse-neo4j-dataset-id", default=os.environ.get("WAREHOUSE_NEO4J_DATASET_ID") or None)
+    parser.add_argument("--warehouse-neo4j-package-dir", type=Path, default=Path(os.environ["WAREHOUSE_NEO4J_PACKAGE_DIR"]) if os.environ.get("WAREHOUSE_NEO4J_PACKAGE_DIR") else None)
+    parser.add_argument("--warehouse-neo4j-state-interval-ticks", type=int, default=int(os.environ.get("WAREHOUSE_NEO4J_STATE_INTERVAL_TICKS", "4")))
     parser.add_argument(
         "--ray-recovery-attempts",
         type=int,
@@ -447,6 +602,14 @@ def main(argv: list[str] | None = None) -> None:
         knowledge_backend=args.knowledge_backend,
         journal_path=args.journal_path,
         allow_code_change=args.allow_code_change,
+        warehouse_neo4j_uri=args.warehouse_neo4j_uri,
+        warehouse_neo4j_user=args.warehouse_neo4j_user,
+        warehouse_neo4j_password=os.environ.get("WAREHOUSE_NEO4J_PASSWORD"),
+        warehouse_neo4j_database=args.warehouse_neo4j_database,
+        warehouse_neo4j_dataset_id=args.warehouse_neo4j_dataset_id,
+        warehouse_neo4j_package_dir=args.warehouse_neo4j_package_dir,
+        warehouse_neo4j_write_enabled=os.environ.get("WAREHOUSE_NEO4J_WRITE_ENABLED", "0") == "1",
+        warehouse_neo4j_state_interval_ticks=args.warehouse_neo4j_state_interval_ticks,
     )
     try:
         import uvicorn

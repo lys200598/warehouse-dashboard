@@ -9,6 +9,7 @@ from collections import Counter
 from dataclasses import asdict
 import hashlib
 import json
+import os
 from pathlib import Path
 import sqlite3
 import time
@@ -48,6 +49,23 @@ def run(args, *, simulation_class=Simulation, config_class=Config, mirror_class=
         raise ValueError('disturbance identity mismatch on resume')
     mirror = mirror_class.from_env() if args.knowledge_backend == 'neo4j' else None
     store = JournalKnowledgeStore(output / 'journal.sqlite', mirror)
+    runtime_graph = None
+    if os.environ.get("WAREHOUSE_NEO4J_WRITE_ENABLED", "0") == "1":
+        from ..warehouse_runtime_graph import Neo4jRuntimeGraphWriter
+        try:
+            manifest = json.loads((Path(args.dataset) / "manifest.json").read_text(encoding="utf-8"))
+            dataset_id = f"dataset:{manifest['version']}:{str(manifest['start'])[:10]}"
+        except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+            store.close()
+            raise ValueError("V5 runtime graph requires a valid dataset manifest.json") from exc
+        runtime_graph = Neo4jRuntimeGraphWriter(
+            uri=os.environ.get("WAREHOUSE_NEO4J_URI", "bolt://127.0.0.1:47687"),
+            user=os.environ.get("WAREHOUSE_NEO4J_USER", "neo4j"),
+            password=os.environ.get("WAREHOUSE_NEO4J_PASSWORD"),
+            database=os.environ.get("WAREHOUSE_NEO4J_DATABASE", "neo4j"),
+            dataset_id=dataset_id,
+            state_interval_ticks=int(os.environ.get("WAREHOUSE_NEO4J_STATE_INTERVAL_TICKS", "4")),
+        )
     if state:
         state = store.recovery_payload(state)
         if any(not item['success'] for item in state['experiment']['applied']):
@@ -80,7 +98,11 @@ def run(args, *, simulation_class=Simulation, config_class=Config, mirror_class=
         sim.knowledge_seq += 1
         checkpoint = sim.checkpoint()
         checkpoint['experiment'] = {'disturbance_sha256': identity, 'applied': applied}
-        store.append(checkpoint, sim.pending_events)
+        committed_events = list(sim.pending_events)
+        store.append(checkpoint, committed_events)
+        if runtime_graph is not None:
+            from ..warehouse_runtime_graph import v5_runtime_snapshot
+            runtime_graph.record_snapshot(v5_runtime_snapshot(sim, committed_events))
         sim.pending_events = []
         checkpoint_file_started = time.perf_counter()
         write_checkpoint(output / 'checkpoint.json', checkpoint)
@@ -268,6 +290,8 @@ def run(args, *, simulation_class=Simulation, config_class=Config, mirror_class=
         frames.close()
     if provider:
         provider.close()
+    if runtime_graph:
+        runtime_graph.close()
     store.close()
     return 0 if status == 'complete' else 2
 

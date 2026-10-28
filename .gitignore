@@ -27,3 +27,10 @@ id_ed25519*
 # Local experiments and temporary test data remain outside source delivery.
 /research/
 /tests/tmp*/
+
+# Local Neo4j runtime and generated graph datasets are not source delivery.
+.runtime/
+*.jar
+data/checkpoints/*.json
+data/generated/
+lys-warehouse-design-20261027/
