@@ -1,0 +1,34 @@
+{
+  "scope": "read-only complete physical equivalence of default-off feature control and original baseline",
+  "baseline_run_id": "wh-meeting-final-balanced-mix70",
+  "control_run_id": "wh-late-feature-control",
+  "baseline_artifacts": {
+    "results.json": "fa2464eccd8eb985fcddfd6ac6548352aaf8b970b34e82bb9aa428fdb6ea45ac",
+    "checkpoint.json": "532fbb4505c10286e4844c9d37d65bab3bd926bce3f0482eb3b987e0462dd09c",
+    "frames.sqlite": "22e38619eec0255a17c3df8c84cefe5d7abefbe80b01e3727d884d7ab92aa8f5",
+    "journal.sqlite": "570e922210a76235073297bbd7405150c64ec81ccce980deefe7eb477ef7f1c6",
+    "exit": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+  },
+  "control_artifacts": {
+    "results.json": "2196b6dd0b8a333b1db2d65aaef215182367982252a3cd51ff2ac270fb1c9739",
+    "checkpoint.json": "e856f23cb5601eb49aff49ab2f9844bab72e3a8f588c9cd1f4bc29180ad0c43d",
+    "frames.sqlite": "1d8962c661105793cd00a77ea226d2709579e0580c4d86a775f61d33ae24ba0e",
+    "journal.sqlite": "d803ca3c59a591b1c9a1454ab58085413d44403cb0350c81e1b4aac8d42558de",
+    "exit": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+  },
+  "default_off_control_physical_equivalence": {
+    "passed": true,
+    "checks": {
+      "tasks": true,
+      "goods": true,
+      "robots": true,
+      "events": true,
+      "sample_times_equal": true,
+      "sampled_physical_frames_equal": true
+    },
+    "compared_sample_frames": 443,
+    "different_sample_seconds": [],
+    "different_sample_count": 0,
+    "comparison_semantics": "All final task/goods/robot fields and every journal event retained. Only run_id/event_id run prefixes normalized; worker PID wrappers excluded. Sample frames retain all robot fields plus physical counters, stock and timing; backend/scheduler/knowledge/source metadata and wall-clock performance counters are excluded."
+  }
+}

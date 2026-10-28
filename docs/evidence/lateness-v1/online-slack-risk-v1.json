@@ -1,0 +1,209 @@
+{
+  "scope": "read-only risk distribution after strict integrity audit; not zero-lateness certification",
+  "strict_report_sha256": "1b86d0556e3dc8e6658492d920ab0638cabcbc251a2720e7a76800127f94539f",
+  "runs": [
+    {
+      "name": "online-slack",
+      "elapsed": 4383,
+      "late_inbound": 12,
+      "late_outbound": 0,
+      "late_by_source": {
+        "IN-8": 12
+      },
+      "late_seconds": {
+        "count": 12,
+        "mean": 52.25,
+        "p99": 66,
+        "max": 89
+      },
+      "inbound_release_to_received": {
+        "count": 864,
+        "mean": 194.61342592592592,
+        "p99": 883,
+        "max": 1031
+      },
+      "inbound_received_to_picked": {
+        "count": 864,
+        "mean": 194.75,
+        "p99": 483,
+        "max": 591
+      },
+      "outbound_flow": {
+        "count": 864,
+        "mean": 440.16435185185185,
+        "p99": 754,
+        "max": 894
+      },
+      "late_tasks": [
+        {
+          "task_id": "V3-T-0000296",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R07-L1-C2-F1",
+          "release_second": 3120,
+          "received_at": 4147,
+          "ready_at": 4148,
+          "assigned_at": 4148,
+          "picked_at": 4209,
+          "completed_at": 4265,
+          "due_second": 4213,
+          "late_seconds": 52
+        },
+        {
+          "task_id": "V3-T-0000447",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R35-L1-C7-F2",
+          "release_second": 3194,
+          "received_at": 4044,
+          "ready_at": 4044,
+          "assigned_at": 4044,
+          "picked_at": 4185,
+          "completed_at": 4323,
+          "due_second": 4269,
+          "late_seconds": 54
+        },
+        {
+          "task_id": "V3-T-0000500",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R22-L2-C4-F1",
+          "release_second": 3193,
+          "received_at": 4032,
+          "ready_at": 4032,
+          "assigned_at": 4032,
+          "picked_at": 4172,
+          "completed_at": 4314,
+          "due_second": 4269,
+          "late_seconds": 45
+        },
+        {
+          "task_id": "V3-T-0000653",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R13-L2-C5-F2",
+          "release_second": 3122,
+          "received_at": 3972,
+          "ready_at": 3977,
+          "assigned_at": 3981,
+          "picked_at": 4123,
+          "completed_at": 4245,
+          "due_second": 4209,
+          "late_seconds": 36
+        },
+        {
+          "task_id": "V3-T-0001006",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R11-L3-C6-F2",
+          "release_second": 3222,
+          "received_at": 4172,
+          "ready_at": 4175,
+          "assigned_at": 4175,
+          "picked_at": 4256,
+          "completed_at": 4383,
+          "due_second": 4317,
+          "late_seconds": 66
+        },
+        {
+          "task_id": "V3-T-0001007",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R10-L3-C7-F2",
+          "release_second": 3104,
+          "received_at": 4135,
+          "ready_at": 4137,
+          "assigned_at": 4137,
+          "picked_at": 4244,
+          "completed_at": 4288,
+          "due_second": 4199,
+          "late_seconds": 89
+        },
+        {
+          "task_id": "V3-T-0001156",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R35-L1-C4-F1",
+          "release_second": 3187,
+          "received_at": 4159,
+          "ready_at": 4161,
+          "assigned_at": 4161,
+          "picked_at": 4221,
+          "completed_at": 4358,
+          "due_second": 4302,
+          "late_seconds": 56
+        },
+        {
+          "task_id": "V3-T-0001200",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R11-L3-C8-F2",
+          "release_second": 3112,
+          "received_at": 3960,
+          "ready_at": 3964,
+          "assigned_at": 3987,
+          "picked_at": 4135,
+          "completed_at": 4265,
+          "due_second": 4226,
+          "late_seconds": 39
+        },
+        {
+          "task_id": "V3-T-0001312",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R14-L1-C8-F2",
+          "release_second": 3227,
+          "received_at": 4185,
+          "ready_at": 4190,
+          "assigned_at": 4190,
+          "picked_at": 4268,
+          "completed_at": 4374,
+          "due_second": 4326,
+          "late_seconds": 48
+        },
+        {
+          "task_id": "V3-T-0001371",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R40-L2-C3-F2",
+          "release_second": 3127,
+          "received_at": 4019,
+          "ready_at": 4020,
+          "assigned_at": 4020,
+          "picked_at": 4159,
+          "completed_at": 4256,
+          "due_second": 4217,
+          "late_seconds": 39
+        },
+        {
+          "task_id": "V3-T-0001487",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R31-L3-C7-F2",
+          "release_second": 3150,
+          "received_at": 3998,
+          "ready_at": 4001,
+          "assigned_at": 4001,
+          "picked_at": 4147,
+          "completed_at": 4319,
+          "due_second": 4272,
+          "late_seconds": 47
+        },
+        {
+          "task_id": "V3-T-0001728",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R30-L3-C8-F2",
+          "release_second": 3128,
+          "received_at": 4123,
+          "ready_at": 4123,
+          "assigned_at": 4123,
+          "picked_at": 4197,
+          "completed_at": 4283,
+          "due_second": 4227,
+          "late_seconds": 56
+        }
+      ]
+    }
+  ]
+}

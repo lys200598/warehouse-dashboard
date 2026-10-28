@@ -1,0 +1,236 @@
+{
+  "scope": "read-only source validity, independent of candidate experiments",
+  "run_directory": "/data/workspace/wz/warehouse-meeting-candidates-20261028/runs/final-balanced-mix70",
+  "source_directory": "/data/workspace/wz/warehouse-meeting-candidates-20261028/source-v4",
+  "run_id": "wh-meeting-final-balanced-mix70",
+  "producer_code_identity": "262618c10ea3f5e5817dae68ce5ff2996e278b09ce5e787708572d98cde73007",
+  "source_event_count": 9102,
+  "journal_sequence_and_checksums_verified": true,
+  "completed_task_count": 1728,
+  "all_late_23_are_inbound": true,
+  "late_task_ids": [
+    "V3-T-0000169",
+    "V3-T-0000219",
+    "V3-T-0000249",
+    "V3-T-0000296",
+    "V3-T-0000314",
+    "V3-T-0000447",
+    "V3-T-0000500",
+    "V3-T-0000518",
+    "V3-T-0000650",
+    "V3-T-0000653",
+    "V3-T-0000901",
+    "V3-T-0001006",
+    "V3-T-0001007",
+    "V3-T-0001013",
+    "V3-T-0001156",
+    "V3-T-0001200",
+    "V3-T-0001243",
+    "V3-T-0001267",
+    "V3-T-0001312",
+    "V3-T-0001371",
+    "V3-T-0001467",
+    "V3-T-0001487",
+    "V3-T-0001728"
+  ],
+  "late_source_event_kinds": {
+    "V3-T-0000169": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000219": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000249": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000296": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000314": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000447": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000500": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000518": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000650": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000653": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0000901": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001006": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001007": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001013": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001156": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001200": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001243": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001267": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001312": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001371": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001467": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001487": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    },
+    "V3-T-0001728": {
+      "task_released": 1,
+      "task_progress_warning": 1,
+      "received": 1,
+      "task_assigned": 1,
+      "picked": 1,
+      "placed": 1
+    }
+  },
+  "actual_input_sha256": {
+    "scene_sha256": "2688227a87fad53a6c50c67ce9f23b54396990de4b574fab2716388689232693",
+    "tasks_sha256": "9e49fc0c78788bba64c49f8515a5721e05ae5894c4be78e8a0ddaa73ee706bb6",
+    "initial_inventory_sha256": "ffde9cda1c85e6d95e61f2e42fea4ef7147074801802c04934fb45117ffc764c",
+    "manifest_sha256": "c5ab589fe0b90b689ac88160fbf39d371fc8ff043168d2e4cae762c8f8ca88cc"
+  },
+  "config_file_sha256": "ea9a4f615ed673bf90c8ad9d3cd2d4bd0aa9deffecc6899baadaa2f10d9bb0f9",
+  "config_subset_matches_checkpoint": true,
+  "source_capacity": 1920,
+  "all_event_states_inside_capacity": true,
+  "all_event_states_port_0_to_6": true,
+  "max_inside_after_events": 936,
+  "max_port_after_events": 6,
+  "event_state_semantics": "Every recorded source business event, including same-tick intermediate states. Geometry/SOC safety remains source runtime responsibility."
+}

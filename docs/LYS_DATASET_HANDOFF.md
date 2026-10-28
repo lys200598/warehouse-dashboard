@@ -207,3 +207,7 @@ python -m backend.warehouse run \
 - 主对照保留同CSV及原时限；额外全货架覆盖实验保持任务ID、货物ID、类型与发布时间/截止时间，仅映射货位，并记录完整映射，独立列为覆盖实验。
 
 建议先看 `docs/MEETING_DELIVERY_20261028.md` 与 `docs/RACK_RESOURCE_GRAPH_GUIDE.md`，再选择地图后生成数据。当前主线继续以共同知识与时序查询为研究目标；新增地图和型号是能够产生可信货物流转的实验环境。
+
+### 2026-10-29入库背压增量
+
+[晚点优化指南](LATENESS_OPTIMIZATION_20261029.md)记录了同一balanced高峰输入的逐任务归因和全部候选。七字段CSV、初始库存、地图SHA与每口6件约束保持；调度新增显式opt-in疏口候选，1728任务晚点23→5，出库0晚点但平均流转有所增加。默认FIFO/off和现有实时服务保持。新日型请继续保留各入口发布时间、数量与期限分布，双方固定同一输入做IN/OUT联合回归；最终选择的完整运行配置见`config/warehouse-balanced-port-relief.json`及指南的收尾记录。

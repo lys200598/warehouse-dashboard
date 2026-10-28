@@ -1,0 +1,19 @@
+{
+  "status": "audit_tool_selection_failure",
+  "run_id": "wh-late-online-slack-required19",
+  "source_run_changed": false,
+  "database_writes_performed": false,
+  "first_tool_preserved_by": "exact reconstruction from first tool source plus recorded narrow correction; original upload had been replaced before preservation request",
+  "first_tool_sha256": "6de2d4a4a5ea80c51b6b9d66a797c491484940ad9eb4005783930772be35fc38",
+  "error": "AssertionError at original line40: assert measured['cargo_id'] and measured['task_id'] and measured['battery']==24",
+  "cause": "next(...) selected seq10 before SOC change, although seq11 exists at identical sim_time250 after change",
+  "selected_before_seq": 10,
+  "selected_before_soc": 51.948897003733364,
+  "after_seq": 11,
+  "after_soc": 24,
+  "cargo_id_both": "INITIAL-00968",
+  "task_id_both": "V3-T-0000013",
+  "robot_id": 29,
+  "correction": "v2 retains and verifies both same-tick snapshots and cargo/task continuity; still asserts post-change SOC exactly24",
+  "v2_tool_sha256": "f9cafeea3423a8589bd43884dd83e3c8ff8cfcdf9d9244dfbf2940312b0408d6"
+}

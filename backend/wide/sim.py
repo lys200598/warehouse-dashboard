@@ -29,10 +29,16 @@ class Config(V3Config):
     fleet_mode: str = 'all-x3'
     fleet_counts: dict | None = None
     capability_spare_cost_seconds: float = 15.
+    inbound_admission_policy: str = 'fifo'
+    port_relief_policy: str = 'off'
 
     def __post_init__(self):
         super().__post_init__()
         fleet_assignment(self.fleet_mode, self.fleet_counts, self.robot_count)
+        if self.inbound_admission_policy not in ('fifo', 'deadline'):
+            raise ValueError('unknown inbound admission policy')
+        if self.port_relief_policy not in ('off', 'deadline'):
+            raise ValueError('unknown port relief policy')
         if (isinstance(self.capability_spare_cost_seconds, bool) or
                 not isinstance(self.capability_spare_cost_seconds, (int, float)) or
                 not math.isfinite(self.capability_spare_cost_seconds) or

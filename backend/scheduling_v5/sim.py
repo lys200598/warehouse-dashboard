@@ -18,6 +18,7 @@ from ..scheduling_v4.sim import execution_identity as engine_identity
 from . import RELEASE
 from .invariants import assert_warehouse_inventory
 from .matching import guarded_assignment, FORBIDDEN
+from . import port_relief
 
 
 DEFAULTS = {
@@ -134,6 +135,17 @@ class CandidateSimulation(EngineSimulation):
             'execution_sha256': self.v5_identity['execution_sha256']}
         return value
 
+    def _inbound_admission_order(self):
+        if self.config.inbound_admission_policy == 'deadline':
+            return port_relief.deadline_admission_order(self)
+        return super()._inbound_admission_order()
+
+    def _port_relief_pool(self, ready):
+        ports = port_relief.context(self)
+        return sorted(ready, key=lambda task: (
+            self.blocked.get(task['task_id'], {}).get('retry_after', 0) > self.elapsed,
+            port_relief.priority(task, ports, self.elapsed), task['task_id']))[:self.config.batch_tasks]
+
     def _select_assignment(self, costs, pool, pair_times, candidates=None):
         if getattr(self, '_fleet_is_mixed', False):
             if candidates is None:
@@ -147,6 +159,16 @@ class CandidateSimulation(EngineSimulation):
                         costs[row][col] = 1e12
                     elif costs[row][col] < FORBIDDEN:
                         costs[row][col] += self.capability_spare_cost(robot, task)
+        relief_rows = {}
+        if getattr(self.config, 'port_relief_policy', 'off') == 'deadline':
+            ports = port_relief.context(self)
+            costs = [list(row) for row in costs]
+            for row, task in enumerate(pool):
+                costs[row], pickup_slack, reward = port_relief.row_adjustment(
+                    self, task, costs[row], pair_times[row], ports, FORBIDDEN)
+                if pickup_slack is not None:
+                    relief_rows[row] = (pickup_slack, reward)
+            self.metrics['port_relief_rows'] = self.metrics.get('port_relief_rows', 0) + len(relief_rows)
         self.metrics['v5_matching_calls'] += 1
         if self.policy == 'cost':
             return minimum_assignment(costs)
@@ -169,6 +191,8 @@ class CandidateSimulation(EngineSimulation):
             feasible = [seconds for col, seconds in enumerate(pair_times[row])
                         if costs[row][col] < FORBIDDEN]
             slack = task['due_second'] - self.elapsed - min(feasible) if feasible else None
+            if row in relief_rows and feasible:
+                slack = min(slack, relief_rows[row][0])
             if feasible and (age >= p['wait_limit'] or slack <= p['deadline_guard']):
                 protected.append(row)
             reward = 0.
@@ -178,6 +202,7 @@ class CandidateSimulation(EngineSimulation):
             elif self.policy == 'port-guard' and task['task_type'] == 'INBOUND' and task['status'] == 'accepted' and self.ports.get(task['source_id'], 0) == 6:
                 reward = self.config.dispatch_seconds * min(port_waiting[task['source_id']], p['port_queue_cap']) * p['port_pressure_weight']
                 self.metrics['v5_port_rewarded_rows'] += int(reward > 0)
+            reward += relief_rows.get(row, (None, 0.))[1]
             rewards.append(reward)
         result = guarded_assignment(costs, protected, rewards)
         self.metrics['v5_guard_rows'] += len(protected)
@@ -206,6 +231,8 @@ class CandidateSimulation(EngineSimulation):
                 candidates.append(r)
         pool = sorted(ready, key=lambda t: (self.blocked.get(t['task_id'], {}).get('retry_after', 0) > self.elapsed,
             t['due_second'] - .5 * (self.elapsed - t['ready_at']), t['task_id']))[:self.config.batch_tasks]
+        if self.config.port_relief_policy == 'deadline':
+            pool = self._port_relief_pool(ready)
         for attempt in range(self.config.matching_rounds):
             if not pool or not candidates:
                 break

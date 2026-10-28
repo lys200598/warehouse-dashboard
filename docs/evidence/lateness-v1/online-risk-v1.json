@@ -1,0 +1,111 @@
+{
+  "scope": "read-only risk distribution after strict integrity audit; not zero-lateness certification",
+  "strict_report_sha256": "b1e4b698d8a194d8f1d82d05743eae0ddfc7d6591d6ee8827b4cbd2e98e2b269",
+  "runs": [
+    {
+      "name": "online",
+      "elapsed": 4328,
+      "late_inbound": 5,
+      "late_outbound": 0,
+      "late_by_source": {
+        "IN-8": 5
+      },
+      "late_seconds": {
+        "count": 5,
+        "mean": 25.8,
+        "p99": 52,
+        "max": 56
+      },
+      "inbound_release_to_received": {
+        "count": 864,
+        "mean": 179.90509259259258,
+        "p99": 817,
+        "max": 897
+      },
+      "inbound_received_to_picked": {
+        "count": 864,
+        "mean": 192.8414351851852,
+        "p99": 482,
+        "max": 647
+      },
+      "outbound_flow": {
+        "count": 864,
+        "mean": 443.2025462962963,
+        "p99": 775,
+        "max": 889
+      },
+      "late_tasks": [
+        {
+          "task_id": "V3-T-0000447",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R35-L1-C7-F2",
+          "release_second": 3194,
+          "received_at": 4071,
+          "ready_at": 4072,
+          "assigned_at": 4072,
+          "picked_at": 4183,
+          "completed_at": 4321,
+          "due_second": 4269,
+          "late_seconds": 52
+        },
+        {
+          "task_id": "V3-T-0000500",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R22-L2-C4-F1",
+          "release_second": 3193,
+          "received_at": 4020,
+          "ready_at": 4022,
+          "assigned_at": 4022,
+          "picked_at": 4136,
+          "completed_at": 4279,
+          "due_second": 4269,
+          "late_seconds": 10
+        },
+        {
+          "task_id": "V3-T-0001006",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R11-L3-C6-F2",
+          "release_second": 3222,
+          "received_at": 4090,
+          "ready_at": 4093,
+          "assigned_at": 4093,
+          "picked_at": 4195,
+          "completed_at": 4322,
+          "due_second": 4317,
+          "late_seconds": 5
+        },
+        {
+          "task_id": "V3-T-0001156",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R35-L1-C4-F1",
+          "release_second": 3187,
+          "received_at": 4006,
+          "ready_at": 4007,
+          "assigned_at": 4007,
+          "picked_at": 4171,
+          "completed_at": 4308,
+          "due_second": 4302,
+          "late_seconds": 6
+        },
+        {
+          "task_id": "V3-T-0001487",
+          "task_type": "INBOUND",
+          "source_id": "IN-8",
+          "target_id": "R31-L3-C7-F2",
+          "release_second": 3150,
+          "received_at": 3994,
+          "ready_at": 3994,
+          "assigned_at": 3994,
+          "picked_at": 4159,
+          "completed_at": 4328,
+          "due_second": 4272,
+          "late_seconds": 56
+        }
+      ]
+    }
+  ]
+}

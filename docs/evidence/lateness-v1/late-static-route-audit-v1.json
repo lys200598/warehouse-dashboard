@@ -1,0 +1,1133 @@
+{
+  "scope": "read-only source-feature-v1 static route ranking; no simulation or causal EDF proof",
+  "scene_sha256": "2688227a87fad53a6c50c67ce9f23b54396990de4b574fab2716388689232693",
+  "relief_checkpoint_sha256": "e6066c318614e95c3afbd2dae846d147794f76a7353febee36482927e6cad5e4",
+  "static_roadmap_cache": {
+    "hits": 332,
+    "misses": 532,
+    "maxsize": 512,
+    "currsize": 512
+  },
+  "all_inbound": {
+    "count": 864,
+    "mean": 101.78125,
+    "median": 102.0,
+    "p90": 141,
+    "p99": 169,
+    "max": 184
+  },
+  "by_port": {
+    "IN-1": {
+      "count": 120,
+      "mean": 106.51666666666667,
+      "median": 105.5,
+      "p90": 158,
+      "p99": 173,
+      "max": 178
+    },
+    "IN-2": {
+      "count": 95,
+      "mean": 103.46315789473684,
+      "median": 102,
+      "p90": 144,
+      "p99": 165,
+      "max": 168
+    },
+    "IN-3": {
+      "count": 102,
+      "mean": 96.04901960784314,
+      "median": 95.0,
+      "p90": 136,
+      "p99": 156,
+      "max": 158
+    },
+    "IN-4": {
+      "count": 107,
+      "mean": 95.94392523364486,
+      "median": 97,
+      "p90": 128,
+      "p99": 140,
+      "max": 141
+    },
+    "IN-5": {
+      "count": 114,
+      "mean": 96.67543859649123,
+      "median": 95.0,
+      "p90": 133,
+      "p99": 149,
+      "max": 152
+    },
+    "IN-6": {
+      "count": 100,
+      "mean": 99.42,
+      "median": 101.5,
+      "p90": 134,
+      "p99": 148,
+      "max": 160
+    },
+    "IN-7": {
+      "count": 104,
+      "mean": 105.625,
+      "median": 106.5,
+      "p90": 149,
+      "p99": 163,
+      "max": 165
+    },
+    "IN-8": {
+      "count": 122,
+      "mean": 109.15573770491804,
+      "median": 110.0,
+      "p90": 148,
+      "p99": 179,
+      "max": 184
+    }
+  },
+  "remaining_late_static_delivery": {
+    "count": 14,
+    "mean": 134.78571428571428,
+    "median": 139.0,
+    "p90": 154,
+    "p99": 164,
+    "max": 179
+  },
+  "remaining_late": [
+    {
+      "task_id": "V3-T-0000249",
+      "source": "IN-1",
+      "target": "R09-L1-C1-F2",
+      "late_seconds": 62,
+      "static_delivery_including_handling": 107,
+      "within_port_percentile_leq": 54.166666666666664,
+      "within_port_percentile_strict_less": 50.833333333333336,
+      "window": 1064
+    },
+    {
+      "task_id": "V3-T-0000447",
+      "source": "IN-8",
+      "target": "R35-L1-C7-F2",
+      "late_seconds": 91,
+      "static_delivery_including_handling": 148,
+      "within_port_percentile_leq": 90.1639344262295,
+      "within_port_percentile_strict_less": 88.52459016393442,
+      "window": 1075
+    },
+    {
+      "task_id": "V3-T-0000467",
+      "source": "IN-7",
+      "target": "R22-L3-C3-F1",
+      "late_seconds": 3,
+      "static_delivery_including_handling": 141,
+      "within_port_percentile_leq": 83.65384615384616,
+      "within_port_percentile_strict_less": 81.73076923076923,
+      "window": 1079
+    },
+    {
+      "task_id": "V3-T-0000469",
+      "source": "IN-7",
+      "target": "R33-L3-C5-F1",
+      "late_seconds": 33,
+      "static_delivery_including_handling": 154,
+      "within_port_percentile_leq": 92.3076923076923,
+      "within_port_percentile_strict_less": 91.34615384615384,
+      "window": 1078
+    },
+    {
+      "task_id": "V3-T-0000500",
+      "source": "IN-8",
+      "target": "R22-L2-C4-F1",
+      "late_seconds": 83,
+      "static_delivery_including_handling": 152,
+      "within_port_percentile_leq": 92.62295081967213,
+      "within_port_percentile_strict_less": 91.80327868852459,
+      "window": 1076
+    },
+    {
+      "task_id": "V3-T-0000653",
+      "source": "IN-8",
+      "target": "R13-L2-C5-F2",
+      "late_seconds": 51,
+      "static_delivery_including_handling": 120,
+      "within_port_percentile_leq": 63.9344262295082,
+      "within_port_percentile_strict_less": 61.47540983606557,
+      "window": 1087
+    },
+    {
+      "task_id": "V3-T-0001006",
+      "source": "IN-8",
+      "target": "R11-L3-C6-F2",
+      "late_seconds": 61,
+      "static_delivery_including_handling": 137,
+      "within_port_percentile_leq": 80.32786885245902,
+      "within_port_percentile_strict_less": 78.68852459016394,
+      "window": 1095
+    },
+    {
+      "task_id": "V3-T-0001036",
+      "source": "IN-1",
+      "target": "R18-L2-C4-F2",
+      "late_seconds": 24,
+      "static_delivery_including_handling": 121,
+      "within_port_percentile_leq": 69.16666666666667,
+      "within_port_percentile_strict_less": 66.66666666666667,
+      "window": 1102
+    },
+    {
+      "task_id": "V3-T-0001156",
+      "source": "IN-8",
+      "target": "R35-L1-C4-F1",
+      "late_seconds": 34,
+      "static_delivery_including_handling": 147,
+      "within_port_percentile_leq": 88.52459016393442,
+      "within_port_percentile_strict_less": 87.70491803278688,
+      "window": 1115
+    },
+    {
+      "task_id": "V3-T-0001267",
+      "source": "IN-1",
+      "target": "R39-L2-C3-F1",
+      "late_seconds": 59,
+      "static_delivery_including_handling": 164,
+      "within_port_percentile_leq": 93.33333333333333,
+      "within_port_percentile_strict_less": 92.5,
+      "window": 1120
+    },
+    {
+      "task_id": "V3-T-0001312",
+      "source": "IN-8",
+      "target": "R14-L1-C8-F2",
+      "late_seconds": 18,
+      "static_delivery_including_handling": 116,
+      "within_port_percentile_leq": 59.01639344262295,
+      "within_port_percentile_strict_less": 58.19672131147541,
+      "window": 1099
+    },
+    {
+      "task_id": "V3-T-0001371",
+      "source": "IN-8",
+      "target": "R40-L2-C3-F2",
+      "late_seconds": 41,
+      "static_delivery_including_handling": 106,
+      "within_port_percentile_leq": 45.90163934426229,
+      "within_port_percentile_strict_less": 44.26229508196721,
+      "window": 1090
+    },
+    {
+      "task_id": "V3-T-0001487",
+      "source": "IN-8",
+      "target": "R31-L3-C7-F2",
+      "late_seconds": 83,
+      "static_delivery_including_handling": 179,
+      "within_port_percentile_leq": 98.36065573770492,
+      "within_port_percentile_strict_less": 96.72131147540983,
+      "window": 1122
+    },
+    {
+      "task_id": "V3-T-0001728",
+      "source": "IN-8",
+      "target": "R30-L3-C8-F2",
+      "late_seconds": 35,
+      "static_delivery_including_handling": 95,
+      "within_port_percentile_leq": 32.78688524590164,
+      "within_port_percentile_strict_less": 31.147540983606557,
+      "window": 1099
+    }
+  ],
+  "baseline_FIFO_raw_due_inversion_pairs": 373,
+  "pairs_raw_due_earlier_but_latest_service_start_not_earlier": 149,
+  "latest_start_disagreements": [
+    {
+      "admitted": "V3-T-0000398",
+      "waiting": "V3-T-0000519",
+      "raw_due_advantage": 7,
+      "latest_start_advantage": -25
+    },
+    {
+      "admitted": "V3-T-0001327",
+      "waiting": "V3-T-0000731",
+      "raw_due_advantage": 17,
+      "latest_start_advantage": -16
+    },
+    {
+      "admitted": "V3-T-0001557",
+      "waiting": "V3-T-0000838",
+      "raw_due_advantage": 14,
+      "latest_start_advantage": -19
+    },
+    {
+      "admitted": "V3-T-0001504",
+      "waiting": "V3-T-0000335",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -20
+    },
+    {
+      "admitted": "V3-T-0001504",
+      "waiting": "V3-T-0001132",
+      "raw_due_advantage": 9,
+      "latest_start_advantage": -18
+    },
+    {
+      "admitted": "V3-T-0001197",
+      "waiting": "V3-T-0000838",
+      "raw_due_advantage": 34,
+      "latest_start_advantage": -28
+    },
+    {
+      "admitted": "V3-T-0001197",
+      "waiting": "V3-T-0000617",
+      "raw_due_advantage": 18,
+      "latest_start_advantage": -59
+    },
+    {
+      "admitted": "V3-T-0001290",
+      "waiting": "V3-T-0001353",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -19
+    },
+    {
+      "admitted": "V3-T-0001172",
+      "waiting": "V3-T-0001437",
+      "raw_due_advantage": 21,
+      "latest_start_advantage": -69
+    },
+    {
+      "admitted": "V3-T-0001172",
+      "waiting": "V3-T-0000988",
+      "raw_due_advantage": 17,
+      "latest_start_advantage": -12
+    },
+    {
+      "admitted": "V3-T-0001172",
+      "waiting": "V3-T-0000149",
+      "raw_due_advantage": 12,
+      "latest_start_advantage": -42
+    },
+    {
+      "admitted": "V3-T-0001590",
+      "waiting": "V3-T-0000336",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -56
+    },
+    {
+      "admitted": "V3-T-0000988",
+      "waiting": "V3-T-0001437",
+      "raw_due_advantage": 4,
+      "latest_start_advantage": -57
+    },
+    {
+      "admitted": "V3-T-0001357",
+      "waiting": "V3-T-0001113",
+      "raw_due_advantage": 16,
+      "latest_start_advantage": -8
+    },
+    {
+      "admitted": "V3-T-0000019",
+      "waiting": "V3-T-0000201",
+      "raw_due_advantage": 7,
+      "latest_start_advantage": -19
+    },
+    {
+      "admitted": "V3-T-0001470",
+      "waiting": "V3-T-0000258",
+      "raw_due_advantage": 36,
+      "latest_start_advantage": -27
+    },
+    {
+      "admitted": "V3-T-0001072",
+      "waiting": "V3-T-0000538",
+      "raw_due_advantage": 18,
+      "latest_start_advantage": -29
+    },
+    {
+      "admitted": "V3-T-0001072",
+      "waiting": "V3-T-0000828",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -102
+    },
+    {
+      "admitted": "V3-T-0001072",
+      "waiting": "V3-T-0000263",
+      "raw_due_advantage": 9,
+      "latest_start_advantage": -36
+    },
+    {
+      "admitted": "V3-T-0001171",
+      "waiting": "V3-T-0000258",
+      "raw_due_advantage": 40,
+      "latest_start_advantage": -41
+    },
+    {
+      "admitted": "V3-T-0001171",
+      "waiting": "V3-T-0000964",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -37
+    },
+    {
+      "admitted": "V3-T-0000835",
+      "waiting": "V3-T-0000258",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -71
+    },
+    {
+      "admitted": "V3-T-0000587",
+      "waiting": "V3-T-0000828",
+      "raw_due_advantage": 17,
+      "latest_start_advantage": 0
+    },
+    {
+      "admitted": "V3-T-0001580",
+      "waiting": "V3-T-0000258",
+      "raw_due_advantage": 46,
+      "latest_start_advantage": -48
+    },
+    {
+      "admitted": "V3-T-0001580",
+      "waiting": "V3-T-0000964",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -44
+    },
+    {
+      "admitted": "V3-T-0001580",
+      "waiting": "V3-T-0000899",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -87
+    },
+    {
+      "admitted": "V3-T-0001580",
+      "waiting": "V3-T-0000853",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -26
+    },
+    {
+      "admitted": "V3-T-0000596",
+      "waiting": "V3-T-0000833",
+      "raw_due_advantage": 26,
+      "latest_start_advantage": -43
+    },
+    {
+      "admitted": "V3-T-0000596",
+      "waiting": "V3-T-0000373",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -18
+    },
+    {
+      "admitted": "V3-T-0000980",
+      "waiting": "V3-T-0000497",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -61
+    },
+    {
+      "admitted": "V3-T-0000980",
+      "waiting": "V3-T-0000393",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -19
+    },
+    {
+      "admitted": "V3-T-0000980",
+      "waiting": "V3-T-0000761",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -69
+    },
+    {
+      "admitted": "V3-T-0000964",
+      "waiting": "V3-T-0000258",
+      "raw_due_advantage": 38,
+      "latest_start_advantage": -4
+    },
+    {
+      "admitted": "V3-T-0000071",
+      "waiting": "V3-T-0000497",
+      "raw_due_advantage": 12,
+      "latest_start_advantage": -39
+    },
+    {
+      "admitted": "V3-T-0000071",
+      "waiting": "V3-T-0000761",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -47
+    },
+    {
+      "admitted": "V3-T-0000393",
+      "waiting": "V3-T-0000497",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -42
+    },
+    {
+      "admitted": "V3-T-0001538",
+      "waiting": "V3-T-0000497",
+      "raw_due_advantage": 38,
+      "latest_start_advantage": -18
+    },
+    {
+      "admitted": "V3-T-0001538",
+      "waiting": "V3-T-0000761",
+      "raw_due_advantage": 34,
+      "latest_start_advantage": -26
+    },
+    {
+      "admitted": "V3-T-0000389",
+      "waiting": "V3-T-0000497",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -66
+    },
+    {
+      "admitted": "V3-T-0000389",
+      "waiting": "V3-T-0000761",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -74
+    },
+    {
+      "admitted": "V3-T-0000136",
+      "waiting": "V3-T-0000246",
+      "raw_due_advantage": 5,
+      "latest_start_advantage": -14
+    },
+    {
+      "admitted": "V3-T-0001308",
+      "waiting": "V3-T-0000024",
+      "raw_due_advantage": 4,
+      "latest_start_advantage": -20
+    },
+    {
+      "admitted": "V3-T-0001686",
+      "waiting": "V3-T-0000819",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -4
+    },
+    {
+      "admitted": "V3-T-0001604",
+      "waiting": "V3-T-0000774",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -3
+    },
+    {
+      "admitted": "V3-T-0001257",
+      "waiting": "V3-T-0000211",
+      "raw_due_advantage": 21,
+      "latest_start_advantage": -32
+    },
+    {
+      "admitted": "V3-T-0001276",
+      "waiting": "V3-T-0000730",
+      "raw_due_advantage": 4,
+      "latest_start_advantage": -11
+    },
+    {
+      "admitted": "V3-T-0001413",
+      "waiting": "V3-T-0000730",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -52
+    },
+    {
+      "admitted": "V3-T-0000918",
+      "waiting": "V3-T-0000476",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -7
+    },
+    {
+      "admitted": "V3-T-0001710",
+      "waiting": "V3-T-0000121",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -23
+    },
+    {
+      "admitted": "V3-T-0001031",
+      "waiting": "V3-T-0000506",
+      "raw_due_advantage": 18,
+      "latest_start_advantage": -36
+    },
+    {
+      "admitted": "V3-T-0001400",
+      "waiting": "V3-T-0001129",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -15
+    },
+    {
+      "admitted": "V3-T-0000418",
+      "waiting": "V3-T-0000144",
+      "raw_due_advantage": 5,
+      "latest_start_advantage": -9
+    },
+    {
+      "admitted": "V3-T-0000008",
+      "waiting": "V3-T-0000506",
+      "raw_due_advantage": 15,
+      "latest_start_advantage": -40
+    },
+    {
+      "admitted": "V3-T-0000961",
+      "waiting": "V3-T-0001129",
+      "raw_due_advantage": 19,
+      "latest_start_advantage": -22
+    },
+    {
+      "admitted": "V3-T-0000799",
+      "waiting": "V3-T-0000163",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -34
+    },
+    {
+      "admitted": "V3-T-0000897",
+      "waiting": "V3-T-0000417",
+      "raw_due_advantage": 28,
+      "latest_start_advantage": -12
+    },
+    {
+      "admitted": "V3-T-0001275",
+      "waiting": "V3-T-0000535",
+      "raw_due_advantage": 5,
+      "latest_start_advantage": -46
+    },
+    {
+      "admitted": "V3-T-0001669",
+      "waiting": "V3-T-0000535",
+      "raw_due_advantage": 20,
+      "latest_start_advantage": -11
+    },
+    {
+      "admitted": "V3-T-0000297",
+      "waiting": "V3-T-0000401",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -27
+    },
+    {
+      "admitted": "V3-T-0001628",
+      "waiting": "V3-T-0000568",
+      "raw_due_advantage": 15,
+      "latest_start_advantage": -17
+    },
+    {
+      "admitted": "V3-T-0000923",
+      "waiting": "V3-T-0001131",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -48
+    },
+    {
+      "admitted": "V3-T-0000923",
+      "waiting": "V3-T-0000460",
+      "raw_due_advantage": 5,
+      "latest_start_advantage": -99
+    },
+    {
+      "admitted": "V3-T-0001621",
+      "waiting": "V3-T-0000369",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -50
+    },
+    {
+      "admitted": "V3-T-0000614",
+      "waiting": "V3-T-0001131",
+      "raw_due_advantage": 17,
+      "latest_start_advantage": -42
+    },
+    {
+      "admitted": "V3-T-0000614",
+      "waiting": "V3-T-0000460",
+      "raw_due_advantage": 12,
+      "latest_start_advantage": -93
+    },
+    {
+      "admitted": "V3-T-0001665",
+      "waiting": "V3-T-0000460",
+      "raw_due_advantage": 30,
+      "latest_start_advantage": -9
+    },
+    {
+      "admitted": "V3-T-0000882",
+      "waiting": "V3-T-0001693",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -28
+    },
+    {
+      "admitted": "V3-T-0001444",
+      "waiting": "V3-T-0000428",
+      "raw_due_advantage": 30,
+      "latest_start_advantage": -10
+    },
+    {
+      "admitted": "V3-T-0001444",
+      "waiting": "V3-T-0001344",
+      "raw_due_advantage": 20,
+      "latest_start_advantage": -52
+    },
+    {
+      "admitted": "V3-T-0000386",
+      "waiting": "V3-T-0000542",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -3
+    },
+    {
+      "admitted": "V3-T-0000888",
+      "waiting": "V3-T-0000822",
+      "raw_due_advantage": 15,
+      "latest_start_advantage": -65
+    },
+    {
+      "admitted": "V3-T-0000888",
+      "waiting": "V3-T-0000280",
+      "raw_due_advantage": 9,
+      "latest_start_advantage": -49
+    },
+    {
+      "admitted": "V3-T-0000280",
+      "waiting": "V3-T-0000822",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -16
+    },
+    {
+      "admitted": "V3-T-0000439",
+      "waiting": "V3-T-0000453",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -15
+    },
+    {
+      "admitted": "V3-T-0001654",
+      "waiting": "V3-T-0001089",
+      "raw_due_advantage": 11,
+      "latest_start_advantage": -5
+    },
+    {
+      "admitted": "V3-T-0001304",
+      "waiting": "V3-T-0000763",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -32
+    },
+    {
+      "admitted": "V3-T-0001620",
+      "waiting": "V3-T-0000299",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -66
+    },
+    {
+      "admitted": "V3-T-0001505",
+      "waiting": "V3-T-0000637",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -31
+    },
+    {
+      "admitted": "V3-T-0001509",
+      "waiting": "V3-T-0000299",
+      "raw_due_advantage": 32,
+      "latest_start_advantage": -5
+    },
+    {
+      "admitted": "V3-T-0001509",
+      "waiting": "V3-T-0001034",
+      "raw_due_advantage": 7,
+      "latest_start_advantage": -21
+    },
+    {
+      "admitted": "V3-T-0001591",
+      "waiting": "V3-T-0001034",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -18
+    },
+    {
+      "admitted": "V3-T-0001626",
+      "waiting": "V3-T-0000161",
+      "raw_due_advantage": 14,
+      "latest_start_advantage": -67
+    },
+    {
+      "admitted": "V3-T-0001664",
+      "waiting": "V3-T-0000399",
+      "raw_due_advantage": 22,
+      "latest_start_advantage": -14
+    },
+    {
+      "admitted": "V3-T-0001664",
+      "waiting": "V3-T-0000459",
+      "raw_due_advantage": 17,
+      "latest_start_advantage": -102
+    },
+    {
+      "admitted": "V3-T-0001664",
+      "waiting": "V3-T-0000165",
+      "raw_due_advantage": 15,
+      "latest_start_advantage": -42
+    },
+    {
+      "admitted": "V3-T-0001457",
+      "waiting": "V3-T-0001074",
+      "raw_due_advantage": 4,
+      "latest_start_advantage": -20
+    },
+    {
+      "admitted": "V3-T-0000165",
+      "waiting": "V3-T-0000459",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -60
+    },
+    {
+      "admitted": "V3-T-0001584",
+      "waiting": "V3-T-0000536",
+      "raw_due_advantage": 44,
+      "latest_start_advantage": -13
+    },
+    {
+      "admitted": "V3-T-0001584",
+      "waiting": "V3-T-0000449",
+      "raw_due_advantage": 42,
+      "latest_start_advantage": -9
+    },
+    {
+      "admitted": "V3-T-0001584",
+      "waiting": "V3-T-0000290",
+      "raw_due_advantage": 27,
+      "latest_start_advantage": -69
+    },
+    {
+      "admitted": "V3-T-0001584",
+      "waiting": "V3-T-0000127",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -80
+    },
+    {
+      "admitted": "V3-T-0001169",
+      "waiting": "V3-T-0001653",
+      "raw_due_advantage": 4,
+      "latest_start_advantage": 0
+    },
+    {
+      "admitted": "V3-T-0001211",
+      "waiting": "V3-T-0001074",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -20
+    },
+    {
+      "admitted": "V3-T-0000449",
+      "waiting": "V3-T-0000536",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -4
+    },
+    {
+      "admitted": "V3-T-0001469",
+      "waiting": "V3-T-0000812",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -48
+    },
+    {
+      "admitted": "V3-T-0000580",
+      "waiting": "V3-T-0000713",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -62
+    },
+    {
+      "admitted": "V3-T-0000876",
+      "waiting": "V3-T-0000812",
+      "raw_due_advantage": 23,
+      "latest_start_advantage": -2
+    },
+    {
+      "admitted": "V3-T-0000339",
+      "waiting": "V3-T-0000351",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -26
+    },
+    {
+      "admitted": "V3-T-0000065",
+      "waiting": "V3-T-0000707",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -67
+    },
+    {
+      "admitted": "V3-T-0000465",
+      "waiting": "V3-T-0000781",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -19
+    },
+    {
+      "admitted": "V3-T-0001568",
+      "waiting": "V3-T-0000023",
+      "raw_due_advantage": 14,
+      "latest_start_advantage": -15
+    },
+    {
+      "admitted": "V3-T-0001439",
+      "waiting": "V3-T-0000529",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -20
+    },
+    {
+      "admitted": "V3-T-0001692",
+      "waiting": "V3-T-0000023",
+      "raw_due_advantage": 9,
+      "latest_start_advantage": -48
+    },
+    {
+      "admitted": "V3-T-0001480",
+      "waiting": "V3-T-0001226",
+      "raw_due_advantage": 7,
+      "latest_start_advantage": -27
+    },
+    {
+      "admitted": "V3-T-0001011",
+      "waiting": "V3-T-0001098",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -59
+    },
+    {
+      "admitted": "V3-T-0001229",
+      "waiting": "V3-T-0000559",
+      "raw_due_advantage": 30,
+      "latest_start_advantage": -47
+    },
+    {
+      "admitted": "V3-T-0000021",
+      "waiting": "V3-T-0001098",
+      "raw_due_advantage": 16,
+      "latest_start_advantage": -7
+    },
+    {
+      "admitted": "V3-T-0000644",
+      "waiting": "V3-T-0000856",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -40
+    },
+    {
+      "admitted": "V3-T-0000644",
+      "waiting": "V3-T-0000231",
+      "raw_due_advantage": 5,
+      "latest_start_advantage": -11
+    },
+    {
+      "admitted": "V3-T-0001205",
+      "waiting": "V3-T-0000202",
+      "raw_due_advantage": 44,
+      "latest_start_advantage": -47
+    },
+    {
+      "admitted": "V3-T-0001205",
+      "waiting": "V3-T-0000233",
+      "raw_due_advantage": 21,
+      "latest_start_advantage": -34
+    },
+    {
+      "admitted": "V3-T-0001205",
+      "waiting": "V3-T-0000643",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -63
+    },
+    {
+      "admitted": "V3-T-0000231",
+      "waiting": "V3-T-0000856",
+      "raw_due_advantage": 5,
+      "latest_start_advantage": -29
+    },
+    {
+      "admitted": "V3-T-0000040",
+      "waiting": "V3-T-0001098",
+      "raw_due_advantage": 16,
+      "latest_start_advantage": -61
+    },
+    {
+      "admitted": "V3-T-0000085",
+      "waiting": "V3-T-0000559",
+      "raw_due_advantage": 11,
+      "latest_start_advantage": -77
+    },
+    {
+      "admitted": "V3-T-0000624",
+      "waiting": "V3-T-0000800",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -10
+    },
+    {
+      "admitted": "V3-T-0001644",
+      "waiting": "V3-T-0000365",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -36
+    },
+    {
+      "admitted": "V3-T-0001588",
+      "waiting": "V3-T-0000578",
+      "raw_due_advantage": 14,
+      "latest_start_advantage": -6
+    },
+    {
+      "admitted": "V3-T-0001242",
+      "waiting": "V3-T-0000041",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -3
+    },
+    {
+      "admitted": "V3-T-0000891",
+      "waiting": "V3-T-0000365",
+      "raw_due_advantage": 12,
+      "latest_start_advantage": -5
+    },
+    {
+      "admitted": "V3-T-0001471",
+      "waiting": "V3-T-0000588",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -2
+    },
+    {
+      "admitted": "V3-T-0001468",
+      "waiting": "V3-T-0000247",
+      "raw_due_advantage": 24,
+      "latest_start_advantage": -62
+    },
+    {
+      "admitted": "V3-T-0001268",
+      "waiting": "V3-T-0000105",
+      "raw_due_advantage": 6,
+      "latest_start_advantage": -35
+    },
+    {
+      "admitted": "V3-T-0001094",
+      "waiting": "V3-T-0000206",
+      "raw_due_advantage": 20,
+      "latest_start_advantage": -1
+    },
+    {
+      "admitted": "V3-T-0001047",
+      "waiting": "V3-T-0001430",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -6
+    },
+    {
+      "admitted": "V3-T-0000384",
+      "waiting": "V3-T-0000836",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -38
+    },
+    {
+      "admitted": "V3-T-0001472",
+      "waiting": "V3-T-0000970",
+      "raw_due_advantage": 27,
+      "latest_start_advantage": -30
+    },
+    {
+      "admitted": "V3-T-0001472",
+      "waiting": "V3-T-0001120",
+      "raw_due_advantage": 22,
+      "latest_start_advantage": -28
+    },
+    {
+      "admitted": "V3-T-0001472",
+      "waiting": "V3-T-0000553",
+      "raw_due_advantage": 19,
+      "latest_start_advantage": -70
+    },
+    {
+      "admitted": "V3-T-0000124",
+      "waiting": "V3-T-0000560",
+      "raw_due_advantage": 18,
+      "latest_start_advantage": -3
+    },
+    {
+      "admitted": "V3-T-0001484",
+      "waiting": "V3-T-0000268",
+      "raw_due_advantage": 16,
+      "latest_start_advantage": -33
+    },
+    {
+      "admitted": "V3-T-0000679",
+      "waiting": "V3-T-0000518",
+      "raw_due_advantage": 8,
+      "latest_start_advantage": -65
+    },
+    {
+      "admitted": "V3-T-0001213",
+      "waiting": "V3-T-0000185",
+      "raw_due_advantage": 2,
+      "latest_start_advantage": -27
+    },
+    {
+      "admitted": "V3-T-0001238",
+      "waiting": "V3-T-0000518",
+      "raw_due_advantage": 34,
+      "latest_start_advantage": -19
+    },
+    {
+      "admitted": "V3-T-0001238",
+      "waiting": "V3-T-0000268",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -66
+    },
+    {
+      "admitted": "V3-T-0001238",
+      "waiting": "V3-T-0001676",
+      "raw_due_advantage": 10,
+      "latest_start_advantage": -27
+    },
+    {
+      "admitted": "V3-T-0001238",
+      "waiting": "V3-T-0000213",
+      "raw_due_advantage": 4,
+      "latest_start_advantage": -10
+    },
+    {
+      "admitted": "V3-T-0001676",
+      "waiting": "V3-T-0000268",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -39
+    },
+    {
+      "admitted": "V3-T-0000213",
+      "waiting": "V3-T-0000268",
+      "raw_due_advantage": 9,
+      "latest_start_advantage": -56
+    },
+    {
+      "admitted": "V3-T-0000650",
+      "waiting": "V3-T-0000219",
+      "raw_due_advantage": 1,
+      "latest_start_advantage": -17
+    },
+    {
+      "admitted": "V3-T-0001298",
+      "waiting": "V3-T-0000532",
+      "raw_due_advantage": 11,
+      "latest_start_advantage": -38
+    },
+    {
+      "admitted": "V3-T-0001640",
+      "waiting": "V3-T-0000532",
+      "raw_due_advantage": 41,
+      "latest_start_advantage": -5
+    },
+    {
+      "admitted": "V3-T-0000039",
+      "waiting": "V3-T-0000532",
+      "raw_due_advantage": 16,
+      "latest_start_advantage": -14
+    },
+    {
+      "admitted": "V3-T-0001200",
+      "waiting": "V3-T-0000653",
+      "raw_due_advantage": 17,
+      "latest_start_advantage": -3
+    },
+    {
+      "admitted": "V3-T-0001200",
+      "waiting": "V3-T-0000296",
+      "raw_due_advantage": 13,
+      "latest_start_advantage": -61
+    },
+    {
+      "admitted": "V3-T-0001200",
+      "waiting": "V3-T-0001371",
+      "raw_due_advantage": 9,
+      "latest_start_advantage": -25
+    },
+    {
+      "admitted": "V3-T-0001267",
+      "waiting": "V3-T-0000249",
+      "raw_due_advantage": 48,
+      "latest_start_advantage": -9
+    },
+    {
+      "admitted": "V3-T-0001487",
+      "waiting": "V3-T-0000500",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -24
+    },
+    {
+      "admitted": "V3-T-0001487",
+      "waiting": "V3-T-0000447",
+      "raw_due_advantage": 3,
+      "latest_start_advantage": -28
+    }
+  ]
+}
