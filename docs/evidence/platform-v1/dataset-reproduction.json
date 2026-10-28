@@ -1,0 +1,91 @@
+{
+  "passed": true,
+  "same_csv_bytes": {
+    "tasks.csv": true,
+    "initial_inventory.csv": true
+  },
+  "original_csv_sha256": {
+    "tasks.csv": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
+    "initial_inventory.csv": "5341a77ad9f4b02aba99a4e30012ea9346739da625b4744737d0d0d1ab85d8e2"
+  },
+  "reproduced_csv_sha256": {
+    "tasks.csv": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
+    "initial_inventory.csv": "5341a77ad9f4b02aba99a4e30012ea9346739da625b4744737d0d0d1ab85d8e2"
+  },
+  "manifest_identical": false,
+  "original_generator_sources": {
+    "multiday.py": "d874ebdfc3e52eecc3af34b75153d29a46c4eaa14c9e6841690b62df7d412e91",
+    "wide_data.py": "bf327339160b417231741b6715774c634fc5f723142277438e8210722cea66c6"
+  },
+  "current_generator_sources": {
+    "multiday.py": "d874ebdfc3e52eecc3af34b75153d29a46c4eaa14c9e6841690b62df7d412e91",
+    "wide_data.py": "aa663f3ac509284033b2f1c952c8c88f49d78d6d948abfe2399455c2b70d17d1"
+  },
+  "generator_parameters": {
+    "tasks_per_day": 6912,
+    "mixed_load_factor": 1.25,
+    "minimum_slot_gap_seconds": 1800,
+    "clearance_seconds": 60,
+    "deadline_slack_seconds": 900,
+    "reference_speed_m_s": 0.8,
+    "reference_pick_seconds": 10,
+    "reference_place_seconds": 12,
+    "reference_deadhead_seconds": 348,
+    "batch_size": 48,
+    "max_tasks_job_budget": 250000
+  },
+  "daily_totals": [
+    {
+      "day": 1,
+      "profile": "uniform",
+      "tasks": 6912,
+      "inbound": 3459,
+      "outbound": 3453
+    },
+    {
+      "day": 2,
+      "profile": "fixed_peak",
+      "tasks": 6912,
+      "inbound": 3447,
+      "outbound": 3465
+    },
+    {
+      "day": 3,
+      "profile": "local_hotspot",
+      "tasks": 6912,
+      "inbound": 3467,
+      "outbound": 3445
+    },
+    {
+      "day": 4,
+      "profile": "batch_pulses",
+      "tasks": 6912,
+      "inbound": 3500,
+      "outbound": 3412
+    },
+    {
+      "day": 5,
+      "profile": "moving_hotspot",
+      "tasks": 6912,
+      "inbound": 3483,
+      "outbound": 3429
+    },
+    {
+      "day": 6,
+      "profile": "tidal",
+      "tasks": 6912,
+      "inbound": 3385,
+      "outbound": 3527
+    },
+    {
+      "day": 7,
+      "profile": "mixed_recovery",
+      "tasks": 8640,
+      "inbound": 4262,
+      "outbound": 4378
+    }
+  ],
+  "tasks": 50112,
+  "start": "2026-10-28T00:00:00+08:00",
+  "scope": "CSV reproduction under current frozen platform code. Manifest source hashes record their actual generating source bytes separately."
+}

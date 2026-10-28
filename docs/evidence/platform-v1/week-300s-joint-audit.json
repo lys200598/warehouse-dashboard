@@ -1,0 +1,134 @@
+{
+  "version": "warehouse-platform-joint-v1",
+  "passed": false,
+  "checks": {
+    "all_selected_source_bytes_match": true,
+    "all_backend_sources_are_listed": true,
+    "dataset_scene_matches": true,
+    "dataset_file_set": true,
+    "dataset_tasks.csv_sha": true,
+    "dataset_initial_inventory.csv_sha": true,
+    "checkpoint_envelope_valid": true,
+    "run_identity": true,
+    "successful_run": true,
+    "run_input_identity": true,
+    "run_config_identity": true,
+    "run_execution_identity": true,
+    "explicit_control_mode": true,
+    "unique_final_robot_population": true,
+    "declared_full_input_size": true,
+    "all_input_released_and_completed": true,
+    "no_recorded_safety_failure": true,
+    "no_late_tasks": true,
+    "actual_handoffs_exercised": true,
+    "journal_checkpoint_identical": true,
+    "journal_head_caught_up": true,
+    "complete_source_prefix": true,
+    "independent_control_audit_passed": true,
+    "control_audit_source_bound": true,
+    "actual_control_chain_counts": true,
+    "every_request_has_complete_response": true,
+    "all_requests_successful": true,
+    "independent_query_verification_passed": true,
+    "query_verification_artifact_binding": true,
+    "every_round_has_expected_clients": true,
+    "actual_api_peak_each_round": false,
+    "latest_requests_exercised": true,
+    "same_run_graph_write_advance_in_each_query_round": true,
+    "latest_cutoff_not_older_than_pre_request_observed_head": true,
+    "all_stage_exit_codes_zero": true,
+    "all_audited_artifacts_unchanged": true
+  },
+  "failed_checks": [
+    "actual_api_peak_each_round"
+  ],
+  "scope": "read-only composition of same-source actual run, full query responses, independent verification and observed write overlap; independent of hardware/third-party certification",
+  "run_id": "wh-platform-week-required-20261028",
+  "source_commits": 2048,
+  "actual_robot_state_rows": 204800,
+  "actual_event_counts": {
+    "initial_stock": 864,
+    "charge_reserved": 2837,
+    "task_released": 50112,
+    "received": 25003,
+    "charge_started": 2851,
+    "task_assigned": 50112,
+    "picked": 50112,
+    "placed": 25003,
+    "shipped": 25109,
+    "charge_complete": 2843,
+    "battery_measurement_corrected": 14,
+    "knowledge_decision": 28,
+    "assistance_requested": 14,
+    "traffic_rerouted": 14,
+    "handoff_reserved": 14,
+    "knowledge_action_applied": 28,
+    "cargo_handoff": 14
+  },
+  "query_count": 60240,
+  "latest_requests": 60240,
+  "historical_requests": 0,
+  "query_api_peaks": {
+    "1": 100,
+    "2": 100,
+    "3": 100,
+    "4": 61
+  },
+  "write_overlap": {
+    "1": {
+      "observations_inside": 95,
+      "head_first": 213,
+      "head_last": 220,
+      "observed_head_advanced": true
+    },
+    "2": {
+      "observations_inside": 95,
+      "head_first": 611,
+      "head_last": 616,
+      "observed_head_advanced": true
+    },
+    "3": {
+      "observations_inside": 125,
+      "head_first": 1827,
+      "head_last": 1829,
+      "observed_head_advanced": true
+    },
+    "4": {
+      "observations_inside": 147,
+      "head_first": 1862,
+      "head_last": 1864,
+      "observed_head_advanced": true
+    }
+  },
+  "qualifications": {
+    "same_run_live_writer_overlap_each_round": true,
+    "latest_cutoff_observed_fresh": true,
+    "all_requests_under_500ms": true
+  },
+  "all_request_ms": {
+    "mean": 4.903370231689904,
+    "p99": 23.446501,
+    "max": 194.611387,
+    "over_500ms": 0,
+    "failed": 0
+  },
+  "artifact_sha256": {
+    "/data/workspace/wz/warehouse-platform-joint-20261028/source-v2/source-manifest.json": "2cda004eafcd94965e9efaceabf9431598dbd06106bcbc2f9b63bd9249801a65",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/source-v2/data/layouts/warehouse100-wide-v2.json": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/inputs/seven-patterns/manifest.json": "a79c4c0ba29497cf8ccc0f37cb01461fc7fdcc41749192c90c8add51d4ea4074",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/inputs/seven-patterns/tasks.csv": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/inputs/seven-patterns/initial_inventory.csv": "5341a77ad9f4b02aba99a4e30012ea9346739da625b4744737d0d0d1ab85d8e2",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/runs/week-required-v2/results.json": "5f92e7192518348c2aa3c6f66ad9eb4cca74dc00369b56c36cbcac0bd31c8bc8",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/runs/week-required-v2/checkpoint.json": "ebb65375bba8706f978b630dfc4335e99dcca86671cbe58805b395e76f055318",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/runs/week-required-v2/journal.sqlite": "49f2a4ddbed1a98f6ba5091d89a312f6729b7da1c7fe6821165a8bd71be84c0a",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/control-source-audit.json": "2894456a4cf806fae95bb15c215f6696ea75cf714f6f34c795032e5b5bd0ee16",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/queries/final-300s/requests.jsonl": "1a4ab1ed7f713dc444c0acb5bfcb4be291c67c7caf796e7413b898ecbb424c5a",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/queries/final-300s/responses.jsonl.gz": "448a566a5b2cfde9f5909079f34a9f69ce15d6a67310407b8d864576104d8139",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/queries/final-300s/source-verification.json": "975297a4ee1b52032f65c93bc2868ce3f6a2016fb1488edee1bed5d5a10edf63",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/queries/final-300s/writer-head-observations.jsonl": "31d1d3d75edab02e4568e87113cc861c947addee5bc39c78f6567b235e28b8ad",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/logs/week-required-day1-window-v2.log": "33c55611e363fd5492975ce421a61cb35122e049c8161bf7610ee4da96195524",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/logs/week-required-resume-v2.log": "b48b4c534e0202acd710fe80ebb79112dff56c59ff0c96983d345a283860b208",
+    "/data/workspace/wz/warehouse-platform-joint-20261028/logs/week-rules-complete-v2.log": "f7ccdf5757d076f52f49381b91b3897dfe69bd5f8a48c3c348a4d87896f217a3"
+  },
+  "manifest_sha256": "f3a86f7f65f6eab6331173604c8cd44104aaf1998a19738dd3653246d1503660"
+}

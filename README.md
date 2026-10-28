@@ -5,12 +5,14 @@
 ## 阅读路线
 
 - **整体实现与运行**：[平台指南](docs/WAREHOUSE_PLATFORM_GUIDE.md)
+- **开始使用实时界面**：[实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md)
 - **数据生成同学 lys**：[对接说明](docs/LYS_DATASET_HANDOFF.md)、[地图与输入契约](docs/dataset-contract/README.md)
 - **布局与调度**：[仓库设计指南](docs/WAREHOUSE_DESIGN_GUIDE.md)
 - **仓库查询与KG对应**：[查询指南](docs/WAREHOUSE_QUERY_GUIDE.md)
 - **历史控制**：[实际控制链](docs/HISTORY_RUNTIME.md)
 - **连续多日生成**：[生成规则](docs/MULTIDAY_DATASET.md)
 - **向量用途、算法与验证**：[检索指南](docs/VECTOR_RETRIEVAL_GUIDE.md)
+- **实际结果与待验收边界**：[完整周回归记录](docs/PLATFORM_REGRESSION_20261028.md)
 - **原实时控制台与Ray**：[保留入口](docs/LEGACY_CONTROL_PANEL.md)
 
 ## 最小运行
@@ -27,6 +29,8 @@ python -m backend.warehouse serve --output data/runs/my-smoke --port 14183
 ```
 
 输出目录、run-id使用新的唯一值，同一次暂停运行用`--resume`继续。网页读取实际保存帧，保留相机交互。
+
+实时控制使用`python -m backend.warehouse live`，部署入口为`http://127.0.0.1:14186/`；它直接运行V5真实协调器并持续写图，支持固定数据集、开始/暂停/单步、墙钟倍速和按需知识查询。原`serve`继续专用于已保存帧回放。
 
 ## 真实图谱与历史控制
 

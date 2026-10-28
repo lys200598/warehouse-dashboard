@@ -231,4 +231,15 @@ class JointAuditTests(unittest.TestCase):
         with self.assertRaises(SystemExit):audit.main(['--manifest',str(self.manifest),'--output',str(output)])
 
 
+class ObservationLookupTests(unittest.TestCase):
+    def test_bisect_matches_full_scan_with_ties_and_boundaries(self):
+        observations=[{'observed_at_ns':i//3*7+5,'committed_seq':i+1} for i in range(90)]
+        clocks=[o['observed_at_ns'] for o in observations]
+        for stamp in range(240):
+            before=[o for o in observations if o['observed_at_ns']<=stamp]
+            expected=before[-1]['committed_seq'] if before else None
+            self.assertEqual(audit.latest_observed_head(observations,clocks,stamp),expected)
+        self.assertIsNone(audit.latest_observed_head([],[],1))
+
+
 if __name__=='__main__':unittest.main()

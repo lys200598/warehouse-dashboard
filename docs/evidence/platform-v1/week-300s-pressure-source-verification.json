@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "request_count": 60240,
+  "parsed_request_count": 60240,
+  "queries_by_id": {
+    "self": 30118,
+    "readiness": 30122
+  },
+  "error_count": 0,
+  "errors": [],
+  "scope": "posthoc complete catalog responses vs original journal/RealOracle; business-exact has independent scalar topK; legacy full-ann requires separate frozen verifier",
+  "source_run_id": "wh-platform-week-required-20261028",
+  "source_journal_head": 2048,
+  "source_prefix_sha256": "4cf4df7deddc104cc78a53dc4b616fd436786a5cf0377ebcc7d07fabcac0e0ed",
+  "source_journal_sha256": "49f2a4ddbed1a98f6ba5091d89a312f6729b7da1c7fe6821165a8bd71be84c0a",
+  "file_hashes": {
+    "requests": "1a4ab1ed7f713dc444c0acb5bfcb4be291c67c7caf796e7413b898ecbb424c5a",
+    "responses": "448a566a5b2cfde9f5909079f34a9f69ce15d6a67310407b8d864576104d8139"
+  },
+  "oracle_file_sha256": "f1f7c2e79e0ea4b6f779c5c9720a21d2ea333c1bac81e4dfdc9c04eddc146482",
+  "oracle_prefix": 2048,
+  "source_and_packets_unchanged": true
+}

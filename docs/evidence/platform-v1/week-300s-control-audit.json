@@ -1,0 +1,6668 @@
+{
+  "passed": true,
+  "checks": {
+    "oracle_current_source_prefix": true,
+    "oracle_source_metadata_config": true,
+    "every_oracle_event_matches_original_source": true,
+    "required_live_history_mode": true,
+    "selected_runtime_source_matches": true,
+    "results_execution_fingerprint": true,
+    "results_same_committed_run": true,
+    "results_runtime_identity_and_counters": true,
+    "results_input_provenance": true,
+    "journal_mirrored_at_final_head": true,
+    "every_decision_and_action_source_replayed": true,
+    "counters_match_reconstructed_control_events": true,
+    "all_counter_types_valid": true,
+    "physical_handoff_was_actually_exercised": true,
+    "source_inputs_unchanged": true
+  },
+  "failed_checks": [],
+  "scope": "every live required-mode decision rebuilt from original source; grants/reservations/physical cargo/actions causally matched; no graph-network or latency certification",
+  "run_id": "wh-platform-week-required-20261028",
+  "prefix": 2048,
+  "source_prefix_sha256": "4cf4df7deddc104cc78a53dc4b616fd436786a5cf0377ebcc7d07fabcac0e0ed",
+  "source_files_before": {
+    "journal": "49f2a4ddbed1a98f6ba5091d89a312f6729b7da1c7fe6821165a8bd71be84c0a",
+    "results": "5f92e7192518348c2aa3c6f66ad9eb4cca74dc00369b56c36cbcac0bd31c8bc8"
+  },
+  "source_files_after": {
+    "journal": "49f2a4ddbed1a98f6ba5091d89a312f6729b7da1c7fe6821165a8bd71be84c0a",
+    "results": "5f92e7192518348c2aa3c6f66ad9eb4cca74dc00369b56c36cbcac0bd31c8bc8"
+  },
+  "oracle_identity": {
+    "carrying_state_rows": 13301,
+    "config": {
+      "active_soc_per_second": 0.004166666666666667,
+      "assignment_cost": "roadmap",
+      "assistance_soc": 25.0,
+      "batch_tasks": 32,
+      "charge_queue_margin": 300,
+      "charge_request_soc": 35,
+      "charge_soc_per_second": 0.016666666666666666,
+      "charge_target_soc": 80,
+      "chargers": 100,
+      "charging_policy": "staggered",
+      "desired_working": 70,
+      "dispatch_seconds": 10,
+      "emergency_reserve_soc": 10,
+      "energy_profile": "transport",
+      "fault_guard_seconds": 10800,
+      "flow_rate": 0,
+      "handoff_seconds": 10,
+      "idle_soc_per_second": 0.0005555555555555556,
+      "matching_rounds": 3,
+      "max_batch": 1,
+      "max_charge_wait": 7200,
+      "max_departure_wait": 900,
+      "max_payload_kg": 5,
+      "opportunity_charge_soc": 55,
+      "pair_retry_seconds": 30,
+      "pick_seconds": 10,
+      "place_seconds": 12,
+      "progress_warning_seconds": 600,
+      "robot_count": 100,
+      "route_expansions": 12000,
+      "route_horizon": 900,
+      "seed": 20261027,
+      "speed": 0.8,
+      "standard_box_kg": 2,
+      "standby_headroom": 10,
+      "task_chaining": true,
+      "task_reserve_soc": 20
+    },
+    "events": 234972,
+    "head_checkpoint_sha256": "dc501af3377cc31db609dd2b62e746cab6695277c1d168f5c9409658025d1863",
+    "last_sim_time": 604969,
+    "logical_tasks": 50112,
+    "metadata": {
+      "backend": "warehouse-real-scale-v1",
+      "code_sha256": "eac2c3957dc5b75969db6da3399299f8b9bc7c5509599527d04b8e90506654a9",
+      "coordinate_unit": "m",
+      "dataset_origin": "synthetic-continuous-multiday-seven-pattern-cycle",
+      "disturbance_contract": "integer-second boundary; circular 2-D envelope; bounded stop/retime",
+      "domain": "warehouse-wide-inbound-outbound",
+      "energy_parameters": {
+        "charge_soc_per_second": 0.016666666666666666,
+        "empty_soc_per_second": 0.004166666666666667,
+        "handling_factor": 1.2,
+        "hardware_calibrated": false,
+        "idle_soc_per_second": 0.0005555555555555556,
+        "loaded_factor": 1.2,
+        "name": "transport-assumed-v1",
+        "taper_factor": 0.5,
+        "taper_start_soc": 80.0
+      },
+      "execution_code_sha256": "322d93f992d675bfaa0facdc1a473e8ced7cdd75e7c723db4ffa64c79d3ef3fd",
+      "home_aliases": 100,
+      "initial_inventory_sha256": "5341a77ad9f4b02aba99a4e30012ea9346739da625b4744737d0d0d1ab85d8e2",
+      "knowledge_runtime": {
+        "mode": "required",
+        "source": "652b00465dd79a2fc7711f10ec11c4e5814424f6bed6c93a51d9944773635fb7",
+        "version": "warehouse-knowledge-runtime-v1"
+      },
+      "manifest_sha256": "a79c4c0ba29497cf8ccc0f37cb01461fc7fdcc41749192c90c8add51d4ea4074",
+      "not_joint_acceptance": true,
+      "occupancy": "empty hardware traversable; full trip plus persistent terminal body validated before commit",
+      "physical_bays": 100,
+      "real_scale": {
+        "commit_seconds": 300,
+        "dimensions": 32,
+        "execution_sha256": "652b00465dd79a2fc7711f10ec11c4e5814424f6bed6c93a51d9944773635fb7",
+        "scheduler": {
+          "engine_release": "warehouse-scheduler-v4.0.0",
+          "execution_sha256": "5db8ad34fd2303a6b25a5c2f1fdc9b928f65a761f2fd3a69eac4aa22aa653608",
+          "features": [
+            "v4-motion-engine",
+            "strong-inventory-invariant",
+            "max-cardinality-guarded-cost"
+          ],
+          "parameters": {
+            "deadline_guard": 120.0,
+            "port_pressure_weight": 1.0,
+            "port_queue_cap": 6,
+            "wait_limit": 300
+          },
+          "planner": "original-sipp",
+          "policy": "port-guard",
+          "release": "warehouse-scheduler-v5.0.0",
+          "source_sha256": "749c2defb6caa932afc6db747acc8d8e9af46a3d2399b328477fb27a03be6127"
+        },
+        "source_kind": "actual_runtime_committed_state",
+        "vector_kind": "32d_structured_physical_time_identity_features_not_semantic",
+        "version": "warehouse-real-scale-v1"
+      },
+      "sampling": "all actual business events; complete 100-agent states every 300s plus disturbance/final boundaries",
+      "scene": {
+        "assumptions": {
+          "capacityIncludesBuffers": true,
+          "chargingHardwareCollision": "ignored by explicit modelling assumption",
+          "chargingPower": "configurable shared power budget; 100 bays does not imply unlimited power",
+          "emptyDockTraversal": "allowed only when time-dependent robot/docking occupancy is clear",
+          "hardwareCalibrated": false,
+          "homeAliases": "100 homes alias the 100 docks, not 100 extra parking spaces",
+          "noPerTaskDockReturn": true,
+          "occupiedDockCollision": "real robot body, including fully charged standby",
+          "robotBody": [
+            0.7,
+            0.7
+          ],
+          "robotPlanningRadius": 0.55,
+          "workingModel": "fixed racks, self pick/place; no new finite workstation device"
+        },
+        "buffers": [
+          {
+            "d": 48,
+            "id": "IB",
+            "kind": "buffer",
+            "w": 4,
+            "x": 1.5,
+            "y": 14
+          },
+          {
+            "d": 48,
+            "id": "OB",
+            "kind": "buffer",
+            "w": 4,
+            "x": 84.5,
+            "y": 14
+          }
+        ],
+        "canonical_bay_ids": [
+          "C-A01",
+          "C-A02",
+          "C-A03",
+          "C-A04",
+          "C-A05",
+          "C-A06",
+          "C-A07",
+          "C-A08",
+          "C-A09",
+          "C-A10",
+          "C-A11",
+          "C-A12",
+          "C-A13",
+          "C-A14",
+          "C-A15",
+          "C-A16",
+          "C-A17",
+          "C-A18",
+          "C-A19",
+          "C-A20",
+          "C-A21",
+          "C-A22",
+          "C-A23",
+          "C-A24",
+          "C-A25",
+          "C-A26",
+          "C-A27",
+          "C-A28",
+          "C-A29",
+          "C-A30",
+          "C-A31",
+          "C-A32",
+          "C-A33",
+          "C-A34",
+          "C-A35",
+          "C-A36",
+          "C-A37",
+          "C-A38",
+          "C-A39",
+          "C-A40",
+          "C-A41",
+          "C-A42",
+          "C-A43",
+          "C-A44",
+          "C-A45",
+          "C-A46",
+          "C-A47",
+          "C-A48",
+          "C-A49",
+          "C-A50",
+          "C-B01",
+          "C-B02",
+          "C-B03",
+          "C-B04",
+          "C-B05",
+          "C-B06",
+          "C-B07",
+          "C-B08",
+          "C-B09",
+          "C-B10",
+          "C-B11",
+          "C-B12",
+          "C-B13",
+          "C-B14",
+          "C-B15",
+          "C-B16",
+          "C-B17",
+          "C-B18",
+          "C-B19",
+          "C-B20",
+          "C-B21",
+          "C-B22",
+          "C-B23",
+          "C-B24",
+          "C-B25",
+          "C-B26",
+          "C-B27",
+          "C-B28",
+          "C-B29",
+          "C-B30",
+          "C-B31",
+          "C-B32",
+          "C-B33",
+          "C-B34",
+          "C-B35",
+          "C-B36",
+          "C-B37",
+          "C-B38",
+          "C-B39",
+          "C-B40",
+          "C-B41",
+          "C-B42",
+          "C-B43",
+          "C-B44",
+          "C-B45",
+          "C-B46",
+          "C-B47",
+          "C-B48",
+          "C-B49",
+          "C-B50"
+        ],
+        "capacity": 1728,
+        "charging": "north-south-50-each-parking-integrated",
+        "designOnly": true,
+        "docks": [
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 2.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A01",
+            "kind": "dock",
+            "point": {
+              "x": 2.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 1.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 3.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A02",
+            "kind": "dock",
+            "point": {
+              "x": 3.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 3.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 5.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A03",
+            "kind": "dock",
+            "point": {
+              "x": 5.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 4.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 6.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A04",
+            "kind": "dock",
+            "point": {
+              "x": 6.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 6.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 8.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A05",
+            "kind": "dock",
+            "point": {
+              "x": 8.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 7.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 9.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A06",
+            "kind": "dock",
+            "point": {
+              "x": 9.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 9.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 11.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A07",
+            "kind": "dock",
+            "point": {
+              "x": 11.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 10.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 12.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A08",
+            "kind": "dock",
+            "point": {
+              "x": 12.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 12.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 14.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A09",
+            "kind": "dock",
+            "point": {
+              "x": 14.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 13.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 15.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A10",
+            "kind": "dock",
+            "point": {
+              "x": 15.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 15.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 20.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A11",
+            "kind": "dock",
+            "point": {
+              "x": 20.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 19.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 21.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A12",
+            "kind": "dock",
+            "point": {
+              "x": 21.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 21.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 23.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A13",
+            "kind": "dock",
+            "point": {
+              "x": 23.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 22.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 24.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A14",
+            "kind": "dock",
+            "point": {
+              "x": 24.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 24.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 26.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A15",
+            "kind": "dock",
+            "point": {
+              "x": 26.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 25.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 27.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A16",
+            "kind": "dock",
+            "point": {
+              "x": 27.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 27.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 29.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A17",
+            "kind": "dock",
+            "point": {
+              "x": 29.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 28.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 30.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A18",
+            "kind": "dock",
+            "point": {
+              "x": 30.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 30.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 32.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A19",
+            "kind": "dock",
+            "point": {
+              "x": 32.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 31.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 33.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A20",
+            "kind": "dock",
+            "point": {
+              "x": 33.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 33.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 38.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A21",
+            "kind": "dock",
+            "point": {
+              "x": 38.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 37.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 39.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A22",
+            "kind": "dock",
+            "point": {
+              "x": 39.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 39.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 41.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A23",
+            "kind": "dock",
+            "point": {
+              "x": 41.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 40.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 42.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A24",
+            "kind": "dock",
+            "point": {
+              "x": 42.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 42.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 44.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A25",
+            "kind": "dock",
+            "point": {
+              "x": 44.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 43.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 45.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A26",
+            "kind": "dock",
+            "point": {
+              "x": 45.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 45.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 47.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A27",
+            "kind": "dock",
+            "point": {
+              "x": 47.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 46.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 48.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A28",
+            "kind": "dock",
+            "point": {
+              "x": 48.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 48.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 50.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A29",
+            "kind": "dock",
+            "point": {
+              "x": 50.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 49.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 51.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A30",
+            "kind": "dock",
+            "point": {
+              "x": 51.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 51.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 56.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A31",
+            "kind": "dock",
+            "point": {
+              "x": 56.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 55.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 57.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A32",
+            "kind": "dock",
+            "point": {
+              "x": 57.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 57.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 59.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A33",
+            "kind": "dock",
+            "point": {
+              "x": 59.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 58.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 60.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A34",
+            "kind": "dock",
+            "point": {
+              "x": 60.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 60.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 62.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A35",
+            "kind": "dock",
+            "point": {
+              "x": 62.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 61.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 63.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A36",
+            "kind": "dock",
+            "point": {
+              "x": 63.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 63.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 65.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A37",
+            "kind": "dock",
+            "point": {
+              "x": 65.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 64.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 66.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A38",
+            "kind": "dock",
+            "point": {
+              "x": 66.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 66.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 68.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A39",
+            "kind": "dock",
+            "point": {
+              "x": 68.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 67.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 69.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A40",
+            "kind": "dock",
+            "point": {
+              "x": 69.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 69.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 74.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A41",
+            "kind": "dock",
+            "point": {
+              "x": 74.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 73.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 75.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A42",
+            "kind": "dock",
+            "point": {
+              "x": 75.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 75.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 77.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A43",
+            "kind": "dock",
+            "point": {
+              "x": 77.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 76.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 78.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A44",
+            "kind": "dock",
+            "point": {
+              "x": 78.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 78.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 80.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A45",
+            "kind": "dock",
+            "point": {
+              "x": 80.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 79.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 81.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A46",
+            "kind": "dock",
+            "point": {
+              "x": 81.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 81.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 83.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A47",
+            "kind": "dock",
+            "point": {
+              "x": 83.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 82.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 84.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A48",
+            "kind": "dock",
+            "point": {
+              "x": 84.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 84.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 86.25,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A49",
+            "kind": "dock",
+            "point": {
+              "x": 86.25,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 85.5,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 87.75,
+              "y": 6.0
+            },
+            "group": "A",
+            "id": "C-A50",
+            "kind": "dock",
+            "point": {
+              "x": 87.75,
+              "y": 2.4
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "north",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 87.0,
+            "y": 1.5
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 2.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B01",
+            "kind": "dock",
+            "point": {
+              "x": 2.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 1.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 3.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B02",
+            "kind": "dock",
+            "point": {
+              "x": 3.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 3.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 5.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B03",
+            "kind": "dock",
+            "point": {
+              "x": 5.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 4.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 6.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B04",
+            "kind": "dock",
+            "point": {
+              "x": 6.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 6.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 8.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B05",
+            "kind": "dock",
+            "point": {
+              "x": 8.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 7.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 9.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B06",
+            "kind": "dock",
+            "point": {
+              "x": 9.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 9.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 11.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B07",
+            "kind": "dock",
+            "point": {
+              "x": 11.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 10.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 12.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B08",
+            "kind": "dock",
+            "point": {
+              "x": 12.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 12.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 14.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B09",
+            "kind": "dock",
+            "point": {
+              "x": 14.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 13.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 15.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B10",
+            "kind": "dock",
+            "point": {
+              "x": 15.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 15.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 20.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B11",
+            "kind": "dock",
+            "point": {
+              "x": 20.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 19.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 21.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B12",
+            "kind": "dock",
+            "point": {
+              "x": 21.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 21.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 23.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B13",
+            "kind": "dock",
+            "point": {
+              "x": 23.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 22.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 24.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B14",
+            "kind": "dock",
+            "point": {
+              "x": 24.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 24.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 26.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B15",
+            "kind": "dock",
+            "point": {
+              "x": 26.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 25.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 27.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B16",
+            "kind": "dock",
+            "point": {
+              "x": 27.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 27.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 29.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B17",
+            "kind": "dock",
+            "point": {
+              "x": 29.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 28.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 30.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B18",
+            "kind": "dock",
+            "point": {
+              "x": 30.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 30.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 32.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B19",
+            "kind": "dock",
+            "point": {
+              "x": 32.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 31.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 33.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B20",
+            "kind": "dock",
+            "point": {
+              "x": 33.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 33.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 38.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B21",
+            "kind": "dock",
+            "point": {
+              "x": 38.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 37.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 39.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B22",
+            "kind": "dock",
+            "point": {
+              "x": 39.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 39.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 41.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B23",
+            "kind": "dock",
+            "point": {
+              "x": 41.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 40.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 42.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B24",
+            "kind": "dock",
+            "point": {
+              "x": 42.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 42.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 44.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B25",
+            "kind": "dock",
+            "point": {
+              "x": 44.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 43.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 45.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B26",
+            "kind": "dock",
+            "point": {
+              "x": 45.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 45.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 47.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B27",
+            "kind": "dock",
+            "point": {
+              "x": 47.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 46.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 48.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B28",
+            "kind": "dock",
+            "point": {
+              "x": 48.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 48.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 50.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B29",
+            "kind": "dock",
+            "point": {
+              "x": 50.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 49.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 51.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B30",
+            "kind": "dock",
+            "point": {
+              "x": 51.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 51.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 56.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B31",
+            "kind": "dock",
+            "point": {
+              "x": 56.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 55.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 57.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B32",
+            "kind": "dock",
+            "point": {
+              "x": 57.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 57.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 59.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B33",
+            "kind": "dock",
+            "point": {
+              "x": 59.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 58.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 60.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B34",
+            "kind": "dock",
+            "point": {
+              "x": 60.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 60.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 62.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B35",
+            "kind": "dock",
+            "point": {
+              "x": 62.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 61.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 63.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B36",
+            "kind": "dock",
+            "point": {
+              "x": 63.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 63.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 65.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B37",
+            "kind": "dock",
+            "point": {
+              "x": 65.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 64.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 66.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B38",
+            "kind": "dock",
+            "point": {
+              "x": 66.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 66.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 68.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B39",
+            "kind": "dock",
+            "point": {
+              "x": 68.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 67.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 69.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B40",
+            "kind": "dock",
+            "point": {
+              "x": 69.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 69.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 74.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B41",
+            "kind": "dock",
+            "point": {
+              "x": 74.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 73.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 75.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B42",
+            "kind": "dock",
+            "point": {
+              "x": 75.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 75.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 77.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B43",
+            "kind": "dock",
+            "point": {
+              "x": 77.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 76.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 78.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B44",
+            "kind": "dock",
+            "point": {
+              "x": 78.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 78.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 80.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B45",
+            "kind": "dock",
+            "point": {
+              "x": 80.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 79.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 81.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B46",
+            "kind": "dock",
+            "point": {
+              "x": 81.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 81.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 83.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B47",
+            "kind": "dock",
+            "point": {
+              "x": 83.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 82.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 84.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B48",
+            "kind": "dock",
+            "point": {
+              "x": 84.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 84.0,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 86.25,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B49",
+            "kind": "dock",
+            "point": {
+              "x": 86.25,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 85.5,
+            "y": 72.7
+          },
+          {
+            "capacity": 1,
+            "d": 1.8,
+            "gate": {
+              "x": 87.75,
+              "y": 70.0
+            },
+            "group": "B",
+            "id": "C-B50",
+            "kind": "dock",
+            "point": {
+              "x": 87.75,
+              "y": 73.6
+            },
+            "robotCollisionWhenOccupied": true,
+            "side": "south",
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 87.0,
+            "y": 72.7
+          }
+        ],
+        "flow": "I-west-to-east",
+        "groups": [
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "A-1",
+            "kind": "charging-bank",
+            "side": "north",
+            "staticCollision": false,
+            "w": 15,
+            "x": 1.5,
+            "y": 1.5
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "A-2",
+            "kind": "charging-bank",
+            "side": "north",
+            "staticCollision": false,
+            "w": 15,
+            "x": 19.5,
+            "y": 1.5
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "A-3",
+            "kind": "charging-bank",
+            "side": "north",
+            "staticCollision": false,
+            "w": 15,
+            "x": 37.5,
+            "y": 1.5
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "A-4",
+            "kind": "charging-bank",
+            "side": "north",
+            "staticCollision": false,
+            "w": 15,
+            "x": 55.5,
+            "y": 1.5
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "A-5",
+            "kind": "charging-bank",
+            "side": "north",
+            "staticCollision": false,
+            "w": 15,
+            "x": 73.5,
+            "y": 1.5
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "B-1",
+            "kind": "charging-bank",
+            "side": "south",
+            "staticCollision": false,
+            "w": 15,
+            "x": 1.5,
+            "y": 72.7
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "B-2",
+            "kind": "charging-bank",
+            "side": "south",
+            "staticCollision": false,
+            "w": 15,
+            "x": 19.5,
+            "y": 72.7
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "B-3",
+            "kind": "charging-bank",
+            "side": "south",
+            "staticCollision": false,
+            "w": 15,
+            "x": 37.5,
+            "y": 72.7
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "B-4",
+            "kind": "charging-bank",
+            "side": "south",
+            "staticCollision": false,
+            "w": 15,
+            "x": 55.5,
+            "y": 72.7
+          },
+          {
+            "count": 10,
+            "d": 1.8,
+            "id": "B-5",
+            "kind": "charging-bank",
+            "side": "south",
+            "staticCollision": false,
+            "w": 15,
+            "x": 73.5,
+            "y": 72.7
+          }
+        ],
+        "homes": [
+          {
+            "alias_of": "C-A01",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 2.25,
+              "y": 6.0
+            },
+            "id": "P001",
+            "kind": "home",
+            "point": {
+              "x": 2.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 1.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A02",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 3.75,
+              "y": 6.0
+            },
+            "id": "P002",
+            "kind": "home",
+            "point": {
+              "x": 3.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 3.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A03",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 5.25,
+              "y": 6.0
+            },
+            "id": "P003",
+            "kind": "home",
+            "point": {
+              "x": 5.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 4.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A04",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 6.75,
+              "y": 6.0
+            },
+            "id": "P004",
+            "kind": "home",
+            "point": {
+              "x": 6.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 6.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A05",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 8.25,
+              "y": 6.0
+            },
+            "id": "P005",
+            "kind": "home",
+            "point": {
+              "x": 8.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 7.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A06",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 9.75,
+              "y": 6.0
+            },
+            "id": "P006",
+            "kind": "home",
+            "point": {
+              "x": 9.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 9.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A07",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 11.25,
+              "y": 6.0
+            },
+            "id": "P007",
+            "kind": "home",
+            "point": {
+              "x": 11.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 10.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A08",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 12.75,
+              "y": 6.0
+            },
+            "id": "P008",
+            "kind": "home",
+            "point": {
+              "x": 12.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 12.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A09",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 14.25,
+              "y": 6.0
+            },
+            "id": "P009",
+            "kind": "home",
+            "point": {
+              "x": 14.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 13.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A10",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 15.75,
+              "y": 6.0
+            },
+            "id": "P010",
+            "kind": "home",
+            "point": {
+              "x": 15.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 15.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A11",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 20.25,
+              "y": 6.0
+            },
+            "id": "P011",
+            "kind": "home",
+            "point": {
+              "x": 20.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 19.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A12",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 21.75,
+              "y": 6.0
+            },
+            "id": "P012",
+            "kind": "home",
+            "point": {
+              "x": 21.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 21.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A13",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 23.25,
+              "y": 6.0
+            },
+            "id": "P013",
+            "kind": "home",
+            "point": {
+              "x": 23.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 22.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A14",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 24.75,
+              "y": 6.0
+            },
+            "id": "P014",
+            "kind": "home",
+            "point": {
+              "x": 24.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 24.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A15",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 26.25,
+              "y": 6.0
+            },
+            "id": "P015",
+            "kind": "home",
+            "point": {
+              "x": 26.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 25.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A16",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 27.75,
+              "y": 6.0
+            },
+            "id": "P016",
+            "kind": "home",
+            "point": {
+              "x": 27.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 27.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A17",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 29.25,
+              "y": 6.0
+            },
+            "id": "P017",
+            "kind": "home",
+            "point": {
+              "x": 29.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 28.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A18",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 30.75,
+              "y": 6.0
+            },
+            "id": "P018",
+            "kind": "home",
+            "point": {
+              "x": 30.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 30.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A19",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 32.25,
+              "y": 6.0
+            },
+            "id": "P019",
+            "kind": "home",
+            "point": {
+              "x": 32.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 31.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A20",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 33.75,
+              "y": 6.0
+            },
+            "id": "P020",
+            "kind": "home",
+            "point": {
+              "x": 33.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 33.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A21",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 38.25,
+              "y": 6.0
+            },
+            "id": "P021",
+            "kind": "home",
+            "point": {
+              "x": 38.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 37.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A22",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 39.75,
+              "y": 6.0
+            },
+            "id": "P022",
+            "kind": "home",
+            "point": {
+              "x": 39.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 39.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A23",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 41.25,
+              "y": 6.0
+            },
+            "id": "P023",
+            "kind": "home",
+            "point": {
+              "x": 41.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 40.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A24",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 42.75,
+              "y": 6.0
+            },
+            "id": "P024",
+            "kind": "home",
+            "point": {
+              "x": 42.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 42.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A25",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 44.25,
+              "y": 6.0
+            },
+            "id": "P025",
+            "kind": "home",
+            "point": {
+              "x": 44.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 43.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A26",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 45.75,
+              "y": 6.0
+            },
+            "id": "P026",
+            "kind": "home",
+            "point": {
+              "x": 45.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 45.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A27",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 47.25,
+              "y": 6.0
+            },
+            "id": "P027",
+            "kind": "home",
+            "point": {
+              "x": 47.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 46.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A28",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 48.75,
+              "y": 6.0
+            },
+            "id": "P028",
+            "kind": "home",
+            "point": {
+              "x": 48.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 48.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A29",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 50.25,
+              "y": 6.0
+            },
+            "id": "P029",
+            "kind": "home",
+            "point": {
+              "x": 50.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 49.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A30",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 51.75,
+              "y": 6.0
+            },
+            "id": "P030",
+            "kind": "home",
+            "point": {
+              "x": 51.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 51.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A31",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 56.25,
+              "y": 6.0
+            },
+            "id": "P031",
+            "kind": "home",
+            "point": {
+              "x": 56.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 55.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A32",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 57.75,
+              "y": 6.0
+            },
+            "id": "P032",
+            "kind": "home",
+            "point": {
+              "x": 57.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 57.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A33",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 59.25,
+              "y": 6.0
+            },
+            "id": "P033",
+            "kind": "home",
+            "point": {
+              "x": 59.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 58.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A34",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 60.75,
+              "y": 6.0
+            },
+            "id": "P034",
+            "kind": "home",
+            "point": {
+              "x": 60.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 60.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A35",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 62.25,
+              "y": 6.0
+            },
+            "id": "P035",
+            "kind": "home",
+            "point": {
+              "x": 62.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 61.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A36",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 63.75,
+              "y": 6.0
+            },
+            "id": "P036",
+            "kind": "home",
+            "point": {
+              "x": 63.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 63.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A37",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 65.25,
+              "y": 6.0
+            },
+            "id": "P037",
+            "kind": "home",
+            "point": {
+              "x": 65.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 64.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A38",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 66.75,
+              "y": 6.0
+            },
+            "id": "P038",
+            "kind": "home",
+            "point": {
+              "x": 66.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 66.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A39",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 68.25,
+              "y": 6.0
+            },
+            "id": "P039",
+            "kind": "home",
+            "point": {
+              "x": 68.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 67.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A40",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 69.75,
+              "y": 6.0
+            },
+            "id": "P040",
+            "kind": "home",
+            "point": {
+              "x": 69.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 69.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A41",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 74.25,
+              "y": 6.0
+            },
+            "id": "P041",
+            "kind": "home",
+            "point": {
+              "x": 74.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 73.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A42",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 75.75,
+              "y": 6.0
+            },
+            "id": "P042",
+            "kind": "home",
+            "point": {
+              "x": 75.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 75.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A43",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 77.25,
+              "y": 6.0
+            },
+            "id": "P043",
+            "kind": "home",
+            "point": {
+              "x": 77.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 76.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A44",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 78.75,
+              "y": 6.0
+            },
+            "id": "P044",
+            "kind": "home",
+            "point": {
+              "x": 78.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 78.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A45",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 80.25,
+              "y": 6.0
+            },
+            "id": "P045",
+            "kind": "home",
+            "point": {
+              "x": 80.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 79.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A46",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 81.75,
+              "y": 6.0
+            },
+            "id": "P046",
+            "kind": "home",
+            "point": {
+              "x": 81.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 81.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A47",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 83.25,
+              "y": 6.0
+            },
+            "id": "P047",
+            "kind": "home",
+            "point": {
+              "x": 83.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 82.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A48",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 84.75,
+              "y": 6.0
+            },
+            "id": "P048",
+            "kind": "home",
+            "point": {
+              "x": 84.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 84.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A49",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 86.25,
+              "y": 6.0
+            },
+            "id": "P049",
+            "kind": "home",
+            "point": {
+              "x": 86.25,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 85.5,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-A50",
+            "approachY": 6.0,
+            "d": 1.8,
+            "gate": {
+              "x": 87.75,
+              "y": 6.0
+            },
+            "id": "P050",
+            "kind": "home",
+            "point": {
+              "x": 87.75,
+              "y": 2.4
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 87.0,
+            "y": 1.5
+          },
+          {
+            "alias_of": "C-B01",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 2.25,
+              "y": 70.0
+            },
+            "id": "P051",
+            "kind": "home",
+            "point": {
+              "x": 2.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 1.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B02",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 3.75,
+              "y": 70.0
+            },
+            "id": "P052",
+            "kind": "home",
+            "point": {
+              "x": 3.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 3.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B03",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 5.25,
+              "y": 70.0
+            },
+            "id": "P053",
+            "kind": "home",
+            "point": {
+              "x": 5.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 4.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B04",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 6.75,
+              "y": 70.0
+            },
+            "id": "P054",
+            "kind": "home",
+            "point": {
+              "x": 6.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 6.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B05",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 8.25,
+              "y": 70.0
+            },
+            "id": "P055",
+            "kind": "home",
+            "point": {
+              "x": 8.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 7.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B06",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 9.75,
+              "y": 70.0
+            },
+            "id": "P056",
+            "kind": "home",
+            "point": {
+              "x": 9.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 9.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B07",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 11.25,
+              "y": 70.0
+            },
+            "id": "P057",
+            "kind": "home",
+            "point": {
+              "x": 11.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 10.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B08",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 12.75,
+              "y": 70.0
+            },
+            "id": "P058",
+            "kind": "home",
+            "point": {
+              "x": 12.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 12.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B09",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 14.25,
+              "y": 70.0
+            },
+            "id": "P059",
+            "kind": "home",
+            "point": {
+              "x": 14.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 13.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B10",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 15.75,
+              "y": 70.0
+            },
+            "id": "P060",
+            "kind": "home",
+            "point": {
+              "x": 15.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 15.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B11",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 20.25,
+              "y": 70.0
+            },
+            "id": "P061",
+            "kind": "home",
+            "point": {
+              "x": 20.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 19.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B12",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 21.75,
+              "y": 70.0
+            },
+            "id": "P062",
+            "kind": "home",
+            "point": {
+              "x": 21.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 21.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B13",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 23.25,
+              "y": 70.0
+            },
+            "id": "P063",
+            "kind": "home",
+            "point": {
+              "x": 23.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 22.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B14",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 24.75,
+              "y": 70.0
+            },
+            "id": "P064",
+            "kind": "home",
+            "point": {
+              "x": 24.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 24.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B15",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 26.25,
+              "y": 70.0
+            },
+            "id": "P065",
+            "kind": "home",
+            "point": {
+              "x": 26.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 25.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B16",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 27.75,
+              "y": 70.0
+            },
+            "id": "P066",
+            "kind": "home",
+            "point": {
+              "x": 27.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 27.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B17",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 29.25,
+              "y": 70.0
+            },
+            "id": "P067",
+            "kind": "home",
+            "point": {
+              "x": 29.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 28.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B18",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 30.75,
+              "y": 70.0
+            },
+            "id": "P068",
+            "kind": "home",
+            "point": {
+              "x": 30.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 30.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B19",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 32.25,
+              "y": 70.0
+            },
+            "id": "P069",
+            "kind": "home",
+            "point": {
+              "x": 32.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 31.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B20",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 33.75,
+              "y": 70.0
+            },
+            "id": "P070",
+            "kind": "home",
+            "point": {
+              "x": 33.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 33.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B21",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 38.25,
+              "y": 70.0
+            },
+            "id": "P071",
+            "kind": "home",
+            "point": {
+              "x": 38.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 37.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B22",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 39.75,
+              "y": 70.0
+            },
+            "id": "P072",
+            "kind": "home",
+            "point": {
+              "x": 39.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 39.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B23",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 41.25,
+              "y": 70.0
+            },
+            "id": "P073",
+            "kind": "home",
+            "point": {
+              "x": 41.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 40.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B24",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 42.75,
+              "y": 70.0
+            },
+            "id": "P074",
+            "kind": "home",
+            "point": {
+              "x": 42.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 42.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B25",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 44.25,
+              "y": 70.0
+            },
+            "id": "P075",
+            "kind": "home",
+            "point": {
+              "x": 44.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 43.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B26",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 45.75,
+              "y": 70.0
+            },
+            "id": "P076",
+            "kind": "home",
+            "point": {
+              "x": 45.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 45.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B27",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 47.25,
+              "y": 70.0
+            },
+            "id": "P077",
+            "kind": "home",
+            "point": {
+              "x": 47.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 46.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B28",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 48.75,
+              "y": 70.0
+            },
+            "id": "P078",
+            "kind": "home",
+            "point": {
+              "x": 48.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 48.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B29",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 50.25,
+              "y": 70.0
+            },
+            "id": "P079",
+            "kind": "home",
+            "point": {
+              "x": 50.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 49.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B30",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 51.75,
+              "y": 70.0
+            },
+            "id": "P080",
+            "kind": "home",
+            "point": {
+              "x": 51.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 51.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B31",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 56.25,
+              "y": 70.0
+            },
+            "id": "P081",
+            "kind": "home",
+            "point": {
+              "x": 56.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 55.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B32",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 57.75,
+              "y": 70.0
+            },
+            "id": "P082",
+            "kind": "home",
+            "point": {
+              "x": 57.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 57.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B33",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 59.25,
+              "y": 70.0
+            },
+            "id": "P083",
+            "kind": "home",
+            "point": {
+              "x": 59.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 58.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B34",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 60.75,
+              "y": 70.0
+            },
+            "id": "P084",
+            "kind": "home",
+            "point": {
+              "x": 60.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 60.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B35",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 62.25,
+              "y": 70.0
+            },
+            "id": "P085",
+            "kind": "home",
+            "point": {
+              "x": 62.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 61.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B36",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 63.75,
+              "y": 70.0
+            },
+            "id": "P086",
+            "kind": "home",
+            "point": {
+              "x": 63.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 63.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B37",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 65.25,
+              "y": 70.0
+            },
+            "id": "P087",
+            "kind": "home",
+            "point": {
+              "x": 65.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 64.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B38",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 66.75,
+              "y": 70.0
+            },
+            "id": "P088",
+            "kind": "home",
+            "point": {
+              "x": 66.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 66.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B39",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 68.25,
+              "y": 70.0
+            },
+            "id": "P089",
+            "kind": "home",
+            "point": {
+              "x": 68.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 67.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B40",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 69.75,
+              "y": 70.0
+            },
+            "id": "P090",
+            "kind": "home",
+            "point": {
+              "x": 69.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 69.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B41",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 74.25,
+              "y": 70.0
+            },
+            "id": "P091",
+            "kind": "home",
+            "point": {
+              "x": 74.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 73.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B42",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 75.75,
+              "y": 70.0
+            },
+            "id": "P092",
+            "kind": "home",
+            "point": {
+              "x": 75.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 75.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B43",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 77.25,
+              "y": 70.0
+            },
+            "id": "P093",
+            "kind": "home",
+            "point": {
+              "x": 77.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 76.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B44",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 78.75,
+              "y": 70.0
+            },
+            "id": "P094",
+            "kind": "home",
+            "point": {
+              "x": 78.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 78.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B45",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 80.25,
+              "y": 70.0
+            },
+            "id": "P095",
+            "kind": "home",
+            "point": {
+              "x": 80.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 79.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B46",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 81.75,
+              "y": 70.0
+            },
+            "id": "P096",
+            "kind": "home",
+            "point": {
+              "x": 81.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 81.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B47",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 83.25,
+              "y": 70.0
+            },
+            "id": "P097",
+            "kind": "home",
+            "point": {
+              "x": 83.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 82.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B48",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 84.75,
+              "y": 70.0
+            },
+            "id": "P098",
+            "kind": "home",
+            "point": {
+              "x": 84.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 84.0,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B49",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 86.25,
+              "y": 70.0
+            },
+            "id": "P099",
+            "kind": "home",
+            "point": {
+              "x": 86.25,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 85.5,
+            "y": 72.7
+          },
+          {
+            "alias_of": "C-B50",
+            "approachY": 70.0,
+            "d": 1.8,
+            "gate": {
+              "x": 87.75,
+              "y": 70.0
+            },
+            "id": "P100",
+            "kind": "home",
+            "point": {
+              "x": 87.75,
+              "y": 73.6
+            },
+            "staticCollision": false,
+            "w": 1.5,
+            "x": 87.0,
+            "y": 72.7
+          }
+        ],
+        "inbound": "west-eight",
+        "loader_contract": "wide-parameterized-100-canonical-bays-v1",
+        "location_aliases": {
+          "P001": "C-A01",
+          "P002": "C-A02",
+          "P003": "C-A03",
+          "P004": "C-A04",
+          "P005": "C-A05",
+          "P006": "C-A06",
+          "P007": "C-A07",
+          "P008": "C-A08",
+          "P009": "C-A09",
+          "P010": "C-A10",
+          "P011": "C-A11",
+          "P012": "C-A12",
+          "P013": "C-A13",
+          "P014": "C-A14",
+          "P015": "C-A15",
+          "P016": "C-A16",
+          "P017": "C-A17",
+          "P018": "C-A18",
+          "P019": "C-A19",
+          "P020": "C-A20",
+          "P021": "C-A21",
+          "P022": "C-A22",
+          "P023": "C-A23",
+          "P024": "C-A24",
+          "P025": "C-A25",
+          "P026": "C-A26",
+          "P027": "C-A27",
+          "P028": "C-A28",
+          "P029": "C-A29",
+          "P030": "C-A30",
+          "P031": "C-A31",
+          "P032": "C-A32",
+          "P033": "C-A33",
+          "P034": "C-A34",
+          "P035": "C-A35",
+          "P036": "C-A36",
+          "P037": "C-A37",
+          "P038": "C-A38",
+          "P039": "C-A39",
+          "P040": "C-A40",
+          "P041": "C-A41",
+          "P042": "C-A42",
+          "P043": "C-A43",
+          "P044": "C-A44",
+          "P045": "C-A45",
+          "P046": "C-A46",
+          "P047": "C-A47",
+          "P048": "C-A48",
+          "P049": "C-A49",
+          "P050": "C-A50",
+          "P051": "C-B01",
+          "P052": "C-B02",
+          "P053": "C-B03",
+          "P054": "C-B04",
+          "P055": "C-B05",
+          "P056": "C-B06",
+          "P057": "C-B07",
+          "P058": "C-B08",
+          "P059": "C-B09",
+          "P060": "C-B10",
+          "P061": "C-B11",
+          "P062": "C-B12",
+          "P063": "C-B13",
+          "P064": "C-B14",
+          "P065": "C-B15",
+          "P066": "C-B16",
+          "P067": "C-B17",
+          "P068": "C-B18",
+          "P069": "C-B19",
+          "P070": "C-B20",
+          "P071": "C-B21",
+          "P072": "C-B22",
+          "P073": "C-B23",
+          "P074": "C-B24",
+          "P075": "C-B25",
+          "P076": "C-B26",
+          "P077": "C-B27",
+          "P078": "C-B28",
+          "P079": "C-B29",
+          "P080": "C-B30",
+          "P081": "C-B31",
+          "P082": "C-B32",
+          "P083": "C-B33",
+          "P084": "C-B34",
+          "P085": "C-B35",
+          "P086": "C-B36",
+          "P087": "C-B37",
+          "P088": "C-B38",
+          "P089": "C-B39",
+          "P090": "C-B40",
+          "P091": "C-B41",
+          "P092": "C-B42",
+          "P093": "C-B43",
+          "P094": "C-B44",
+          "P095": "C-B45",
+          "P096": "C-B46",
+          "P097": "C-B47",
+          "P098": "C-B48",
+          "P099": "C-B49",
+          "P100": "C-B50"
+        },
+        "migration": {
+          "all_1744_task_location_ids_preserved": true,
+          "coordinates_changed": true,
+          "old_scene_sha256": "744e69309c86d9ad5589805a0f5a7e04bd32347ce5f374afaa9efbf731816960",
+          "raw_tasks_can_be_reused_after_validation": true,
+          "requires": [
+            "new manifest scene hash/version",
+            "new task-locations.csv and coordinates",
+            "route/deadline validation",
+            "map adapter without fixed 60x48 / 24 docks / .6m slot pitch",
+            "dynamic robot occupancy instead of static dock/home rectangles"
+          ],
+          "slot_capacity_unchanged": true,
+          "task_schema_unchanged": true
+        },
+        "notBackendCompatible": true,
+        "obstacles": [
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R01",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 14.0,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R02",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 19.7,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R03",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 25.4,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R04",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 31.1,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R05",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 38.3,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R06",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 44.0,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R07",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 49.7,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R08",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 55.4,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R09",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 61.1,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R10",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 14.0,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R11",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 19.7,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R12",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 25.4,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R13",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 31.1,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R14",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 38.3,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R15",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 44.0,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R16",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 49.7,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R17",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 55.4,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R18",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 61.1,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R19",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 14.0,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R20",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 19.7,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R21",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 25.4,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R22",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 31.1,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R23",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 38.3,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R24",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 44.0,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R25",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 49.7,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R26",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 55.4,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R27",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 61.1,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R28",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 14.0,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R29",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 19.7,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R30",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 25.4,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R31",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 31.1,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R32",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 38.3,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R33",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 44.0,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R34",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 49.7,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R35",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 55.4,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R36",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 61.1,
+            "zone": "ES"
+          },
+          {
+            "d": 48,
+            "id": "IB",
+            "kind": "buffer",
+            "w": 4,
+            "x": 1.5,
+            "y": 14
+          },
+          {
+            "d": 48,
+            "id": "OB",
+            "kind": "buffer",
+            "w": 4,
+            "x": 84.5,
+            "y": 14
+          }
+        ],
+        "physical_bay_count": 100,
+        "racks": [
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R01",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 14.0,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R02",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 19.7,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R03",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 25.4,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R04",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 31.1,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R05",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 38.3,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R06",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 44.0,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R07",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 49.7,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R08",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 55.4,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 0,
+            "d": 1.2,
+            "id": "R09",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 18.3,
+            "y": 61.1,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R10",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 14.0,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R11",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 19.7,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R12",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 25.4,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R13",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 31.1,
+            "zone": "WN"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R14",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 38.3,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R15",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 44.0,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R16",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 49.7,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R17",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 55.4,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 1,
+            "d": 1.2,
+            "id": "R18",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 32.4,
+            "y": 61.1,
+            "zone": "WS"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R19",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 14.0,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R20",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 19.7,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R21",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 25.4,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R22",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 31.1,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R23",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 38.3,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R24",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 44.0,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R25",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 49.7,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R26",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 55.4,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 2,
+            "d": 1.2,
+            "id": "R27",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 48.0,
+            "y": 61.1,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R28",
+            "kind": "rack",
+            "row": 0,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 14.0,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R29",
+            "kind": "rack",
+            "row": 1,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 19.7,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R30",
+            "kind": "rack",
+            "row": 2,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 25.4,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R31",
+            "kind": "rack",
+            "row": 3,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 31.1,
+            "zone": "EN"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R32",
+            "kind": "rack",
+            "row": 4,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 38.3,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R33",
+            "kind": "rack",
+            "row": 5,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 44.0,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R34",
+            "kind": "rack",
+            "row": 6,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 49.7,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R35",
+            "kind": "rack",
+            "row": 7,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 55.4,
+            "zone": "ES"
+          },
+          {
+            "capacity": 48,
+            "column": 3,
+            "d": 1.2,
+            "id": "R36",
+            "kind": "rack",
+            "row": 8,
+            "w": 9.6,
+            "x": 62.1,
+            "y": 61.1,
+            "zone": "ES"
+          }
+        ],
+        "spec": {
+          "approachDepth": 4.4,
+          "bayDepth": 1.8,
+          "bayWidth": 1.5,
+          "baysPerFace": 8,
+          "chargerCount": 100,
+          "depth": 76,
+          "faces": 2,
+          "gridStep": 0.2,
+          "inboundBuffer": 48,
+          "levels": 3,
+          "mainAisleWidth": 6.0,
+          "ordinaryAisleWidth": 4.5,
+          "outboundBuffer": 48,
+          "rackDepth": 1.2,
+          "rackHeight": 1.8,
+          "rackWidth": 9.6,
+          "robotBodyDepth": 0.7,
+          "robotBodyWidth": 0.7,
+          "robotCount": 100,
+          "robotRadius": 0.55,
+          "slotPitch": 1.2,
+          "slotsPerRack": 48,
+          "unit": "m",
+          "version": "warehouse100-wide-v2-proposal",
+          "width": 90
+        },
+        "stations": [
+          {
+            "id": "IN-1",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 17.0
+          },
+          {
+            "id": "OUT-1",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 17.0
+          },
+          {
+            "id": "IN-2",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 23.0
+          },
+          {
+            "id": "OUT-2",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 23.0
+          },
+          {
+            "id": "IN-3",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 29.0
+          },
+          {
+            "id": "OUT-3",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 29.0
+          },
+          {
+            "id": "IN-4",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 35.0
+          },
+          {
+            "id": "OUT-4",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 35.0
+          },
+          {
+            "id": "IN-5",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 41.0
+          },
+          {
+            "id": "OUT-5",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 41.0
+          },
+          {
+            "id": "IN-6",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 47.0
+          },
+          {
+            "id": "OUT-6",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 47.0
+          },
+          {
+            "id": "IN-7",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 53.0
+          },
+          {
+            "id": "OUT-7",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 53.0
+          },
+          {
+            "id": "IN-8",
+            "kind": "inbound",
+            "x": 7.6,
+            "y": 59.0
+          },
+          {
+            "id": "OUT-8",
+            "kind": "outbound",
+            "x": 82.4,
+            "y": 59.0
+          }
+        ],
+        "status": "proposal-not-deployed",
+        "trunks": [
+          {
+            "d": 6,
+            "id": "north",
+            "kind": "trunk",
+            "w": 65.4,
+            "x": 12.3,
+            "y": 8
+          },
+          {
+            "d": 6,
+            "id": "south",
+            "kind": "trunk",
+            "w": 65.4,
+            "x": 12.3,
+            "y": 62.3
+          },
+          {
+            "d": 6,
+            "id": "middle",
+            "kind": "trunk",
+            "w": 65.4,
+            "x": 12.3,
+            "y": 32.3
+          },
+          {
+            "d": 60.3,
+            "id": "west",
+            "kind": "trunk",
+            "w": 6,
+            "x": 12.3,
+            "y": 8
+          },
+          {
+            "d": 60.3,
+            "id": "east",
+            "kind": "trunk",
+            "w": 6,
+            "x": 71.7,
+            "y": 8
+          },
+          {
+            "d": 60.3,
+            "id": "spine",
+            "kind": "trunk",
+            "w": 6,
+            "x": 42,
+            "y": 8
+          }
+        ],
+        "zones": [
+          {
+            "d": 50,
+            "id": "inbound",
+            "kind": "zone",
+            "name": "收货 / 8点 / 暂存48件",
+            "w": 11.2,
+            "x": 0.5,
+            "y": 13
+          },
+          {
+            "d": 50,
+            "id": "outbound",
+            "kind": "zone",
+            "name": "发货 / 8点 / 边界确认离仓",
+            "w": 11.2,
+            "x": 78.3,
+            "y": 13
+          },
+          {
+            "d": 5,
+            "id": "handover",
+            "kind": "zone",
+            "name": "交接 / 维护预留",
+            "w": 7,
+            "x": 2.5,
+            "y": 66
+          }
+        ]
+      },
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "scheduler_code_sha256": "190127d36a50eb9a5f07c302cd3eafaf42eab104447c466db43337e6919b11f5",
+      "scheduler_identity": {
+        "cell_cache_limit": 60000,
+        "distance_cache_limit": 512,
+        "execution_sha256": "85985f008fe4cbbf4f40aa1cc4ba5898d6b0ab86229b7a5f20b7c14ce15fcdd0",
+        "features": [
+          "priority-subset",
+          "exact-cells",
+          "coordinate-distance-cache"
+        ],
+        "mode": "optimized",
+        "planner_override": "original-sipp",
+        "release": "warehouse-scheduler-v4.0.0",
+        "source_sha256": "749c2defb6caa932afc6db747acc8d8e9af46a3d2399b328477fb27a03be6127"
+      },
+      "scheduler_v3_code_sha256": "2d8a6cf98d1bea241e14627c057e1042e820a99e7dfec60a69127f713221483a",
+      "scheduler_v5_identity": {
+        "engine_release": "warehouse-scheduler-v4.0.0",
+        "execution_sha256": "5db8ad34fd2303a6b25a5c2f1fdc9b928f65a761f2fd3a69eac4aa22aa653608",
+        "features": [
+          "v4-motion-engine",
+          "strong-inventory-invariant",
+          "max-cardinality-guarded-cost"
+        ],
+        "parameters": {
+          "deadline_guard": 120.0,
+          "port_pressure_weight": 1.0,
+          "port_queue_cap": 6,
+          "wait_limit": 300
+        },
+        "planner": "original-sipp",
+        "policy": "port-guard",
+        "release": "warehouse-scheduler-v5.0.0",
+        "source_sha256": "749c2defb6caa932afc6db747acc8d8e9af46a3d2399b328477fb27a03be6127"
+      },
+      "tasks_sha256": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
+      "time_unit": "seconds",
+      "wide_code_sha256": "f8aff794387689ca0f8ac8aa49bf7dbc686f5eff2eaaae616926495b1637435c"
+    },
+    "min_task_seq": 2,
+    "prefix": 2048,
+    "prefix_sha256": "4cf4df7deddc104cc78a53dc4b616fd436786a5cf0377ebcc7d07fabcac0e0ed",
+    "run_id": "wh-platform-week-required-20261028",
+    "slot_versions": 68097,
+    "source_head_at_snapshot": 2048,
+    "source_identity": {
+      "code_sha256": "eac2c3957dc5b75969db6da3399299f8b9bc7c5509599527d04b8e90506654a9",
+      "execution_code_sha256": "322d93f992d675bfaa0facdc1a473e8ced7cdd75e7c723db4ffa64c79d3ef3fd",
+      "initial_inventory_sha256": "5341a77ad9f4b02aba99a4e30012ea9346739da625b4744737d0d0d1ab85d8e2",
+      "manifest_sha256": "a79c4c0ba29497cf8ccc0f37cb01461fc7fdcc41749192c90c8add51d4ea4074",
+      "scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24",
+      "scheduler_v3_code_sha256": "2d8a6cf98d1bea241e14627c057e1042e820a99e7dfec60a69127f713221483a",
+      "tasks_sha256": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
+      "wide_code_sha256": "f8aff794387689ca0f8ac8aa49bf7dbc686f5eff2eaaae616926495b1637435c"
+    },
+    "source_journal_path": "/data/workspace/wz/warehouse-platform-joint-20261028/runs/week-required-v2/journal.sqlite",
+    "source_mirrored_seq_at_snapshot": 2048,
+    "state_stage_counts": {
+      "charging": 15119,
+      "handoff_give": 14,
+      "handoff_receive": 14,
+      "idle": 153121,
+      "picking": 1962,
+      "placing": 1887,
+      "returning": 13151,
+      "to_charge": 6,
+      "to_handoff": 14,
+      "to_source": 7906,
+      "to_target": 11221,
+      "traffic_wait": 385
+    },
+    "states": 204800,
+    "task_versions": 73469,
+    "vector_kind": "32d_structured_physical_time_identity_features_not_semantic",
+    "verified": true,
+    "version": "warehouse-real-scale-v1"
+  },
+  "oracle_file_sha256": "f1f7c2e79e0ea4b6f779c5c9720a21d2ea333c1bac81e4dfdc9c04eddc146482",
+  "selected_runtime_files": {
+    "backend/knowledge_runtime/__init__.py": "a9a2f18ceafb49e4fd8904ea080d979d885873efbf294a5c7a0bcb40de20f55e",
+    "backend/knowledge_runtime/policy.py": "f763e163dab557b0076a29b9292cf31bcf54c19dd84cb4a41411da6047038431",
+    "backend/knowledge_runtime/provider.py": "ff9b7924eb79fd8d959c88949fde5360e6993b74e8d527020aa76512ed42ba39",
+    "backend/knowledge_runtime/sim.py": "9ae114c3250d73b75b673d569f96aa6f97a572b6a4618184e0fd7cad0e7c7423",
+    "backend/knowledge_runtime/runner.py": "a44219d5577a1dc645d2df7a8f2c46fcef0a8b744c0b6b1f8b7de91780a56637"
+  },
+  "reported_runtime_stats": {
+    "approved_plans": 14,
+    "approved_transfers": 14,
+    "helper_order_changes": 0,
+    "queries": 28,
+    "query_seconds": 14.199555903673172,
+    "rejected": 0
+  },
+  "source_context_lag_budget_sim_seconds": 30,
+  "knowledge_watermarks": {
+    "minimum_seq": 110,
+    "maximum_seq": 1939,
+    "distinct_sequences": [
+      110,
+      112,
+      184,
+      186,
+      403,
+      405,
+      477,
+      479,
+      695,
+      697,
+      769,
+      771,
+      987,
+      989,
+      1061,
+      1063,
+      1279,
+      1281,
+      1353,
+      1355,
+      1571,
+      1573,
+      1645,
+      1647,
+      1863,
+      1865,
+      1937,
+      1939
+    ],
+    "minimum_observation_lag_sim_seconds": 0,
+    "maximum_observation_lag_sim_seconds": 0
+  },
+  "participants": {
+    "actual_donor_robot_ids": [
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      11,
+      15,
+      56,
+      83
+    ],
+    "actual_receiver_robot_ids": [
+      9,
+      10,
+      17,
+      20,
+      22,
+      23,
+      24,
+      30,
+      34,
+      43,
+      64,
+      70,
+      77,
+      84
+    ],
+    "historical_donor_robot_ids_used": []
+  },
+  "control_chain": {
+    "passed": true,
+    "counts": {
+      "decisions": 28,
+      "planning_decisions": 14,
+      "transfer_decisions": 14,
+      "actual_cargo_handoffs": 14,
+      "authorized_plans_applied": 14,
+      "authorized_transfers_applied": 14,
+      "logged_applied_actions": 28
+    },
+    "errors": [],
+    "unused_authorization_event_seqs": [],
+    "unapplied_handoff_event_seqs": [],
+    "plans": [
+      {
+        "decision_event_seq": 12987,
+        "reservation_event_seq": 12990,
+        "applied_event_seq": 12991,
+        "knowledge_seq": 110,
+        "task_id": "MD-T-00002585",
+        "goods_id": "MD-G-1352-00001",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 22,
+        "cargo_handoff_event_seq": 13011
+      },
+      {
+        "decision_event_seq": 21114,
+        "reservation_event_seq": 21117,
+        "applied_event_seq": 21118,
+        "knowledge_seq": 184,
+        "task_id": "MD-T-00004315",
+        "goods_id": "MD-G-1559-00003",
+        "donor_robot_id": 5,
+        "receiver_robot_id": 23,
+        "cargo_handoff_event_seq": 21134
+      },
+      {
+        "decision_event_seq": 40473,
+        "reservation_event_seq": 40476,
+        "applied_event_seq": 40477,
+        "knowledge_seq": 403,
+        "task_id": "MD-T-00008432",
+        "goods_id": "MD-G-1228-00003",
+        "donor_robot_id": 6,
+        "receiver_robot_id": 34,
+        "cargo_handoff_event_seq": 40553
+      },
+      {
+        "decision_event_seq": 50498,
+        "reservation_event_seq": 50501,
+        "applied_event_seq": 50502,
+        "knowledge_seq": 477,
+        "task_id": "MD-T-00010586",
+        "goods_id": "MD-G-1140-00003",
+        "donor_robot_id": 4,
+        "receiver_robot_id": 17,
+        "cargo_handoff_event_seq": 50556
+      },
+      {
+        "decision_event_seq": 77624,
+        "reservation_event_seq": 77627,
+        "applied_event_seq": 77628,
+        "knowledge_seq": 695,
+        "task_id": "MD-T-00016410",
+        "goods_id": "MD-G-0066-00008",
+        "donor_robot_id": 11,
+        "receiver_robot_id": 30,
+        "cargo_handoff_event_seq": 77658
+      },
+      {
+        "decision_event_seq": 85752,
+        "reservation_event_seq": 85755,
+        "applied_event_seq": 85756,
+        "knowledge_seq": 769,
+        "task_id": "MD-T-00018136",
+        "goods_id": "MD-G-0014-00008",
+        "donor_robot_id": 15,
+        "receiver_robot_id": 43,
+        "cargo_handoff_event_seq": 85770
+      },
+      {
+        "decision_event_seq": 103355,
+        "reservation_event_seq": 103358,
+        "applied_event_seq": 103359,
+        "knowledge_seq": 987,
+        "task_id": "MD-T-00021853",
+        "goods_id": "MD-G-0904-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": 64,
+        "cargo_handoff_event_seq": 103494
+      },
+      {
+        "decision_event_seq": 114071,
+        "reservation_event_seq": 114074,
+        "applied_event_seq": 114075,
+        "knowledge_seq": 1061,
+        "task_id": "MD-T-00024152",
+        "goods_id": "MD-G-0857-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": 70,
+        "cargo_handoff_event_seq": 114218
+      },
+      {
+        "decision_event_seq": 142325,
+        "reservation_event_seq": 142328,
+        "applied_event_seq": 142329,
+        "knowledge_seq": 1279,
+        "task_id": "MD-T-00030236",
+        "goods_id": "MD-G-0474-00016",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 24,
+        "cargo_handoff_event_seq": 142353
+      },
+      {
+        "decision_event_seq": 150454,
+        "reservation_event_seq": 150457,
+        "applied_event_seq": 150458,
+        "knowledge_seq": 1353,
+        "task_id": "MD-T-00031962",
+        "goods_id": "MD-G-1443-00008",
+        "donor_robot_id": 56,
+        "receiver_robot_id": 77,
+        "cargo_handoff_event_seq": 150474
+      },
+      {
+        "decision_event_seq": 174432,
+        "reservation_event_seq": 174435,
+        "applied_event_seq": 174436,
+        "knowledge_seq": 1571,
+        "task_id": "MD-T-00037148",
+        "goods_id": "MD-G-1356-00008",
+        "donor_robot_id": 8,
+        "receiver_robot_id": 9,
+        "cargo_handoff_event_seq": 174456
+      },
+      {
+        "decision_event_seq": 182859,
+        "reservation_event_seq": 182862,
+        "applied_event_seq": 182863,
+        "knowledge_seq": 1645,
+        "task_id": "MD-T-00038877",
+        "goods_id": "MD-G-0440-00018",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 10,
+        "cargo_handoff_event_seq": 182878
+      },
+      {
+        "decision_event_seq": 214755,
+        "reservation_event_seq": 214758,
+        "applied_event_seq": 214759,
+        "knowledge_seq": 1863,
+        "task_id": "MD-T-00045771",
+        "goods_id": "MD-G-1439-00011",
+        "donor_robot_id": 1,
+        "receiver_robot_id": 20,
+        "cargo_handoff_event_seq": 214818
+      },
+      {
+        "decision_event_seq": 229773,
+        "reservation_event_seq": 229776,
+        "applied_event_seq": 229777,
+        "knowledge_seq": 1937,
+        "task_id": "MD-T-00049031",
+        "goods_id": "MD-G-1229-00014",
+        "donor_robot_id": 83,
+        "receiver_robot_id": 84,
+        "cargo_handoff_event_seq": 229779
+      }
+    ],
+    "transfers": [
+      {
+        "decision_event_seq": 13010,
+        "cargo_handoff_event_seq": 13011,
+        "applied_event_seq": 13012,
+        "knowledge_seq": 112,
+        "task_id": "MD-T-00002585",
+        "goods_id": "MD-G-1352-00001",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 22
+      },
+      {
+        "decision_event_seq": 21133,
+        "cargo_handoff_event_seq": 21134,
+        "applied_event_seq": 21135,
+        "knowledge_seq": 186,
+        "task_id": "MD-T-00004315",
+        "goods_id": "MD-G-1559-00003",
+        "donor_robot_id": 5,
+        "receiver_robot_id": 23
+      },
+      {
+        "decision_event_seq": 40550,
+        "cargo_handoff_event_seq": 40553,
+        "applied_event_seq": 40554,
+        "knowledge_seq": 405,
+        "task_id": "MD-T-00008432",
+        "goods_id": "MD-G-1228-00003",
+        "donor_robot_id": 6,
+        "receiver_robot_id": 34
+      },
+      {
+        "decision_event_seq": 50555,
+        "cargo_handoff_event_seq": 50556,
+        "applied_event_seq": 50557,
+        "knowledge_seq": 479,
+        "task_id": "MD-T-00010586",
+        "goods_id": "MD-G-1140-00003",
+        "donor_robot_id": 4,
+        "receiver_robot_id": 17
+      },
+      {
+        "decision_event_seq": 77657,
+        "cargo_handoff_event_seq": 77658,
+        "applied_event_seq": 77659,
+        "knowledge_seq": 697,
+        "task_id": "MD-T-00016410",
+        "goods_id": "MD-G-0066-00008",
+        "donor_robot_id": 11,
+        "receiver_robot_id": 30
+      },
+      {
+        "decision_event_seq": 85769,
+        "cargo_handoff_event_seq": 85770,
+        "applied_event_seq": 85771,
+        "knowledge_seq": 771,
+        "task_id": "MD-T-00018136",
+        "goods_id": "MD-G-0014-00008",
+        "donor_robot_id": 15,
+        "receiver_robot_id": 43
+      },
+      {
+        "decision_event_seq": 103492,
+        "cargo_handoff_event_seq": 103494,
+        "applied_event_seq": 103495,
+        "knowledge_seq": 989,
+        "task_id": "MD-T-00021853",
+        "goods_id": "MD-G-0904-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": 64
+      },
+      {
+        "decision_event_seq": 114217,
+        "cargo_handoff_event_seq": 114218,
+        "applied_event_seq": 114219,
+        "knowledge_seq": 1063,
+        "task_id": "MD-T-00024152",
+        "goods_id": "MD-G-0857-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": 70
+      },
+      {
+        "decision_event_seq": 142352,
+        "cargo_handoff_event_seq": 142353,
+        "applied_event_seq": 142354,
+        "knowledge_seq": 1281,
+        "task_id": "MD-T-00030236",
+        "goods_id": "MD-G-0474-00016",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 24
+      },
+      {
+        "decision_event_seq": 150473,
+        "cargo_handoff_event_seq": 150474,
+        "applied_event_seq": 150475,
+        "knowledge_seq": 1355,
+        "task_id": "MD-T-00031962",
+        "goods_id": "MD-G-1443-00008",
+        "donor_robot_id": 56,
+        "receiver_robot_id": 77
+      },
+      {
+        "decision_event_seq": 174455,
+        "cargo_handoff_event_seq": 174456,
+        "applied_event_seq": 174457,
+        "knowledge_seq": 1573,
+        "task_id": "MD-T-00037148",
+        "goods_id": "MD-G-1356-00008",
+        "donor_robot_id": 8,
+        "receiver_robot_id": 9
+      },
+      {
+        "decision_event_seq": 182877,
+        "cargo_handoff_event_seq": 182878,
+        "applied_event_seq": 182879,
+        "knowledge_seq": 1647,
+        "task_id": "MD-T-00038877",
+        "goods_id": "MD-G-0440-00018",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 10
+      },
+      {
+        "decision_event_seq": 214817,
+        "cargo_handoff_event_seq": 214818,
+        "applied_event_seq": 214819,
+        "knowledge_seq": 1865,
+        "task_id": "MD-T-00045771",
+        "goods_id": "MD-G-1439-00011",
+        "donor_robot_id": 1,
+        "receiver_robot_id": 20
+      },
+      {
+        "decision_event_seq": 229778,
+        "cargo_handoff_event_seq": 229779,
+        "applied_event_seq": 229780,
+        "knowledge_seq": 1939,
+        "task_id": "MD-T-00049031",
+        "goods_id": "MD-G-1229-00014",
+        "donor_robot_id": 83,
+        "receiver_robot_id": 84
+      }
+    ],
+    "decisions": [
+      {
+        "event_seq": 12987,
+        "commit_seq": 111,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 110,
+        "batch_checksum": "8fc1d832035bdf1a8c8f2553bd1917d60cef0e407ae15f2e534d7b71e95a4dba",
+        "task_id": "MD-T-00002585",
+        "goods_id": "MD-G-1352-00001",
+        "donor_robot_id": 7,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          12954,
+          12970
+        ],
+        "context_sha256": "b81ba481a73250766852fe2e9bbac0ef14df8fe28fc1785b850fa948a5b86603",
+        "source_sim_time": 32400,
+        "decision_sim_time": 32400
+      },
+      {
+        "event_seq": 13010,
+        "commit_seq": 113,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 112,
+        "batch_checksum": "c5a006aad52db9c530487e3944ea5f9a410fd5ea005ceb21e1f52bb803dd8720",
+        "task_id": "MD-T-00002585",
+        "goods_id": "MD-G-1352-00001",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 22,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          12954,
+          12970,
+          12990
+        ],
+        "context_sha256": "471f24fe88fed088060698113f36b8741a102400a92c5f060c824f8c67988a63",
+        "source_sim_time": 32451,
+        "decision_sim_time": 32451
+      },
+      {
+        "event_seq": 21114,
+        "commit_seq": 185,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 184,
+        "batch_checksum": "54dbd904382d745b68b4dfcb30011161c8da4a3a2e34df3a0db72c62af58dbce",
+        "task_id": "MD-T-00004315",
+        "goods_id": "MD-G-1559-00003",
+        "donor_robot_id": 5,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          21083,
+          21093
+        ],
+        "context_sha256": "5f13c12b50082472ad77cf2997ec38e0c557b0c21bb37a646ebf2d07fdca96c6",
+        "source_sim_time": 54000,
+        "decision_sim_time": 54000
+      },
+      {
+        "event_seq": 21133,
+        "commit_seq": 187,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 186,
+        "batch_checksum": "871faf815a0cb1452eb04d79a2c5c08b62a19b2b614e7576d81ece00678f6754",
+        "task_id": "MD-T-00004315",
+        "goods_id": "MD-G-1559-00003",
+        "donor_robot_id": 5,
+        "receiver_robot_id": 23,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          21083,
+          21093,
+          21117
+        ],
+        "context_sha256": "d52697636bf70b774129195e2bef9170c2e679fd7a2ee8006d1ca572a2721bb5",
+        "source_sim_time": 54033,
+        "decision_sim_time": 54033
+      },
+      {
+        "event_seq": 40473,
+        "commit_seq": 404,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 403,
+        "batch_checksum": "bb0db85b956416ff038aa1ce67d4473e7fcc49586030f1dbad00893ff72359f0",
+        "task_id": "MD-T-00008432",
+        "goods_id": "MD-G-1228-00003",
+        "donor_robot_id": 6,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          40396,
+          40432
+        ],
+        "context_sha256": "66efb9a69e28808e64266a8eaed56a4529aff6790b49196f6ca32c3770fa42cc",
+        "source_sim_time": 118800,
+        "decision_sim_time": 118800
+      },
+      {
+        "event_seq": 40550,
+        "commit_seq": 406,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 405,
+        "batch_checksum": "6d74c0ef527201f0254f59f8881c79a197828972293cfc250ec426f69c597339",
+        "task_id": "MD-T-00008432",
+        "goods_id": "MD-G-1228-00003",
+        "donor_robot_id": 6,
+        "receiver_robot_id": 34,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          40396,
+          40432,
+          40476
+        ],
+        "context_sha256": "799434bd27253789863674ec3cf8d54a412c718cf9f1189d958f77093684042d",
+        "source_sim_time": 118863,
+        "decision_sim_time": 118863
+      },
+      {
+        "event_seq": 50498,
+        "commit_seq": 478,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 477,
+        "batch_checksum": "dfac5969060cc0f2257ceef69c20c3053a75eec5c28e03b92cb4a7f51830daca",
+        "task_id": "MD-T-00010586",
+        "goods_id": "MD-G-1140-00003",
+        "donor_robot_id": 4,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          50439,
+          50485
+        ],
+        "context_sha256": "9656e3462f635f62f17cc321515afbb1063f614d9a64521cd688b7e6c9b78aa7",
+        "source_sim_time": 140400,
+        "decision_sim_time": 140400
+      },
+      {
+        "event_seq": 50555,
+        "commit_seq": 480,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 479,
+        "batch_checksum": "648e89ce9c615cf788e4ef3a23a2df09ac10650872abfdcc9f13825d55bc70fe",
+        "task_id": "MD-T-00010586",
+        "goods_id": "MD-G-1140-00003",
+        "donor_robot_id": 4,
+        "receiver_robot_id": 17,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          50439,
+          50485,
+          50501
+        ],
+        "context_sha256": "a28fe4d9a420e59106f588329c0785f63f456c2f55ea03f324acf900bb55a109",
+        "source_sim_time": 140445,
+        "decision_sim_time": 140445
+      },
+      {
+        "event_seq": 77624,
+        "commit_seq": 696,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 695,
+        "batch_checksum": "3a9e823783a349186e8cc14590dbc6e93de26063bc2e3c83f1a4d404696df347",
+        "task_id": "MD-T-00016410",
+        "goods_id": "MD-G-0066-00008",
+        "donor_robot_id": 11,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          72456,
+          72476,
+          72491,
+          77601
+        ],
+        "context_sha256": "185933953e822f059108f67cc8f3c647fcff8951319d0f38a14c39e7ee717f91",
+        "source_sim_time": 205200,
+        "decision_sim_time": 205200
+      },
+      {
+        "event_seq": 77657,
+        "commit_seq": 698,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 697,
+        "batch_checksum": "0496620c4adc774f3b94719e315d5366f839ac1aef4a9f88b41c9aab6e795ad8",
+        "task_id": "MD-T-00016410",
+        "goods_id": "MD-G-0066-00008",
+        "donor_robot_id": 11,
+        "receiver_robot_id": 30,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          72456,
+          72476,
+          72491,
+          77601,
+          77627
+        ],
+        "context_sha256": "4c6bbd3e3e0daf1e88e1eacf07c7abcea453541b4a57bc8fc20e6d56f40042c4",
+        "source_sim_time": 205271,
+        "decision_sim_time": 205271
+      },
+      {
+        "event_seq": 85752,
+        "commit_seq": 770,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 769,
+        "batch_checksum": "52862e942f561758ba9985610b1b7194330a3f8bfdfbfb5112a6db2700405f25",
+        "task_id": "MD-T-00018136",
+        "goods_id": "MD-G-0014-00008",
+        "donor_robot_id": 15,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          78437,
+          78454,
+          78488,
+          85724
+        ],
+        "context_sha256": "91a8dba754a66d7c0bea6010e1265f6b8f836af8559f05054dcf555e8f76d07c",
+        "source_sim_time": 226800,
+        "decision_sim_time": 226800
+      },
+      {
+        "event_seq": 85769,
+        "commit_seq": 772,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 771,
+        "batch_checksum": "19f4de71f1450de7597dfb6b403f1053732e80bcc68e6d876799e51d9b594505",
+        "task_id": "MD-T-00018136",
+        "goods_id": "MD-G-0014-00008",
+        "donor_robot_id": 15,
+        "receiver_robot_id": 43,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          78437,
+          78454,
+          78488,
+          85724,
+          85755
+        ],
+        "context_sha256": "9c2ea8582c4b2871eac1b6fb2ce18249f3eb12c73e6d4176f13f88a7609c3012",
+        "source_sim_time": 226841,
+        "decision_sim_time": 226841
+      },
+      {
+        "event_seq": 103355,
+        "commit_seq": 988,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 987,
+        "batch_checksum": "67d9949667d1068944723802f914867f8ffc0c479f3e5fe88d105724f498fe17",
+        "task_id": "MD-T-00021853",
+        "goods_id": "MD-G-0904-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          103177,
+          103326
+        ],
+        "context_sha256": "827e559f7c4e487efc74450f908277496cae4bae254d23e693dbdf65e9a75e06",
+        "source_sim_time": 291600,
+        "decision_sim_time": 291600
+      },
+      {
+        "event_seq": 103492,
+        "commit_seq": 990,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 989,
+        "batch_checksum": "fb360488a662850276fcfa7f8fe3601b6b79f08a2fdfc42f761696e7bbcde812",
+        "task_id": "MD-T-00021853",
+        "goods_id": "MD-G-0904-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": 64,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          103177,
+          103326,
+          103358
+        ],
+        "context_sha256": "d4f38f780655ab570645e00fe400bfe046b8dd3c0542ada83cb11d19fe815094",
+        "source_sim_time": 291640,
+        "decision_sim_time": 291640
+      },
+      {
+        "event_seq": 114071,
+        "commit_seq": 1062,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1061,
+        "batch_checksum": "4f78d50f1a22d5a3694af05c107b42d99b33fa1010736cf4efd2e1e3fbb7efe0",
+        "task_id": "MD-T-00024152",
+        "goods_id": "MD-G-0857-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          113897,
+          114014
+        ],
+        "context_sha256": "546e8547536c9e56bfc3fccc6579b690c27ada4073113a69b7f540a1c93f7233",
+        "source_sim_time": 313200,
+        "decision_sim_time": 313200
+      },
+      {
+        "event_seq": 114217,
+        "commit_seq": 1064,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1063,
+        "batch_checksum": "d26af5b9785aa8187ce1837f9bcff5abd0e95a84ebff05e993b33349f55502b6",
+        "task_id": "MD-T-00024152",
+        "goods_id": "MD-G-0857-00006",
+        "donor_robot_id": 3,
+        "receiver_robot_id": 70,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          113897,
+          114014,
+          114074
+        ],
+        "context_sha256": "06ce2e6890f403d36f380ef682a9b1030d8e51bc6b77ff4eb36d093058ce63de",
+        "source_sim_time": 313243,
+        "decision_sim_time": 313243
+      },
+      {
+        "event_seq": 142325,
+        "commit_seq": 1280,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1279,
+        "batch_checksum": "38360878f299ffea238a05b1582ecf066960ba62fe0d2edad3c8d7a29a05b8c4",
+        "task_id": "MD-T-00030236",
+        "goods_id": "MD-G-0474-00016",
+        "donor_robot_id": 7,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          142303,
+          142312
+        ],
+        "context_sha256": "ec35305680fea8547075b429ea71ceb9c10dc173d79a6c2c3982b918c5e886d8",
+        "source_sim_time": 378000,
+        "decision_sim_time": 378000
+      },
+      {
+        "event_seq": 142352,
+        "commit_seq": 1282,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1281,
+        "batch_checksum": "d666ffff3ec39c837aeec49cd14b1a2fa817715c8dea7b27854447a586d4a62c",
+        "task_id": "MD-T-00030236",
+        "goods_id": "MD-G-0474-00016",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 24,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          142303,
+          142312,
+          142328
+        ],
+        "context_sha256": "c74db67f541919ba2b240455aaa20376995657a9ddc32e8b2c02f3f41e774d97",
+        "source_sim_time": 378064,
+        "decision_sim_time": 378064
+      },
+      {
+        "event_seq": 150454,
+        "commit_seq": 1354,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1353,
+        "batch_checksum": "0a15344e2ad97e0adbef4ebce108001c88098db34b1d9a916a81226b4bf7acc5",
+        "task_id": "MD-T-00031962",
+        "goods_id": "MD-G-1443-00008",
+        "donor_robot_id": 56,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          150423,
+          150434
+        ],
+        "context_sha256": "92d8d230c6e43fa1a4f11a3310bdd748d32e4398fb7a1482b86c3563cb60e2a6",
+        "source_sim_time": 399600,
+        "decision_sim_time": 399600
+      },
+      {
+        "event_seq": 150473,
+        "commit_seq": 1356,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1355,
+        "batch_checksum": "4542865b8e1908ca25dfc811024841cdc29474b38d609bb6e4d4663313d6096c",
+        "task_id": "MD-T-00031962",
+        "goods_id": "MD-G-1443-00008",
+        "donor_robot_id": 56,
+        "receiver_robot_id": 77,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          150423,
+          150434,
+          150457
+        ],
+        "context_sha256": "58a2c65b9b2569a0fbc1ba3b346b21ffd3381f07d0227bc45dd43f9ed2923da9",
+        "source_sim_time": 399631,
+        "decision_sim_time": 399631
+      },
+      {
+        "event_seq": 174432,
+        "commit_seq": 1572,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1571,
+        "batch_checksum": "d9fb9c6e309a1d075da3f444466f2dfab5deccc0768efd4646c52362409668c7",
+        "task_id": "MD-T-00037148",
+        "goods_id": "MD-G-1356-00008",
+        "donor_robot_id": 8,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          174411,
+          174425
+        ],
+        "context_sha256": "77d9b1b42bc2e56f0e13ce742dbe251c712b0181b0ec953fec08fbe626f2aeaa",
+        "source_sim_time": 464400,
+        "decision_sim_time": 464400
+      },
+      {
+        "event_seq": 174455,
+        "commit_seq": 1574,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1573,
+        "batch_checksum": "827fe005c875ab5a5a2faca6172b36a56ed5724272111874ce822051737e8502",
+        "task_id": "MD-T-00037148",
+        "goods_id": "MD-G-1356-00008",
+        "donor_robot_id": 8,
+        "receiver_robot_id": 9,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          174411,
+          174425,
+          174435
+        ],
+        "context_sha256": "602328f2845ec62387c34a0183b0c28912e4d910bbd29498f6bfcfc2d992853e",
+        "source_sim_time": 464442,
+        "decision_sim_time": 464442
+      },
+      {
+        "event_seq": 182859,
+        "commit_seq": 1646,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1645,
+        "batch_checksum": "ae06b6f885e655d10a78b0206453354790ed34ce361835445b0721210b694640",
+        "task_id": "MD-T-00038877",
+        "goods_id": "MD-G-0440-00018",
+        "donor_robot_id": 7,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          182840,
+          182856
+        ],
+        "context_sha256": "e7e5d7b4a1dc240ab09f06416d864498ec9a60b54f2e84cf31cb46ab326542f0",
+        "source_sim_time": 486000,
+        "decision_sim_time": 486000
+      },
+      {
+        "event_seq": 182877,
+        "commit_seq": 1648,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1647,
+        "batch_checksum": "83f49113f0d28e4dc67db0cf24fb9cd62551ac4bc070fe0dfc6ba6cd113efa64",
+        "task_id": "MD-T-00038877",
+        "goods_id": "MD-G-0440-00018",
+        "donor_robot_id": 7,
+        "receiver_robot_id": 10,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          182840,
+          182856,
+          182862
+        ],
+        "context_sha256": "e4abc0068a13447c34d7d3ec8f7c732d399de1a81c0bb498c59b2ceaa4b176c2",
+        "source_sim_time": 486039,
+        "decision_sim_time": 486039
+      },
+      {
+        "event_seq": 214755,
+        "commit_seq": 1864,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1863,
+        "batch_checksum": "017fd02ec7890e6733c7a40885d44d117d5b23c006994ca1cdc7a58fc61a1531",
+        "task_id": "MD-T-00045771",
+        "goods_id": "MD-G-1439-00011",
+        "donor_robot_id": 1,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          214650,
+          214705
+        ],
+        "context_sha256": "624bf7574727057aa4579c6e8a1cbf9d522c882e7e75a5f6fdedc1b32dc4887a",
+        "source_sim_time": 550800,
+        "decision_sim_time": 550800
+      },
+      {
+        "event_seq": 214817,
+        "commit_seq": 1866,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1865,
+        "batch_checksum": "70df07a0dac444256e6a75956130513caa7a56153eb4f7ed9af65ae68aec028f",
+        "task_id": "MD-T-00045771",
+        "goods_id": "MD-G-1439-00011",
+        "donor_robot_id": 1,
+        "receiver_robot_id": 20,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          214650,
+          214705,
+          214758
+        ],
+        "context_sha256": "96d9c609f5161c1bdb903c209f14733e5d1c719a922e13f60fa127c9e999019a",
+        "source_sim_time": 550845,
+        "decision_sim_time": 550845
+      },
+      {
+        "event_seq": 229773,
+        "commit_seq": 1938,
+        "action": "authorize_assistance_planning",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1937,
+        "batch_checksum": "2b94e95dcf97a269386b0934186879969724ba208e9a289df95f9c66b93384a7",
+        "task_id": "MD-T-00049031",
+        "goods_id": "MD-G-1229-00014",
+        "donor_robot_id": 83,
+        "receiver_robot_id": null,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          214281,
+          214332,
+          214478,
+          229769
+        ],
+        "context_sha256": "07619a71d43ef61cbb9c8dcae87036c7ec3454cc9917c6dc09f70efcd724e2af",
+        "source_sim_time": 572400,
+        "decision_sim_time": 572400
+      },
+      {
+        "event_seq": 229778,
+        "commit_seq": 1940,
+        "action": "authorize_transfer",
+        "run_id": "wh-platform-week-required-20261028",
+        "seq": 1939,
+        "batch_checksum": "910d5bcc6c8ac85ed229492cb906e2611e140f0c57072f1a7af92cf02e72737c",
+        "task_id": "MD-T-00049031",
+        "goods_id": "MD-G-1229-00014",
+        "donor_robot_id": 83,
+        "receiver_robot_id": 84,
+        "historical_donor_robot_ids": [],
+        "history_event_seqs": [
+          214281,
+          214332,
+          214478,
+          229769,
+          229776
+        ],
+        "context_sha256": "892d79b7f9de4723f4a26fd1ef9fffaf8050de248ad865d2af58c23f08ebb294",
+        "source_sim_time": 572435,
+        "decision_sim_time": 572435
+      }
+    ]
+  }
+}

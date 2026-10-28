@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "scope": "two12paired serial diagnostic windows; cold included; no runtime/default change",
+  "summary": {
+    "client": {
+      "requests": 24,
+      "mean_ms": 230.15274899080396,
+      "max_ms": 309.6275422722101,
+      "over_500ms": 0
+    },
+    "server": {
+      "requests": 24,
+      "mean_ms": 146.89796918537468,
+      "max_ms": 1121.800652705133,
+      "over_500ms": 1
+    }
+  },
+  "last_window": {
+    "client": {
+      "requests": 12,
+      "mean_ms": 234.99489839499196,
+      "p99_ms": 309.6275422722101,
+      "max_ms": 309.6275422722101,
+      "over_500ms": 0
+    },
+    "server": {
+      "requests": 12,
+      "mean_ms": 106.63245874457061,
+      "p99_ms": 148.8708909600973,
+      "max_ms": 148.8708909600973,
+      "over_500ms": 0
+    }
+  },
+  "all48_strict_source_key_order_checks": true,
+  "budget_rejection_each": true,
+  "packet": {
+    "bytes": 62402,
+    "sha256": "d90c965c611301dd1e8698c62d3f8fecb0761ea9a510790dba9aa8086f41e796",
+    "files": 10,
+    "all_sha_crc_valid": true
+  },
+  "backend_unchanged": true,
+  "shared_environment_unchanged": true
+}

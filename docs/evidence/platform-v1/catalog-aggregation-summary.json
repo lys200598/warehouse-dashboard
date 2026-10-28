@@ -1,0 +1,951 @@
+{
+  "version": "warehouse-catalog-aggregation-compact-v1",
+  "date": "2026-10-28",
+  "production_default_changed": false,
+  "full_week_formal_source_changed": false,
+  "scope": "historical cutoff diagnostic plus query-only read-only AB/BA prototypes; separate from final full-week joint acceptance",
+  "run_id": "wh-platform-week-required-20261028",
+  "cutoff": 876,
+  "point_kind": "historical",
+  "cutoff_observed_at_ns": 1793163965592345717,
+  "request_parameters": {
+    "query_id": "self",
+    "run_id": "wh-platform-week-required-20261028",
+    "seq": 876,
+    "robot_id": 1,
+    "task_id": "MD-T-00020665",
+    "start_seq": 873,
+    "event_limit": 10000,
+    "history_limit": 1000,
+    "window_steps": 60,
+    "max_candidates": 10000,
+    "limit": 5
+  },
+  "source_snapshot": {
+    "path": "/data/workspace/wz/warehouse-platform-joint-20261028/queries/catalog-midrun-v1/journal-snapshot.sqlite",
+    "sha256": "375dd3d52c84f2cd20f7149e97b06699f202afa880b9ffa02c152020af7c5002",
+    "head": 877,
+    "method": "sqlite3-online-backup",
+    "integrity": "ok",
+    "started_ns": 1793163968523498793,
+    "end_ns": 1793163968816399528
+  },
+  "source_verification": {
+    "passed": true,
+    "request_count": 11,
+    "parsed_request_count": 11,
+    "queries_by_id": {
+      "self": 1,
+      "readiness": 1,
+      "task": 1,
+      "goods": 1,
+      "energy": 1,
+      "assistance": 1,
+      "progress": 1,
+      "memory": 1,
+      "local_awareness": 1,
+      "global": 1,
+      "similar_history": 1
+    },
+    "error_count": 0,
+    "errors": [],
+    "scope": "posthoc complete catalog responses vs original journal/RealOracle; business-exact has independent scalar topK; legacy full-ann requires separate frozen verifier",
+    "source_run_id": "wh-platform-week-required-20261028",
+    "source_journal_head": 877,
+    "source_prefix_sha256": "ebc90bb71245488184d3b76e7509f11adbf2169ec001fc6cae2f4437d45b61b5",
+    "source_journal_sha256": "375dd3d52c84f2cd20f7149e97b06699f202afa880b9ffa02c152020af7c5002",
+    "file_hashes": {
+      "requests": "fa86b88528458200ffafdf17252c00d4471fd7df7bb996d097bc3b2eadc046fa",
+      "responses": "c7c737ebcb161f93238a065e1cbe8301a1dcb6f5db8e1d4ac89c3a4f0280669c"
+    },
+    "oracle_file_sha256": "0c23638e20d7ef51ef6abaf3949be1484d18a11c3a00cdc57c959488b1602d75",
+    "oracle_prefix": 876,
+    "source_and_packets_unchanged": true
+  },
+  "query_results": [
+    {
+      "query_id": "self",
+      "request_id": "midrun-r1-self",
+      "service_ms": 3.998944,
+      "database_call_ms": 3.500919,
+      "database_statements": 1,
+      "response_json_bytes": 1130,
+      "start_ns": 1793163965886253634,
+      "end_ns": 1793163965890254557,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "3904eab735c3d74e7ffb394cdd285cdbee344297bc7099758b0bbb1e01fa8d03",
+      "database_phases": [
+        {
+          "query_sha256": "4b4af0f8aa8d8fb57bc8fffc0b4921d1eb8995c9a5b45d67e1f60ef36a05ba59",
+          "elapsed_ms": 3.500919,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "readiness",
+      "request_id": "midrun-r1-readiness",
+      "service_ms": 1.079693,
+      "database_call_ms": 0.864503,
+      "database_statements": 1,
+      "response_json_bytes": 1135,
+      "start_ns": 1793163965890530238,
+      "end_ns": 1793163965891610878,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "fcb04cee62bfc4e83e30cf61a95be7982c5e65bfb42df981b2ba277f75e4613a",
+      "database_phases": [
+        {
+          "query_sha256": "4b4af0f8aa8d8fb57bc8fffc0b4921d1eb8995c9a5b45d67e1f60ef36a05ba59",
+          "elapsed_ms": 0.864503,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "task",
+      "request_id": "midrun-r1-task",
+      "service_ms": 41.22646,
+      "database_call_ms": 39.638665,
+      "database_statements": 2,
+      "response_json_bytes": 2068,
+      "start_ns": 1793163965891772440,
+      "end_ns": 1793163965933001524,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "aeb754124b31f41025737777e91d93fae5bd577b8f3ee56415c5424e61876bef",
+      "database_phases": [
+        {
+          "query_sha256": "5f7f21e1d052aa68d7986f3f86e71615f1bfa5a27c0a5771aacde35c4b6382cc",
+          "elapsed_ms": 36.876978,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "a8272d75d85b4b554ff4fb8ed15295d4da0bd75e6c41e1953377d5e7abd7e993",
+          "elapsed_ms": 2.761687,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "goods",
+      "request_id": "midrun-r1-goods",
+      "service_ms": 5.450426,
+      "database_call_ms": 4.26882,
+      "database_statements": 2,
+      "response_json_bytes": 2069,
+      "start_ns": 1793163965933958780,
+      "end_ns": 1793163965939412130,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "e9df5107fefafe727c5af10c724090da5464a002f421c49ff27fc388a37ace18",
+      "database_phases": [
+        {
+          "query_sha256": "5f7f21e1d052aa68d7986f3f86e71615f1bfa5a27c0a5771aacde35c4b6382cc",
+          "elapsed_ms": 2.187116,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "a8272d75d85b4b554ff4fb8ed15295d4da0bd75e6c41e1953377d5e7abd7e993",
+          "elapsed_ms": 2.081704,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "energy",
+      "request_id": "midrun-r1-energy",
+      "service_ms": 125.65975,
+      "database_call_ms": 104.406637,
+      "database_statements": 1,
+      "response_json_bytes": 27179,
+      "start_ns": 1793163965940092011,
+      "end_ns": 1793163966065756854,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "4f2f68003e636bc7de9186741866dc7eda1f0c3625efc479542a5523b74aca0c",
+      "database_phases": [
+        {
+          "query_sha256": "51d902346dd2f9807dbb99b5bd4cf69a7f838afdf1bfb77554b44e96718c0e52",
+          "elapsed_ms": 104.406637,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "assistance",
+      "request_id": "midrun-r1-assistance",
+      "service_ms": 229.934761,
+      "database_call_ms": 176.72965299999998,
+      "database_statements": 2,
+      "response_json_bytes": 167573,
+      "start_ns": 1793163966071746298,
+      "end_ns": 1793163966301686244,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "ba07247450b40d04b9deb63b714382b3151052d0b92c929ea886409ae0119453",
+      "database_phases": [
+        {
+          "query_sha256": "51d902346dd2f9807dbb99b5bd4cf69a7f838afdf1bfb77554b44e96718c0e52",
+          "elapsed_ms": 8.680208,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "26c2a4a2fa7e4e1cb05b4adeb01caabab0e43e20a2b69707223d6d9a4a3f659d",
+          "elapsed_ms": 168.049445,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "progress",
+      "request_id": "midrun-r1-progress",
+      "service_ms": 189.522331,
+      "database_call_ms": 178.384131,
+      "database_statements": 2,
+      "response_json_bytes": 1795,
+      "start_ns": 1793163966345233304,
+      "end_ns": 1793163966534760816,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "3f072f835634d72985ee99cf84823a8376275915e659cfe93eb8360ef0cdb17d",
+      "database_phases": [
+        {
+          "query_sha256": "51d902346dd2f9807dbb99b5bd4cf69a7f838afdf1bfb77554b44e96718c0e52",
+          "elapsed_ms": 18.534095,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "26c2a4a2fa7e4e1cb05b4adeb01caabab0e43e20a2b69707223d6d9a4a3f659d",
+          "elapsed_ms": 159.850036,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "memory",
+      "request_id": "midrun-r1-memory",
+      "service_ms": 219.62432,
+      "database_call_ms": 193.462216,
+      "database_statements": 3,
+      "response_json_bytes": 4334,
+      "start_ns": 1793163966536746949,
+      "end_ns": 1793163966756375967,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "c26120f060c23a7b3ef4e7f6e1df6a01b3676650147800c3d1431991a35a726b",
+      "database_phases": [
+        {
+          "query_sha256": "51d902346dd2f9807dbb99b5bd4cf69a7f838afdf1bfb77554b44e96718c0e52",
+          "elapsed_ms": 10.424355,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "26c2a4a2fa7e4e1cb05b4adeb01caabab0e43e20a2b69707223d6d9a4a3f659d",
+          "elapsed_ms": 72.896217,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "f311d643d4318b585fc09ff491ca7fa26b8d21b99026429c88efcdfc56acd253",
+          "elapsed_ms": 110.141644,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "local_awareness",
+      "request_id": "midrun-r1-local_awareness",
+      "service_ms": 780.372366,
+      "database_call_ms": 743.273835,
+      "database_statements": 3,
+      "response_json_bytes": 10005,
+      "start_ns": 1793163966759064222,
+      "end_ns": 1793163967539439537,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "f49e980527d9ab694c2c5660b317e2777efba5d4d767c4be6e81abecd9716654",
+      "database_phases": [
+        {
+          "query_sha256": "51d902346dd2f9807dbb99b5bd4cf69a7f838afdf1bfb77554b44e96718c0e52",
+          "elapsed_ms": 11.821097,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "26c2a4a2fa7e4e1cb05b4adeb01caabab0e43e20a2b69707223d6d9a4a3f659d",
+          "elapsed_ms": 12.672429,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "20ebaa97554481239eeec29c867e86e03ca18fb91080c57fee6f9ee0b1075120",
+          "elapsed_ms": 718.780309,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "global",
+      "request_id": "midrun-r1-global",
+      "service_ms": 652.228392,
+      "database_call_ms": 625.354049,
+      "database_statements": 3,
+      "response_json_bytes": 41260,
+      "start_ns": 1793163967541391641,
+      "end_ns": 1793163968193623441,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "204188ad389fcc408eaa75782f4ae6f2063ecfcf10a0adf28b4069739b5c73d5",
+      "database_phases": [
+        {
+          "query_sha256": "51d902346dd2f9807dbb99b5bd4cf69a7f838afdf1bfb77554b44e96718c0e52",
+          "elapsed_ms": 8.036074,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "26c2a4a2fa7e4e1cb05b4adeb01caabab0e43e20a2b69707223d6d9a4a3f659d",
+          "elapsed_ms": 6.168246,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "20ebaa97554481239eeec29c867e86e03ca18fb91080c57fee6f9ee0b1075120",
+          "elapsed_ms": 611.149729,
+          "rows_returned": 1,
+          "error": null
+        }
+      ]
+    },
+    {
+      "query_id": "similar_history",
+      "request_id": "midrun-r1-similar_history",
+      "service_ms": 309.682522,
+      "database_call_ms": 228.15944000000002,
+      "database_statements": 2,
+      "response_json_bytes": 3103,
+      "start_ns": 1793163968212744695,
+      "end_ns": 1793163968522430505,
+      "ok": true,
+      "source_check_passed": true,
+      "source_check_basis": "complete per-request verifier finished with zero errors and exactly one verified response for this query_id",
+      "response_sha256": "e3bd1df0cb3c20bdb86db95904da19ff3509197f82eef9bf1eff8473c12640de",
+      "database_phases": [
+        {
+          "query_sha256": "ea1ba0cc381d91a94d7fc764d639b5d88c1c69cc4a947be23b3d01ce90f921fc",
+          "elapsed_ms": 37.33619,
+          "rows_returned": 1,
+          "error": null
+        },
+        {
+          "query_sha256": "e8774259d38912b5c1b9c628335c8c656cad3d92cb035396446b8d7c94fa53fb",
+          "elapsed_ms": 190.82325,
+          "rows_returned": 4059,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "candidate": "ordered_stream",
+      "scope": "read-only query-only prototype, historical same cutoff; production catalog unchanged",
+      "pairs": 4,
+      "order_by_pair": [
+        [
+          "baseline",
+          "ordered_stream"
+        ],
+        [
+          "ordered_stream",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "ordered_stream"
+        ],
+        [
+          "ordered_stream",
+          "baseline"
+        ]
+      ],
+      "timed_requests_total": 8,
+      "timed_requests_per_method": 4,
+      "profile_calls_excluded_from_speed_statistics": 2,
+      "oracle_source_task_count": 20667,
+      "initial_graph_entity_count": 20736,
+      "entity_budget": 100000,
+      "entity_count_semantics": "current graph entities, including those first committed after historical cutoff; complete cutoff aggregate is independently source-verified",
+      "all_full_aggregate_rows_source_verified": true,
+      "source_journal_sha256": "375dd3d52c84f2cd20f7149e97b06699f202afa880b9ffa02c152020af7c5002",
+      "source_verification_sha256": "52c741bc14fee9751241c27e57153e4a40cffb95eb1810cdca686044a1c6b4bb",
+      "source_oracle_sha256": "0c23638e20d7ef51ef6abaf3949be1484d18a11c3a00cdc57c959488b1602d75",
+      "statistics": {
+        "baseline": {
+          "requests": 4,
+          "mean_ms": 563.985929,
+          "max_ms": 580.6521,
+          "over_500ms": 4
+        },
+        "ordered_stream": {
+          "requests": 4,
+          "mean_ms": 368.97254050000004,
+          "max_ms": 538.557796,
+          "over_500ms": 1
+        }
+      },
+      "mean_reduction_percent": 34.57770459730743,
+      "requests": [
+        {
+          "pair": 1,
+          "method": "baseline",
+          "start_ns": 1793164238422422631,
+          "end_ns": 1793164239003079477,
+          "query_ms": 580.6521,
+          "first_call_for_method": true,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 954,
+          "error": null
+        },
+        {
+          "pair": 1,
+          "method": "ordered_stream",
+          "start_ns": 1793164239003403639,
+          "end_ns": 1793164239541964989,
+          "query_ms": 538.557796,
+          "first_call_for_method": true,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 954,
+          "error": null
+        },
+        {
+          "pair": 2,
+          "method": "ordered_stream",
+          "start_ns": 1793164239542310634,
+          "end_ns": 1793164239837384197,
+          "query_ms": 295.069448,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 954,
+          "error": null
+        },
+        {
+          "pair": 2,
+          "method": "baseline",
+          "start_ns": 1793164239837839161,
+          "end_ns": 1793164240402032749,
+          "query_ms": 564.187798,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 954,
+          "error": null
+        },
+        {
+          "pair": 3,
+          "method": "baseline",
+          "start_ns": 1793164240402612303,
+          "end_ns": 1793164240961916272,
+          "query_ms": 559.297583,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 954,
+          "error": null
+        },
+        {
+          "pair": 3,
+          "method": "ordered_stream",
+          "start_ns": 1793164240974559316,
+          "end_ns": 1793164241309426766,
+          "query_ms": 334.859998,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 954,
+          "error": null
+        },
+        {
+          "pair": 4,
+          "method": "ordered_stream",
+          "start_ns": 1793164241314713326,
+          "end_ns": 1793164241622123061,
+          "query_ms": 307.40292,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 955,
+          "error": null
+        },
+        {
+          "pair": 4,
+          "method": "baseline",
+          "start_ns": 1793164241622686416,
+          "end_ns": 1793164242174499559,
+          "query_ms": 551.806235,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20736,
+          "observed_graph_head": 955,
+          "error": null
+        }
+      ],
+      "profiles": [
+        {
+          "method": "baseline",
+          "elapsed_ms": 1026.498337,
+          "total_db_hits": 952119,
+          "top_db_hit_operators": [
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 20667,
+              "db_hits": 518779,
+              "details": "(slot)-[anon_1:IN_RACK]->(rack)"
+            },
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 123590,
+              "db_hits": 123592,
+              "details": "(r)<-[anon_0:IN_RUN]-(t)"
+            },
+            {
+              "operator": "Filter@neo4j",
+              "rows": 20736,
+              "db_hits": 123590,
+              "details": "t:WHTask"
+            },
+            {
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 20667,
+              "db_hits": 62001,
+              "details": "UNIQUE slot:WHSlot(key) WHERE key = ($run + $autostring_1) + v.slot_id"
+            },
+            {
+              "operator": "NodeIndexSeek@neo4j",
+              "rows": 20667,
+              "db_hits": 41403,
+              "details": "RANGE INDEX v:WHTaskState(run_id, task_id, seq) WHERE run_id = $run AND task_id = task_id AND seq <= $seq"
+            },
+            {
+              "operator": "EagerAggregation@neo4j",
+              "rows": 10,
+              "db_hits": 41344,
+              "details": "coalesce(rack.zone, $autostring_2) AS zone, cache[v.status] AS status, count(*) AS tasks, sum(CASE\n  WHEN NOT cache[v.status] = $autostring_3 AND v.due_second < $clock THEN $autoint_4\n  ELSE $autoint_5\nEND) AS overdue"
+            },
+            {
+              "operator": "Projection@neo4j",
+              "rows": 20736,
+              "db_hits": 20736,
+              "details": "cache[t.task_id] AS `t.task_id`"
+            }
+          ],
+          "source_check_passed": true,
+          "error": null
+        },
+        {
+          "method": "ordered_stream",
+          "elapsed_ms": 428.137789,
+          "total_db_hits": 678750,
+          "top_db_hit_operators": [
+            {
+              "operator": "Expand(Into)@neo4j",
+              "rows": 20667,
+              "db_hits": 267404,
+              "details": "(t)-[anon_1:IN_RUN]->(r)"
+            },
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 123590,
+              "db_hits": 123592,
+              "details": "(r)<-[anon_0:IN_RUN]-(t)"
+            },
+            {
+              "operator": "Filter@neo4j",
+              "rows": 20736,
+              "db_hits": 123590,
+              "details": "t:WHTask"
+            },
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 1738,
+              "db_hits": 44760,
+              "details": "(slot)-[anon_2:IN_RACK]->(rack)"
+            },
+            {
+              "operator": "CacheProperties@neo4j",
+              "rows": 20667,
+              "db_hits": 41334,
+              "details": "cache[v.slot_id], cache[v.status]"
+            },
+            {
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 20667,
+              "db_hits": 41334,
+              "details": "UNIQUE t:WHTask(key) WHERE key = ($run + $autostring_1) + task_id"
+            },
+            {
+              "operator": "NodeIndexSeek@neo4j",
+              "rows": 29766,
+              "db_hits": 29767,
+              "details": "RANGE INDEX v:WHTaskState(run_id, task_id, seq) WHERE run_id = $run AND task_id IS NOT NULL AND seq IS NOT NULL, cache[v.task_id], cache[v.seq]"
+            }
+          ],
+          "source_check_passed": true,
+          "error": null
+        }
+      ],
+      "original_report_sha256": "b8221684726560842bcf1efd9b5ac080359a7aa0d92d8997e9d40be5f7224ce2",
+      "original_raw_rows_sha256": "ac0f675d74ba0217291c08eff851edc3d1c3923ccb526579fb5c62540b337bae"
+    },
+    {
+      "candidate": "per_task_preaggregate",
+      "scope": "read-only query-only prototype, historical same cutoff; production catalog unchanged",
+      "pairs": 4,
+      "order_by_pair": [
+        [
+          "baseline",
+          "per_task_preaggregate"
+        ],
+        [
+          "per_task_preaggregate",
+          "baseline"
+        ],
+        [
+          "baseline",
+          "per_task_preaggregate"
+        ],
+        [
+          "per_task_preaggregate",
+          "baseline"
+        ]
+      ],
+      "timed_requests_total": 8,
+      "timed_requests_per_method": 4,
+      "profile_calls_excluded_from_speed_statistics": 2,
+      "oracle_source_task_count": 20667,
+      "initial_graph_entity_count": 20880,
+      "entity_budget": 100000,
+      "entity_count_semantics": "current graph entities, including those first committed after historical cutoff; complete cutoff aggregate is independently source-verified",
+      "all_full_aggregate_rows_source_verified": true,
+      "source_journal_sha256": "375dd3d52c84f2cd20f7149e97b06699f202afa880b9ffa02c152020af7c5002",
+      "source_verification_sha256": "52c741bc14fee9751241c27e57153e4a40cffb95eb1810cdca686044a1c6b4bb",
+      "source_oracle_sha256": "0c23638e20d7ef51ef6abaf3949be1484d18a11c3a00cdc57c959488b1602d75",
+      "statistics": {
+        "baseline": {
+          "requests": 4,
+          "mean_ms": 616.92325475,
+          "max_ms": 663.709511,
+          "over_500ms": 4
+        },
+        "per_task_preaggregate": {
+          "requests": 4,
+          "mean_ms": 447.15818249999995,
+          "max_ms": 519.226736,
+          "over_500ms": 1
+        }
+      },
+      "mean_reduction_percent": 27.518021235687584,
+      "requests": [
+        {
+          "pair": 1,
+          "method": "baseline",
+          "start_ns": 1793164335905083137,
+          "end_ns": 1793164336524240488,
+          "query_ms": 619.146891,
+          "first_call_for_method": true,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 1,
+          "method": "per_task_preaggregate",
+          "start_ns": 1793164336524634671,
+          "end_ns": 1793164337043866288,
+          "query_ms": 519.226736,
+          "first_call_for_method": true,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 2,
+          "method": "per_task_preaggregate",
+          "start_ns": 1793164337044468683,
+          "end_ns": 1793164337505378597,
+          "query_ms": 460.904559,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 2,
+          "method": "baseline",
+          "start_ns": 1793164337505918333,
+          "end_ns": 1793164338088814058,
+          "query_ms": 582.889451,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 3,
+          "method": "baseline",
+          "start_ns": 1793164338089485222,
+          "end_ns": 1793164338753200501,
+          "query_ms": 663.709511,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 3,
+          "method": "per_task_preaggregate",
+          "start_ns": 1793164338753797106,
+          "end_ns": 1793164339150779287,
+          "query_ms": 396.976774,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 4,
+          "method": "per_task_preaggregate",
+          "start_ns": 1793164339151403248,
+          "end_ns": 1793164339562933951,
+          "query_ms": 411.524661,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        },
+        {
+          "pair": 4,
+          "method": "baseline",
+          "start_ns": 1793164339563518991,
+          "end_ns": 1793164340165470319,
+          "query_ms": 601.947166,
+          "first_call_for_method": false,
+          "source_check_passed": true,
+          "graph_entity_count": 20880,
+          "observed_graph_head": 976,
+          "error": null
+        }
+      ],
+      "profiles": [
+        {
+          "method": "baseline",
+          "elapsed_ms": 625.235129,
+          "total_db_hits": 955044,
+          "top_db_hit_operators": [
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 20667,
+              "db_hits": 519904,
+              "details": "(slot)-[anon_1:IN_RACK]->(rack)"
+            },
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 124346,
+              "db_hits": 124348,
+              "details": "(r)<-[anon_0:IN_RUN]-(t)"
+            },
+            {
+              "operator": "Filter@neo4j",
+              "rows": 20880,
+              "db_hits": 124346,
+              "details": "t:WHTask"
+            },
+            {
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 20667,
+              "db_hits": 62001,
+              "details": "UNIQUE slot:WHSlot(key) WHERE key = ($run + $autostring_1) + v.slot_id"
+            },
+            {
+              "operator": "NodeIndexSeek@neo4j",
+              "rows": 20667,
+              "db_hits": 41547,
+              "details": "RANGE INDEX v:WHTaskState(run_id, task_id, seq) WHERE run_id = $run AND task_id = task_id AND seq <= $seq"
+            },
+            {
+              "operator": "EagerAggregation@neo4j",
+              "rows": 10,
+              "db_hits": 41344,
+              "details": "coalesce(rack.zone, $autostring_2) AS zone, cache[v.status] AS status, count(*) AS tasks, sum(CASE\n  WHEN NOT cache[v.status] = $autostring_3 AND v.due_second < $clock THEN $autoint_4\n  ELSE $autoint_5\nEND) AS overdue"
+            },
+            {
+              "operator": "Projection@neo4j",
+              "rows": 20880,
+              "db_hits": 20880,
+              "details": "cache[t.task_id] AS `t.task_id`"
+            }
+          ],
+          "source_check_passed": true,
+          "error": null
+        },
+        {
+          "method": "per_task_preaggregate",
+          "elapsed_ms": 436.168635,
+          "total_db_hits": 404383,
+          "top_db_hit_operators": [
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 124346,
+              "db_hits": 124348,
+              "details": "(r)<-[anon_0:IN_RUN]-(t)"
+            },
+            {
+              "operator": "Filter@neo4j",
+              "rows": 20880,
+              "db_hits": 124346,
+              "details": "t:WHTask"
+            },
+            {
+              "operator": "Expand(All)@neo4j",
+              "rows": 1738,
+              "db_hits": 44959,
+              "details": "(slot)-[anon_1:IN_RACK]->(rack)"
+            },
+            {
+              "operator": "NodeIndexSeek@neo4j",
+              "rows": 20667,
+              "db_hits": 41547,
+              "details": "RANGE INDEX v:WHTaskState(run_id, task_id, seq) WHERE run_id = $run AND task_id = task_id AND seq <= $seq"
+            },
+            {
+              "operator": "CacheProperties@neo4j",
+              "rows": 20667,
+              "db_hits": 41334,
+              "details": "cache[v.slot_id], cache[v.status]"
+            },
+            {
+              "operator": "Projection@neo4j",
+              "rows": 20880,
+              "db_hits": 20880,
+              "details": "cache[t.task_id] AS `t.task_id`"
+            },
+            {
+              "operator": "NodeUniqueIndexSeek@neo4j",
+              "rows": 1738,
+              "db_hits": 3476,
+              "details": "UNIQUE slot:WHSlot(key) WHERE key = ($run + $autostring_4) + slot_id"
+            }
+          ],
+          "source_check_passed": true,
+          "error": null
+        }
+      ],
+      "original_report_sha256": "a0a7e5efe45427030119c3e70191a6324763b3c051869457509f8107da2d41da",
+      "original_raw_rows_sha256": "44cd1d26898171172aab0f469a0dc91732ea89507ccdf65f92f6680044dbcffc"
+    }
+  ],
+  "first_call_policy": "Every first measured call is included; no explicit cache flush; previous catalog/driver/schema cache state is not claimed cold-isolated",
+  "failed_attempts": [
+    {
+      "attempt": "task-counts-stream-v1",
+      "exit_code": 1,
+      "stage": "before timed AB requests",
+      "reason": "initial overstrict equality guard compared current live entity count with historical source task count; corrected to explicit complete entity budget plus independent cutoff aggregate verification",
+      "log_sha256": "20c23927c19a6048eb009fd69d67776e61337097ad8a0d36144a527f2ba0b3b5"
+    }
+  ],
+  "identity": {
+    "source_archive_sha256": "6f049ddbfaf16575ad2867ec0fa0fff427a447df3f11589a5361304d3531fc0a",
+    "source_manifest_sha256": "d9d23b340314c100cc6ddb6614c43633e25765ab05a17f9e7e3a6afa11aaa17f",
+    "source_manifest_version": "warehouse-platform-joint-source-v2",
+    "catalog_service_sha256": "d389c7706f74dd7b51d206da68bfd52ba2619ec8e1c350a4254066ebb2d5dab1",
+    "packet_sha256": "fd185e0980513a82d83f63385dd29bb7fd5be39f2c12c40c719e8ddde0753e5c",
+    "packet_bytes": 85857,
+    "packet_original_files": 23,
+    "packet_has_hash_manifest": true,
+    "original_file_hashes": {
+      "queries/catalog-midrun-v1/diagnostic.json": "51baff4941599999a83c858e6f1b67e65b216f189f9c134acccd44c22a05af0c",
+      "queries/catalog-midrun-v1/requests.jsonl": "fa86b88528458200ffafdf17252c00d4471fd7df7bb996d097bc3b2eadc046fa",
+      "queries/catalog-midrun-v1/responses.jsonl.gz": "c7c737ebcb161f93238a065e1cbe8301a1dcb6f5db8e1d4ac89c3a4f0280669c",
+      "queries/catalog-midrun-v1/source-verification.json": "52c741bc14fee9751241c27e57153e4a40cffb95eb1810cdca686044a1c6b4bb",
+      "queries/task-counts-stream-v2/report.json": "b8221684726560842bcf1efd9b5ac080359a7aa0d92d8997e9d40be5f7224ce2",
+      "queries/task-counts-stream-v2/requests-and-full-rows.jsonl": "ac0f675d74ba0217291c08eff851edc3d1c3923ccb526579fb5c62540b337bae",
+      "queries/task-counts-preaggregate-v3/report.json": "a0a7e5efe45427030119c3e70191a6324763b3c051869457509f8107da2d41da",
+      "queries/task-counts-preaggregate-v3/requests-and-full-rows.jsonl": "44cd1d26898171172aab0f469a0dc91732ea89507ccdf65f92f6680044dbcffc",
+      "logs/catalog-midrun-v1.log": "7c96d2ddf66e4200b489e733e26c3a8a9b9b86367ce2a412d9f09049092cde6a",
+      "logs/catalog-midrun-v1.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "logs/catalog-midrun-source-v1.log": "5674f245f7c73189ed9a6ef1a9a9fd183d4e0daf7a7ff5cad40a94ce7e40199d",
+      "logs/catalog-midrun-source-v1.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "logs/task-counts-stream-v1.log": "20c23927c19a6048eb009fd69d67776e61337097ad8a0d36144a527f2ba0b3b5",
+      "logs/task-counts-stream-v1.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "logs/task-counts-stream-v2.log": "f29e9c983086b1d1a3fb70bd87e3d3dc14866edc77a1a2a6920cbf535cb7e1cd",
+      "logs/task-counts-stream-v2.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "logs/task-counts-preaggregate-v3.log": "f256a4cafe2da27fa21768f5de825f66e401e87b8c96f15750989cc0fb0e0dd7",
+      "logs/task-counts-preaggregate-v3.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "tools-catalog-midrun-v1/ops/catalog_snapshot_diagnostic.py": "dbf8e35aad591fc6b3c0ffc5545782f45344674c81fa27cb5ff1330cd5e3e4b1",
+      "tools-catalog-midrun-v1/ops/verify_catalog_responses.py": "d452eaedec43a415ff5e4743cea5a5b5694a2c06818ebff219ba0d811db29efc",
+      "tools-catalog-midrun-v1/ops/probe_catalog_task_counts.py": "25011621a915c6c5f6d80dc0799c71e516737406b6f3f32cd9c634931575a737",
+      "tools-catalog-probe-v2/ops/probe_catalog_task_counts.py": "4e47c19988c7b5c3693617bf88fca2bffc2f9bb04252e727fef88708bd0f92a3",
+      "tools-catalog-probe-v3/ops/probe_catalog_task_counts.py": "bbea1c91fdde4e44fd54e37d9a3abf37b7ab0b696e0892a671b2fe250368c083"
+    }
+  },
+  "ownership": {
+    "implementation": "project-authored Cypher rewrites using existing Neo4j indexes and ordinary aggregation/order operators",
+    "closed_source_code_copied": false,
+    "schema_or_index_writes": false
+  },
+  "future_work": {
+    "immutable_aggregate_cache_implemented": false,
+    "required_cache_identity": [
+      "run_id",
+      "run_creation_identity",
+      "seq",
+      "all_query_parameters"
+    ],
+    "required_validation": [
+      "same-cutoff full source verification",
+      "cold and concurrent read-write mixed load",
+      "run recreation and parameter isolation",
+      "explicit entity and completeness budgets"
+    ],
+    "universal_under_500ms_proven": false
+  },
+  "raw_remote_root": "/data/workspace/wz/warehouse-platform-joint-20261028",
+  "raw_local_evidence_directory": "research/platform-joint-20261028/catalog-midrun-and-probes-v1/evidence"
+}

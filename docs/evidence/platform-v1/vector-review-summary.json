@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "audit_date": "2026-10-28",
+  "scope": "read-only evidence recomputation and documentation; no backend/default change",
+  "packets": {
+    "vector-selection-evidence.zip": {
+      "manifested_data_files": 19,
+      "archive_entries_including_manifest": 20,
+      "sha256": "c3e0f7e8c2f87cc41d0fab9beedfc8f93203c8dcd886f92fc3cfccf00e7324b7",
+      "all_manifest_sha_and_zip_crc_passed": true
+    },
+    "server-exact-evidence.zip": {
+      "manifested_data_files": 10,
+      "archive_entries_including_manifest": 11,
+      "sha256": "d90c965c611301dd1e8698c62d3f8fecb0761ea9a510790dba9aa8086f41e796",
+      "all_manifest_sha_and_zip_crc_passed": true
+    }
+  },
+  "quality_cases": 12,
+  "quality_method_metrics_recomputed": true,
+  "server_comparison_requests": 48,
+  "strict_source_key_order_checks": 48,
+  "all_control_head_and_oracle_sha_unchanged": true,
+  "server_cold_over_500ms": 1,
+  "server_cold_max_ms": 1121.800652705133,
+  "decision": "keep current client business-exact default; deliver server exact as independent ops prototype",
+  "production_100_client_ann_qualification_from_these_samples": false,
+  "semantic_or_cooperation_success_claim": false,
+  "formal_api_equivalence_pending": true,
+  "bounded_window_quality_requires_separate_coverage_evaluation": true
+}

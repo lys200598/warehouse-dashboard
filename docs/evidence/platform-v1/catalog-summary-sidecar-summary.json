@@ -1,0 +1,284 @@
+{
+  "version": "warehouse-summary-sidecar-evidence-v2",
+  "date": "2026-10-28",
+  "scope": "static snapshot876-derived sidecar; graph remains live; no latest publication integration",
+  "production_default_changed": false,
+  "live_writer_integration_completed": false,
+  "complete_api_requests": 16,
+  "methods_each_query_id": {
+    "baseline": 4,
+    "sidecar": 4
+  },
+  "source_generation_uses_oracle_or_verifier": false,
+  "concurrent_100_global_tested": false,
+  "concurrency_reason": "avoid a new heavyweight 100-global workload during the formal live seven-day writer/query phases",
+  "build": {
+    "manifest": {
+      "version": "warehouse-summary-sidecar-prototype-v1",
+      "run_id": "wh-platform-week-required-20261028",
+      "created_version": "2026-10-28T04:05:43.309Z",
+      "metadata_sha256": "8eb11ac33b6dcb8e04001a53aeb6285bf2541852c86929e93854792a8a44774e",
+      "scene_sha256": "347b53d563b48262aae1f5f8329ad878918f8d13879ab24d90e1968661730172",
+      "config_sha256": "a5ea88780d25a9c2b7e88d3d49fa21eee101c31acb9c842a19fe8e36934cb239",
+      "source_journal_sha256": "375dd3d52c84f2cd20f7149e97b06699f202afa880b9ffa02c152020af7c5002",
+      "source_head": 877,
+      "first_batch_sha256": "86404721a32c5c13132d3e94995b54b99f0aa3772d880b1cea17bd2bd0cbc0d5",
+      "consumed_prefix_sha256": "2b9e1b18daf89b3991e34b450199baa2ebb7bcc16238653e6d67b254ea99cc5b"
+    },
+    "manifest_sha256": "877bc215d2733961208f9a3757787fe31d4db834b9f38ccdfda748ff88d873d3",
+    "sidecar_sha256": "35c6f46c6b28662c17b756eb8b23466caba56e2551f08e187829793a11e3fc1f",
+    "sidecar_bytes": 5382144,
+    "build_wall_seconds": 6.8100143894553185,
+    "batch_processing_ms": {
+      "count": 877,
+      "total": 6604.4270703569055,
+      "mean": 7.530703615002173,
+      "max": 49.81998633593321
+    },
+    "generation_uses_oracle_or_verifier": false
+  },
+  "source_verification": {
+    "passed": true,
+    "request_count": 16,
+    "parsed_request_count": 16,
+    "queries_by_id": {
+      "global": 8,
+      "local_awareness": 8
+    },
+    "error_count": 0,
+    "errors": [],
+    "scope": "posthoc complete catalog responses vs original journal/RealOracle; business-exact has independent scalar topK; legacy full-ann requires separate frozen verifier",
+    "source_run_id": "wh-platform-week-required-20261028",
+    "source_journal_head": 1967,
+    "source_prefix_sha256": "ebc90bb71245488184d3b76e7509f11adbf2169ec001fc6cae2f4437d45b61b5",
+    "source_journal_sha256": "b04bcf9dc1bbc12e433da87df395d66b716c37070f50c700b29a17cf24676470",
+    "file_hashes": {
+      "requests": "ffdae811e118b9ac68457fbaee23474fb6f5277a8c5a46b3bc1897dc966b98c2",
+      "responses": "5afb5b229cf8e7cee81ce881187b069110d08b21eaa49b3e26b2d240c5f6341e"
+    },
+    "oracle_file_sha256": "0c23638e20d7ef51ef6abaf3949be1484d18a11c3a00cdc57c959488b1602d75",
+    "oracle_prefix": 876,
+    "source_and_packets_unchanged": true
+  },
+  "statistics": {
+    "global": {
+      "baseline": {
+        "requests": 4,
+        "mean_ms": 925.773272,
+        "max_ms": 954.242777,
+        "over_500ms": 4,
+        "first_measured_ms": 927.67705
+      },
+      "sidecar": {
+        "requests": 4,
+        "mean_ms": 154.57024375,
+        "max_ms": 233.883904,
+        "over_500ms": 0,
+        "first_measured_ms": 112.191548
+      },
+      "speedup": 5.989336948302509,
+      "mean_reduction_percent": 83.30366101236935
+    },
+    "local_awareness": {
+      "baseline": {
+        "requests": 4,
+        "mean_ms": 953.01057725,
+        "max_ms": 1028.183738,
+        "over_500ms": 4,
+        "first_measured_ms": 951.564948
+      },
+      "sidecar": {
+        "requests": 4,
+        "mean_ms": 144.9306385,
+        "max_ms": 151.97038,
+        "over_500ms": 0,
+        "first_measured_ms": 138.680949
+      },
+      "speedup": 6.5756322273430134,
+      "mean_reduction_percent": 84.7923368365742
+    }
+  },
+  "all_timed_requests": [
+    {
+      "request_id": "summary-global-p1-baseline",
+      "query_id": "global",
+      "method": "baseline",
+      "pair": 1,
+      "service_ms": 927.67705,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p1-sidecar",
+      "query_id": "global",
+      "method": "sidecar",
+      "pair": 1,
+      "service_ms": 112.191548,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p2-sidecar",
+      "query_id": "global",
+      "method": "sidecar",
+      "pair": 2,
+      "service_ms": 127.924064,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p2-baseline",
+      "query_id": "global",
+      "method": "baseline",
+      "pair": 2,
+      "service_ms": 954.242777,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p3-baseline",
+      "query_id": "global",
+      "method": "baseline",
+      "pair": 3,
+      "service_ms": 916.092153,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p3-sidecar",
+      "query_id": "global",
+      "method": "sidecar",
+      "pair": 3,
+      "service_ms": 144.281459,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p4-sidecar",
+      "query_id": "global",
+      "method": "sidecar",
+      "pair": 4,
+      "service_ms": 233.883904,
+      "error": null
+    },
+    {
+      "request_id": "summary-global-p4-baseline",
+      "query_id": "global",
+      "method": "baseline",
+      "pair": 4,
+      "service_ms": 905.081108,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p1-baseline",
+      "query_id": "local_awareness",
+      "method": "baseline",
+      "pair": 1,
+      "service_ms": 951.564948,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p1-sidecar",
+      "query_id": "local_awareness",
+      "method": "sidecar",
+      "pair": 1,
+      "service_ms": 138.680949,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p2-sidecar",
+      "query_id": "local_awareness",
+      "method": "sidecar",
+      "pair": 2,
+      "service_ms": 145.383101,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p2-baseline",
+      "query_id": "local_awareness",
+      "method": "baseline",
+      "pair": 2,
+      "service_ms": 927.921756,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p3-baseline",
+      "query_id": "local_awareness",
+      "method": "baseline",
+      "pair": 3,
+      "service_ms": 904.371867,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p3-sidecar",
+      "query_id": "local_awareness",
+      "method": "sidecar",
+      "pair": 3,
+      "service_ms": 143.688124,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p4-sidecar",
+      "query_id": "local_awareness",
+      "method": "sidecar",
+      "pair": 4,
+      "service_ms": 151.97038,
+      "error": null
+    },
+    {
+      "request_id": "summary-local_awareness-p4-baseline",
+      "query_id": "local_awareness",
+      "method": "baseline",
+      "pair": 4,
+      "service_ms": 1028.183738,
+      "error": null
+    }
+  ],
+  "failure_preserved": {
+    "file": "queries/summary-sidecar-v1/source-verification.json",
+    "failure": "original HEAD877 snapshot did not cover the later observed graph heads in either baseline or sidecar responses",
+    "action": "new sqlite3 online backup from actual producer, HEAD1967, original verifier unchanged; both v1/v2 16/16 subsequently passed",
+    "original_failure_report_sha256": "4d07038c3dac650a80ccbe7d9351e89a2d2837e7356d137fb61bfad64acd31fc"
+  },
+  "identity": {
+    "prototype_script_sha256": "73740afee1f312598583885fe7a547f321b5e4ba77903141c6ca5d56f3837d26",
+    "unit_test_sha256": "717ed3e3d224a9a3fa93cea455c5487b761a76ff6b5756c0eeb80d46809ffb18",
+    "raw_packet_sha256": "5faa8f4175a02f4e7e1b486dd4dca9d6f91ebc90d36c78aa01447ed22ddb762d",
+    "raw_packet_bytes": 103815,
+    "original_files": 23,
+    "original_file_hashes": {
+      "queries/summary-sidecar-v1/report.json": "a52f707d24ccce487a4e6ba394edf53db5e47d3ed21217d5a0b4781ff3ceef50",
+      "queries/summary-sidecar-v1/build-report.json": "d1be8df21f8adfa925ab4b06b3e2978ea0448474157034307edc3761d11ce57d",
+      "queries/summary-sidecar-v1/requests.jsonl": "dc0bee1859b9835848830e6ed0375c5046eb20e1e61dd6cccbca1622a9db5b0b",
+      "queries/summary-sidecar-v1/responses.jsonl.gz": "566c129a2cd52e21c9656902b7180d9242f13807e51290b7a509abb30099e5b8",
+      "queries/summary-sidecar-v1/source-verification-live-head-covered.json": "ca0649de19f4086a28a1cd32889d97597309cd242ace919f5418e2c8dcd79246",
+      "queries/summary-sidecar-v2/report.json": "4c1286e5bb46e8ed9d7a763b3c06d2b248bb06ac6b3aa882bab05b1d08f51b59",
+      "queries/summary-sidecar-v2/build-report.json": "741bfe21a671f4711550f58a117551f65987895d569f761afd852a64bb91f9c4",
+      "queries/summary-sidecar-v2/requests.jsonl": "ffdae811e118b9ac68457fbaee23474fb6f5277a8c5a46b3bc1897dc966b98c2",
+      "queries/summary-sidecar-v2/responses.jsonl.gz": "5afb5b229cf8e7cee81ce881187b069110d08b21eaa49b3e26b2d240c5f6341e",
+      "queries/summary-sidecar-v2/source-verification-live-head-covered.json": "4a570d8ad8ca7ad45c724af848249d674da6846e4189b119123624ba8db299a0",
+      "queries/summary-sidecar-v1/source-verification.json": "4d07038c3dac650a80ccbe7d9351e89a2d2837e7356d137fb61bfad64acd31fc",
+      "logs/summary-sidecar-v1.log": "83a08902bacf2a5b9ada2bdd84586d014a0b38fe45c613abfb9e00c06d8709d4",
+      "logs/summary-sidecar-v1.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "logs/summary-sidecar-source-v1.log": "07ad04b0fdb5efc718904a7d1ebc3b8b2c15cdaabd4ca5c980f4a16b33ac9ecf",
+      "logs/summary-sidecar-source-v1.exit": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+      "logs/summary-sidecar-v2.log": "eaa658906d4d598d995bd02f303edaa46b07adbdfa9a3e9277a4ad8a4aa1da81",
+      "logs/summary-sidecar-v2.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "logs/summary-sidecar-source-v2.log": "c458e821d0aea2b9aa94e2ef7088b5d5ca8a82dfbc85515440a72d685ce4cb18",
+      "logs/summary-sidecar-unit-v2.log": "52bdba81f8b83eb34ba6f40e6c20d5cdd8bc3efeda5f8138af21c6335309694a",
+      "tools-summary-sidecar-v1/ops/probe_catalog_summary_sidecar.py": "4c13a80d99a0b97d14129fe11d8a33943550509eb3d0ff139fef7ec7afbcd542",
+      "tools-summary-sidecar-v1/tests/test_catalog_summary_sidecar.py": "0dee8868cab308d6b070b891f3db25eb263139af3e95fd99f355b7441ce967c2",
+      "tools-summary-sidecar-v2/ops/probe_catalog_summary_sidecar.py": "73740afee1f312598583885fe7a547f321b5e4ba77903141c6ca5d56f3837d26",
+      "tools-summary-sidecar-v2/tests/test_catalog_summary_sidecar.py": "717ed3e3d224a9a3fa93cea455c5487b761a76ff6b5756c0eeb80d46809ffb18"
+    }
+  },
+  "tests": {
+    "passed": 9,
+    "platforms": [
+      "Windows",
+      "Pro6000 Linux"
+    ]
+  },
+  "future_writer_requirements": [
+    "durable contiguous original batch source",
+    "atomic sidecar exact-seq transaction and source hash publication",
+    "same run creation/config/scene identity",
+    "explicit common available watermark or bounded original-query fallback, never silent stale latest",
+    "resume/idempotency and corruption/missing-cutoff rejection",
+    "separate mixed concurrent validation before default promotion"
+  ]
+}

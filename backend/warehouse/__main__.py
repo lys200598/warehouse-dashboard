@@ -44,6 +44,7 @@ def parser():
     q=sub.add_parser('serve',help='read-only saved frames, preserves existing camera controls')
     q.add_argument('--output',required=True);q.add_argument('--port',type=int,default=14183)
     q.add_argument('--dist',default=str(ROOT/'dist/v5'));q.add_argument('--neo4j',action='store_true')
+    sub.add_parser('live',help='owned live controls, dataset selection and graph queries',add_help=False)
     sub.add_parser('retrieval-eval',help='forward arguments to the independent retrieval evaluator',add_help=False)
     return p
 
@@ -53,6 +54,11 @@ def main(argv=None):
     if argv and argv[0]=='retrieval-eval':
         from ..retrieval_eval.__main__ import main as evaluate
         return evaluate(argv[1:])
+    if argv and argv[0]=='live':
+        # A fresh process lets an operator select an immutable producer tree
+        # without mixing already imported backends from different revisions.
+        import subprocess
+        return subprocess.call([sys.executable,str(ROOT/'ops/warehouse_live.py'),*argv[1:]])
     p=parser();args=p.parse_args(argv)
     if args.command=='status':
         from ..scheduling_v5.sim import execution_identity
@@ -62,7 +68,7 @@ def main(argv=None):
             'execution':'one central V5 coordinator with 100 actual simulated robots',
             'legacy_ray_entrypoint':'python -m backend.server --help',
             'playback':'serve consumes recorded --frames output; no synthetic frames',
-            'duration_cap':None,'subcommands':['validate','generate','run','query','serve','status','retrieval-eval']})
+            'duration_cap':None,'subcommands':['validate','generate','run','query','serve','live','status','retrieval-eval']})
         return 0
     if args.command=='validate':
         from ..wide.data import validate_dataset

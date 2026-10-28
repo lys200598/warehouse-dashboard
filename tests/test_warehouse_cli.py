@@ -34,6 +34,14 @@ class PlatformCLITests(unittest.TestCase):
         self.assertEqual(args.knowledge_mode,'rules');self.assertEqual(args.commit_seconds,300)
         self.assertEqual(args.telemetry_jsonl,'t.jsonl')
 
+    def test_live_routes_to_fresh_explicit_producer_process(self):
+        import sys
+        with patch('subprocess.call',return_value=0) as call:
+            self.assertEqual(main(['live','--source-root','frozen','--port','14185']),0)
+        self.assertEqual(call.call_args.args[0],[sys.executable,str(ROOT/'ops/warehouse_live.py'),
+            '--source-root','frozen','--port','14185'])
+        _,value=self.invoke(['status']);self.assertIn('live',value['subcommands'])
+
     def test_identifiers_match_query_contract(self):
         from backend.wide.data import _identifier
         self.assertEqual(_identifier('x'*128,'id'),'x'*128)

@@ -67,7 +67,7 @@
 - 测试：`warehouse-dashboard/tests/test_retrieval_eval.py`，12项。
 - 使用说明：`warehouse-dashboard/docs/VECTOR_RETRIEVAL_GUIDE.md`。
 - 最终机器摘要：本目录`FINAL-SUMMARY.json`。
-- 完整本地小包：`vector-selection-evidence.zip`，109,489字节，19项成员SHA和CRC全部通过。
+- 完整本地小包：`vector-selection-evidence.zip`，109,489字节，19个数据文件的清单SHA与ZIP CRC通过；加清单本身共20个ZIP条目。
 - 包SHA256：`c3e0f7e8c2f87cc41d0fab9beedfc8f93203c8dcd886f92fc3cfccf00e7324b7`。
 - 服务器根：`/data/workspace/wz/warehouse-vector-selection-20261028`；原始来源Oracle仍留在原有只读路径。
 
