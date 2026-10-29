@@ -1,6 +1,6 @@
 # 100机器人仓库与共享时序知识实验平台
 
-本分支提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口为 **`python -m backend.warehouse`**，中央V5协调器推进100个真实仿真机器人，保留能量、交通、库存和恢复门禁。
+本分支当前主布局为120×90米仓库、48架2304货位、100个泊位；同时保留90×76米/36架/1728货位的旧基线。默认入口为 **`python -m backend.warehouse`**，V5中央协调器推进100个真实仿真机器人，保留能量、交通、库存和恢复门禁；Ray模式只是把每机器人运动段/图谱写入交给100个actor。
 
 ## 阅读路线
 
@@ -40,6 +40,9 @@ bash ops/start_medium.sh
 bash ops/start_runtime.sh --restart
 
 # 120 布局 + 100 个 Ray 运动 Actor（V5 派单/库存/交通/换电仍在中央）
+# 先启动独立 Ray head；Neo4j 仅做图谱/机器人写图谱时需要
+bash ops/start_ray.sh
+bash ops/start_neo4j.sh   # 可选
 RAY=1 bash ops/start_medium.sh
 # 或切换 4173 为 Ray 版
 bash ops/start_runtime.sh --restart --ray
@@ -58,7 +61,7 @@ python -m backend.warehouse run \
   --until 30 --frames
 ```
 
-当前 4173 仍保留旧 32×22 控制台的「控制状态映射」视图；120 布局是独立的真实 V5 实时页，两者不要混用 runId。medium 的 0 晚点结论只适用于其 1728 任务峰值输入，不能外推到任意负载。
+当前 4173 已经是 120×90 medium 的 V5 Ray 实时页；14185 只读回放已落盘的批量 frames，14183 保留旧 V5 单 run 回放。三者不要混用 runId。medium 的 0 晚点结论只适用于其 1728 任务峰值输入，不能外推到任意负载。
 
 Ray 版是同一个 V5 medium 运行：派单、库存、SIPP 交通预留、换电和知识写入仍由中央协调器负责；100 个 Ray Actor（`--ray-actor-cpus 0.1`）执行每台机器人每个 tick 的运动段。加 `--robot-graph` 后，每个 actor 用本地 Neo4j writer 只写自己的 `Robot/AgentState/Execution/RuntimeEvent` 子图；共享 `Run` 节点由主进程启动时创建一次，避免 100 个 actor 争抢同一个 Run 写锁。它不能替换成 legacy `backend.server` 的 32×22 Ray 控制台。
 

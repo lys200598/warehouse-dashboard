@@ -41,6 +41,10 @@ done
 
 export LADE_ENV_DIR="${LADE_ENV_DIR:-$ROOT/.venv}"
 if [ ! -x "$LADE_ENV_DIR/bin/python" ]; then
+  echo "ignoring invalid LADE_ENV_DIR=$LADE_ENV_DIR; using $ROOT/.venv" >&2
+  export LADE_ENV_DIR="$ROOT/.venv"
+fi
+if [ ! -x "$LADE_ENV_DIR/bin/python" ]; then
   echo "Python environment unavailable: $LADE_ENV_DIR" >&2
   exit 1
 fi
@@ -184,6 +188,22 @@ fi
 fi  # legacy Neo4j/Ray
 
 # 3. 4173 console
+if [ "$STACK" = "medium" ]; then
+  if [ "$ROBOT_GRAPH" = "1" ] && [ "$RAY" != "1" ]; then
+    echo "--robot-graph requires --ray" >&2
+    exit 2
+  fi
+  RAY_PORT="${RAY_ADDRESS:-127.0.0.1:26380}"; RAY_PORT="${RAY_PORT##*:}"
+  if [ "$RAY" = "1" ] && ! port_busy "$RAY_PORT"; then
+    echo "Ray head is not listening on ${RAY_ADDRESS:-127.0.0.1:26380}; run: bash ops/start_ray.sh" >&2
+    exit 1
+  fi
+  if [ "$ROBOT_GRAPH" = "1" ] && ! port_busy 47687; then
+    echo "Neo4j is not listening on 47687; run: bash ops/start_neo4j.sh" >&2
+    exit 1
+  fi
+fi
+
 stop_console_if_requested
 if port_busy 4173; then
   echo "4173 is already running; use --restart to replace it, or stop it manually" >&2

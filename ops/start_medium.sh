@@ -28,6 +28,10 @@ mkdir -p "$LOG_DIR" "$PID_DIR" "$OUTPUT_ROOT"
 
 export LADE_ENV_DIR="${LADE_ENV_DIR:-$ROOT/.venv}"
 if [ ! -x "$LADE_ENV_DIR/bin/python" ]; then
+  echo "ignoring invalid LADE_ENV_DIR=$LADE_ENV_DIR; using $ROOT/.venv" >&2
+  export LADE_ENV_DIR="$ROOT/.venv"
+fi
+if [ ! -x "$LADE_ENV_DIR/bin/python" ]; then
   echo "Python environment unavailable: $LADE_ENV_DIR" >&2
   exit 1
 fi
@@ -39,6 +43,20 @@ fi
 
 LOG="$LOG_DIR/medium-$PORT.log"
 PIDFILE="$PID_DIR/medium-$PORT.pid"
+
+if [ "$ROBOT_GRAPH" = "1" ] && [ "$RAY" != "1" ]; then
+  echo "ROBOT_GRAPH=1 requires RAY=1" >&2
+  exit 2
+fi
+RAY_PORT="${RAY_ADDRESS##*:}"
+if [ "$RAY" = "1" ] && ! ss -ltn 2>/dev/null | grep -q ":$RAY_PORT "; then
+  echo "Ray head is not listening on $RAY_ADDRESS; run: bash ops/start_ray.sh" >&2
+  exit 1
+fi
+if [ "$ROBOT_GRAPH" = "1" ] && ! ss -ltn 2>/dev/null | grep -q ':47687 '; then
+  echo "Neo4j is not listening on 47687; run: bash ops/start_neo4j.sh" >&2
+  exit 1
+fi
 
 RAY_ARGS=()
 if [ "$RAY" = "1" ]; then
