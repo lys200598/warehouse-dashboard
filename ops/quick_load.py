@@ -257,7 +257,7 @@ def run(args, cfg, base, profile):
             '--clients', str(p['clients']), '--processes', str(p['processes']), '--mode', p['mode'],
             '--duration', str(p['duration']), '--requests', str(p['requests']), '--interval', str(p['interval']),
             '--rate', str(p['rate']), '--timeout', str(p['timeout']),
-            '--phase', 'static'], output/'run.log')
+            '--phase', getattr(args, 'phase', 'static')], output/'run.log')
         if code != 0:
             state = output/'client/run.json'
             if state.exists() and json.loads(state.read_text()).get('interrupted'):
