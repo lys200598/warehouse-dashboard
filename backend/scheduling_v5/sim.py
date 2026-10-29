@@ -147,6 +147,30 @@ class CandidateSimulation(EngineSimulation):
             port_relief.priority(task, ports, self.elapsed), task['task_id']))[:self.config.batch_tasks]
 
     def _select_assignment(self, costs, pool, pair_times, candidates=None):
+        """Assignment seam: apply the optional active-robot cap here.
+
+        The dispatch loop itself stays a static copy of v3 (see
+        test_scheduler_v5_runtime). Robots that already own a job (task
+        chaining) are not limited; at most ``max_active_robots - len(jobs)``
+        idle robots are newly activated per matching round. Throttled pairs
+        are simply not returned, so they never enter the traffic retry backoff.
+        """
+        pairs = CandidateSimulation._select_assignment_unthrottled(self, costs, pool, pair_times, candidates)
+        config = getattr(self, 'config', None)
+        limit = getattr(config, 'max_active_robots', None)
+        if candidates is None or limit is None or limit >= getattr(config, 'robot_count', limit):
+            return pairs
+        free = max(0, limit - len(self.jobs))
+        kept = []
+        for row, col in pairs:
+            if col < len(candidates) and costs[row][col] < 1e8 and candidates[col]['robot_id'] not in self.jobs:
+                if free <= 0:
+                    continue
+                free -= 1
+            kept.append((row, col))
+        return kept
+
+    def _select_assignment_unthrottled(self, costs, pool, pair_times, candidates=None):
         if getattr(self, '_fleet_is_mixed', False):
             if candidates is None:
                 raise ValueError('mixed fleet matcher requires actual dispatch column identities')
@@ -234,7 +258,6 @@ class CandidateSimulation(EngineSimulation):
         if self.config.port_relief_policy == 'deadline':
             pool = self._port_relief_pool(ready)
         for attempt in range(self.config.matching_rounds):
-            candidates = [r for r in candidates if self.activation_available(r)]
             if not pool or not candidates:
                 break
             costs, pair_times = [], []
@@ -256,10 +279,6 @@ class CandidateSimulation(EngineSimulation):
                 if col >= len(candidates) or costs[row][col] >= 1e8:
                     continue
                 r, task = candidates[col], pool[row]
-                # Ordinary fleet throttling is not a failed route or a reason
-                # to put this task/robot pair into the traffic retry backoff.
-                if not self.activation_available(r):
-                    continue
                 if self.schedule_task(r, task):
                     successes.append((r, task))
                     self.blocked.pop(task['task_id'], None)
