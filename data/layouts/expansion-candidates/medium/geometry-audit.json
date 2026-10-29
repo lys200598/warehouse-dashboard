@@ -1,0 +1,27 @@
+{
+  "schema": "warehouse-layout-safety-audit-v3",
+  "topology": {
+    "nodes": 13931,
+    "undirected_edges": 26860,
+    "component_sizes": [
+      13931
+    ],
+    "articulation_nodes": [],
+    "bridges": [],
+    "connected": true,
+    "single_vertex_failure_preserves_connectivity": true
+  },
+  "terminals": {
+    "location_ids": 2520,
+    "unique_approach_points": 884,
+    "unreachable_ids": [],
+    "unsafe_connectors": []
+  },
+  "unsafe_public_edges": [],
+  "initial_roadmap_usable": true,
+  "limitations": [
+    "No dynamic liveness/deadlock proof",
+    "No arbitrary-position or multi-fault robustness proof",
+    "A coarse roadmap may conservatively reject a continuous-space route"
+  ]
+}

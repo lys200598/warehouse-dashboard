@@ -735,6 +735,17 @@
     ctx.restore();
 
     if (dashboardLayout) {
+      // Draw the declared inbound/outbound/handover areas before the small
+      // station and dock squares.  drawFloor previously never read
+      // dashboardLayout.zones, so all three 716.8m²/35m² zones were invisible.
+      for (const zone of dashboardLayout.zones || []) {
+        const fill = zone.id === "inbound"
+          ? "rgba(201,244,108,0.055)"
+          : zone.id === "outbound"
+            ? "rgba(240,166,90,0.05)"
+            : "rgba(104,199,255,0.045)";
+        drawFloorZone(zone.x, zone.y, zone.w, zone.d, fill, "#3f5852");
+      }
       for (const point of layoutStations("inbound")) {
         drawFloorZone(point.x - .55, point.y - .55, 1.1, 1.1, "rgba(201,244,108,0.12)", "#91a86b");
       }
@@ -994,6 +1005,11 @@
   }
 
   function placementPose(robot) {
+    // The legacy coordinator has no physical rack pose in the expanded map.
+    // Moving the body to a rack just to shorten the arm produced the earlier
+    // 34.94-unit cross-rack line.  Show no fake placement when the display is
+    // the legacy control envelope.
+    if (dashboardLayout) return null;
     if (robot.stage !== "placing" || !robot.slot || robot.taskType === "OUTBOUND") return null;
     const geometry = slotGeometry(robot.rack, robot.slot);
     const progress = clamp(robot.actionTimer / Math.max(0.1, robot.actionDuration), 0, 1);
@@ -1167,7 +1183,11 @@
 
     unique.forEach((robot) => {
       if (!robot.path || robot.pathIndex >= robot.path.length) return;
-      const points = [{ x: robot.x, y: robot.y }, ...robot.path.slice(robot.pathIndex)].map((point) => project(point.x, point.y, 0.03));
+      // Body and committed path are both legacy control coordinates.  Map the
+      // route vertices through the same transform as the body so the line
+      // cannot end 38..77 display units away in a different coordinate space.
+      const path = robot.path.slice(robot.pathIndex).map((point) => dashboardLayout ? mapLegacyPoint(point) : point);
+      const points = [{ x: robot.x, y: robot.y }, ...path].map((point) => project(point.x, point.y, 0.03));
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
@@ -1354,10 +1374,40 @@
   }
 
   function updateZoneLabels() {
+    const place = (selector, zone, text) => {
+      const label = $(selector);
+      if (!label) return;
+      if (!zone) { label.style.display = "none"; return; }
+      label.style.display = "";
+      label.textContent = text;
+      const point = project(zone.x + zone.w / 2, zone.y + zone.d / 2, 0.03);
+      label.style.left = `${point.x}px`;
+      label.style.top = `${point.y}px`;
+      label.style.right = "auto";
+      label.style.bottom = "auto";
+      label.style.transform = "translate(-50%, -50%)";
+    };
+    const zones = new Map((dashboardLayout?.zones || []).map((zone) => [zone.id, zone]));
+    if (dashboardLayout) {
+      place(".inbound-label", zones.get("inbound"), "INBOUND / 入库 8 点");
+      place(".outbound-label", zones.get("outbound"), "OUTBOUND / 出库 8 点");
+      const charge = $(".charge-label");
+      if (charge) {
+        charge.style.display = "";
+        charge.textContent = `CHARGE / ${dashboardLayout.docks?.length || 0} 泊位`;
+        const point = project(WORLD.width / 2, 3, 0.03);
+        charge.style.left = `${point.x}px`;
+        charge.style.top = `${point.y}px`;
+        charge.style.right = "auto";
+        charge.style.bottom = "auto";
+        charge.style.transform = "translate(-50%, -50%)";
+      }
+      return;
+    }
     const inboundLabel = $(".inbound-label");
     if (inboundLabel) inboundLabel.textContent = backendScene?.inboundLayout === "edge" ? "INBOUND / 分布式取货工位" : "INBOUND / 集中入库区";
-    $(".outbound-label").textContent = backendAuthoritative ? "DISPATCH / 调度停靠区" : "OUTBOUND / 出库";
-    $(".charge-label").style.display = backendAuthoritative ? "none" : "";
+    $(".outbound-label").textContent = "OUTBOUND / 出库";
+    $(".charge-label").style.display = "";
     [
       [".inbound-label", backendScene?.inboundLayout === "edge" ? 15.9 : 3.2, 21.25],
       [".outbound-label", 3.2, 2.35],
@@ -1652,7 +1702,7 @@
     backendMetrics = snapshot.metrics || null;
     backendRuntime = snapshot.runtime || null;
     $("#sceneName").textContent = dashboardLayout
-      ? "BALANCED 1920 · 控制台状态映射"
+      ? "1920 布局背景 · 32×22 控制状态映射"
       : (backendScene?.name || "WAREHOUSE CONTROL / 后端连接");
     const receivedAt = performance.now();
     const previousById = new Map(robots.map((robot) => [robot.id, robot]));
@@ -1698,7 +1748,10 @@
         ? payload.slotId.replace(/-D([12])$/, "-F$1")
         : payload.slotId;
       const slot = rack?.slots.find((item) => item.slotId === expandedSlotId) || rack?.slots[0];
-      const visual = dashboardLayout ? visualTaskPoint(payload, rack, slot, previous) : payload;
+      // Legacy 4173 remains a 32x22 control simulation.  Display the committed
+      // control position in the expanded map's working envelope; do not move
+      // the body onto an expanded rack it was never dispatched to.
+      const visual = dashboardLayout ? mapLegacyPoint(payload) : payload;
       // Only interpolate an actual consecutive committed segment. Reconnecting,
       // dropping frames, or changing run must not invent a chord through a rack.
       const origin = backendFrameOrigin(previous,visual,backendAuthoritative && lastBackendRun===snapshot.runId && snapshot.tick===lastBackendTick+1);

@@ -42,6 +42,8 @@ def parser():
         if action.dest=='scene':action.required=False
     q.add_argument('--mode',dest='knowledge_mode',choices=['required','rules'],default=argparse.SUPPRESS)
     q.add_argument('--resource-graph',action='store_true',help='project racks/resources in the same Neo4j commit; new run only')
+    q.add_argument('--mobility',choices=('legacy','wheeled'),default='legacy',
+                   help='new run: opt-in wheeled transport + finite pack exchange')
     q=sub.add_parser('query',help='versioned read-only warehouse query catalog')
     q.add_argument('--catalog',action='store_true');q.add_argument('--request-json')
     q.add_argument('--output');q.add_argument('--timeout',type=float,default=15)
@@ -100,14 +102,15 @@ def main(argv=None):
     if args.command=='run':
         from functools import partial
         from ..knowledge_runtime.runner import run
-        from ..knowledge_runtime.sim import KnowledgeSimulation
-        from ..real_scale.writer import Config,RealMirror,audit_real
+        from ..real_scale.writer import RealMirror,audit_real
+        from .composition import physical_classes
         # The graph runtime adapter in this branch remains the authoritative
         # writer for V5 state/event data.  Do not pass the optional resource
         # projection flag into the older KnowledgeSimulation constructor when
         # it is disabled; doing so makes an otherwise ordinary balanced-layout
         # run fail before the first simulation step.
-        factory=partial(KnowledgeSimulation,commit_seconds=args.commit_seconds,knowledge_mode=args.knowledge_mode)
+        Simulation,Config=physical_classes(args.mobility)
+        factory=partial(Simulation,commit_seconds=args.commit_seconds,knowledge_mode=args.knowledge_mode)
         if args.resource_graph:
             p.error('--resource-graph is not part of the dev_261028 graph contract; use the default runtime graph writer')
         return run(args,simulation_class=factory,config_class=Config,mirror_class=RealMirror,graph_auditor=audit_real)

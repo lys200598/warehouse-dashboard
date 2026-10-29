@@ -26,6 +26,7 @@ from .capabilities import fleet_assignment, slot_requirement, access_reason, spa
 @dataclass
 class Config(V3Config):
     chargers: int = 100
+    max_active_robots: int = 100
     fleet_mode: str = 'all-x3'
     fleet_counts: dict | None = None
     capability_spare_cost_seconds: float = 15.
@@ -35,6 +36,8 @@ class Config(V3Config):
 
     def __post_init__(self):
         super().__post_init__()
+        if type(self.max_active_robots) is not int or not 1 <= self.max_active_robots <= self.robot_count:
+            raise ValueError('max_active_robots must be an integer within 1..robot_count')
         fleet_assignment(self.fleet_mode, self.fleet_counts, self.robot_count)
         if self.inbound_admission_policy not in ('fifo', 'deadline'):
             raise ValueError('unknown inbound admission policy')
@@ -186,6 +189,8 @@ class Simulation(V3Simulation):
         return super()._task_parts(robot, task, start)
 
     def schedule_task(self, robot, task, extra=None):
+        if not self.activation_available(robot):
+            return False
         # Last admission guard also protects callers outside the batch matcher.
         # Both legs matter: outbound pickup may require a higher shelf even
         # though its final warehouse boundary is on the ground.
@@ -196,7 +201,26 @@ class Simulation(V3Simulation):
                 return False
         return super().schedule_task(robot, task, extra)
 
+    def activation_available(self, robot):
+        """A slot stays owned through queue, service, return and replenishment.
+
+        Replacing an owner's existing job consumes no additional slot. Idle
+        robots remain actual obstacles and keep their independent knowledge I/O.
+        """
+        if robot['robot_id'] in self.jobs or len(self.jobs) < self.config.max_active_robots:
+            return True
+        self._last_block = {'reason': 'activation_limit', 'owners': [], 'at': self.elapsed}
+        return False
+
+    def schedule_charge(self, robot):
+        if not self.activation_available(robot):
+            return False
+        return super().schedule_charge(robot)
+
     def _coordinated_replan(self, required, preferred=()):
+        if len(set(self.jobs) | set(required) | set(preferred)) > self.config.max_active_robots:
+            self._last_block = {'reason': 'activation_limit', 'owners': [], 'at': self.elapsed}
+            return False
         # Multi-owner recovery commits supplied plans directly, so enforce the
         # same capability gate before considering any reservation replacement.
         for owner, (_, job) in required.items():
@@ -215,7 +239,8 @@ class Simulation(V3Simulation):
         candidates = super()._assistance_helpers(donor, task)
         # Pickup already happened: the receiver needs the remaining target
         # capability, not the donor's completed high-shelf pickup capability.
-        candidates = [r for r in candidates if self.task_capability_reason(r, task, remaining=True) is None]
+        candidates = [r for r in candidates if self.task_capability_reason(r, task, remaining=True) is None
+                      and self.activation_available(r)]
         return candidates
 
     def marker(self, robot, job, marker, task_id=None):
@@ -245,6 +270,8 @@ class Simulation(V3Simulation):
         return super()._route(source,target,clock,owner,phase,dwell,action,marker,**kw)
 
     def _commit(self, robot, parts, job):
+        if not self.activation_available(robot):
+            raise AssertionError('activation limit exceeded before reservation commit')
         owner=robot['robot_id']
         reserved=self._reservation_parts(owner,parts)
         if not parts or parts[0]['start']!=self.elapsed or math.dist(
@@ -304,6 +331,8 @@ class Simulation(V3Simulation):
 
     def step(self):
         super().step()
+        if len(self.jobs) > self.config.max_active_robots:
+            raise AssertionError('active job count exceeds configured activation limit')
         # The already-validated terminal guard remains when the execution job
         # ends. This check never invents a late guard after a crossing was booked.
         for owner,robot in self.robots.items():
@@ -314,6 +343,8 @@ class Simulation(V3Simulation):
         # V3 restores actual jobs first. Reconstruct the same terminal tails and
         # idle bodies, never silently restore an empty parking aisle.
         super().restore(state)
+        if len(self.jobs) > self.config.max_active_robots:
+            raise ValueError('checkpoint exceeds configured activation limit')
         if any(r.get('robot_type_key') != self.fleet_type_by_id[i] for i, r in self.robots.items()):
             raise ValueError('checkpoint robot type differs from configured fleet identity')
         if self._fleet_is_mixed:
@@ -345,4 +376,8 @@ class Simulation(V3Simulation):
         value=super().frame()
         value['backend']='wide-scene-v3-policy-knowledge-baseline'
         value['physicalBayCount']=len(self.scene['docks'])
+        value['maxActiveRobots']=self.config.max_active_robots
+        value['activation']={'limit':self.config.max_active_robots, 'active':len(self.jobs),
+                             'available':self.config.max_active_robots-len(self.jobs),
+                             'scope':'all owned execution jobs including return, queue, charge and swap'}
         return value

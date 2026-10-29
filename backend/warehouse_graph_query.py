@@ -49,11 +49,12 @@ class Neo4jWarehouseGraph:
         dataset_id = self._resolve_dataset_id(dataset_id)
         return self._query("""MATCH (d:Dataset)-[:INCLUDES_TASK]->(t:WarehouseTask)
         WHERE $dataset_id IS NULL OR d.id = $dataset_id
+        WITH t, d ORDER BY t.release_time LIMIT $limit
         OPTIONAL MATCH (e:Execution {task_id:t.task_id, dataset_id:d.id})-[:ASSIGNED_TO]->(r:Robot)
         WITH t, e, r ORDER BY coalesce(e.updated_tick,-1) DESC
         WITH t, head(collect({status:e.status, robot_id:r.robot_id})) AS latest
         RETURN t.task_id AS task_id,t.task_type AS task_type,t.goods_id AS goods_id,t.source_id AS source_id,t.target_id AS target_id,
-        coalesce(latest.status,'待执行') AS status,latest.robot_id AS robot_id ORDER BY t.release_time LIMIT $limit""", dataset_id=dataset_id, limit=max(1,min(limit,30)))
+        coalesce(latest.status,'待执行') AS status,latest.robot_id AS robot_id ORDER BY t.release_time""", dataset_id=dataset_id, limit=max(1,min(limit,30)))
     def task_execution_trace(self, task_id: str, dataset_id: str | None = None) -> dict[str, Any]:
         dataset_id = self._resolve_dataset_id(dataset_id)
         graph = self.task_subgraph(task_id, dataset_id)

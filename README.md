@@ -28,6 +28,29 @@ python -m backend.warehouse serve --output data/runs/my-smoke --port 14183
 
 输出目录、run-id使用新的唯一值，同一次暂停运行用`--resume`继续。网页读取实际保存帧，保留相机交互。
 
+## 120×90 中型布局与轮式运行
+
+`wz/warehouse-design` 的 medium 候选（120×90m、48架、2304货位、100泊位）已迁入本分支的 `data/layouts/expansion-candidates/medium/`，配套 `data/examples/wheeled-medium-*`、`config/wheeled-medium-100.json` 和 `backend/wheeled/`。
+
+```bash
+# 与 4173 并存：在 14583 启动 120 布局实时页
+bash ops/start_medium.sh
+
+# 或把 4173 本身切到 120 布局（会先停止当前 4173）
+bash ops/start_runtime.sh --restart
+
+# 批量短跑（必须带 medium 的完整配置）
+python -m backend.warehouse run \
+  --scene data/layouts/expansion-candidates/medium/layout.json \
+  --dataset data/examples/wheeled-medium-sample19 \
+  --config-json config/wheeled-medium-100.json \
+  --mobility wheeled --mode rules --knowledge-backend journal \
+  --output data/local-runs/medium-smoke --run-id medium-smoke \
+  --until 30 --frames
+```
+
+当前 4173 仍保留旧 32×22 控制台的「控制状态映射」视图；120 布局是独立的真实 V5 实时页，两者不要混用 runId。medium 的 0 晚点结论只适用于其 1728 任务峰值输入，不能外推到任意负载。
+
 ## 真实图谱与历史控制
 
 配置已有Neo4j的`NEO4J_URI`、`NEO4J_USER`、`NEO4J_PASSWORD`，可选`NEO4J_DATABASE`，然后：

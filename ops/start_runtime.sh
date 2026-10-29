@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
-# Start Neo4j, Ray, the 4173 console and the multi-run replay service.
+# Start the 4173 warehouse console and the multi-run replay service.
+#
+# Defaults to the 120x90 medium layout with the wheeled live runtime.
+# Legacy Ray console remains available as an explicit rollback path.
 #
 # Usage:
-#   bash ops/start_runtime.sh             # resume newest 4173 checkpoint
-#   bash ops/start_runtime.sh new         # start a fresh 4173 run
+#   bash ops/start_runtime.sh             # start medium live at 4173
 #   bash ops/start_runtime.sh --restart   # stop the current 4173 process first
+#   bash ops/start_runtime.sh --legacy    # start the old Ray/backend.server console
+#   bash ops/start_runtime.sh --legacy new
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+STACK="medium"
 MODE="resume"
 RESTART=0
 for arg in "$@"; do
   case "$arg" in
+    medium|--medium) STACK="medium" ;;
+    legacy|--legacy) STACK="legacy" ;;
     resume|new) MODE="$arg" ;;
     --restart) RESTART=1 ;;
     -h|--help)
-      sed -n '1,8p' "$0"
+      sed -n '1,14p' "$0"
       exit 0
       ;;
     *)
@@ -95,7 +102,7 @@ stop_console_if_requested() {
     echo "4173 is busy but its PID is not visible; stop it manually first" >&2
     exit 1
   fi
-  if ! tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null | grep -q 'backend.server'; then
+  if ! tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null | grep -qE 'backend\.server|warehouse_live\.py'; then
     echo "4173 is owned by another process (pid $pid); refusing to stop it" >&2
     exit 1
   fi
@@ -124,7 +131,9 @@ stop_console_if_requested() {
   fi
 }
 
-# 1. Neo4j (project-specific instance, fixed ports)
+# 1-2. Neo4j and Ray are only required by the legacy Ray console.
+# The medium live page runs one V5 coordinator and a local journal.
+if [ "$STACK" = "legacy" ]; then
 if port_busy 47687; then
   echo "Neo4j already listening on 47687"
 else
@@ -167,6 +176,7 @@ else
     exit 1
   fi
 fi
+fi  # legacy Neo4j/Ray
 
 # 3. 4173 console
 stop_console_if_requested
@@ -175,56 +185,87 @@ if port_busy 4173; then
   exit 1
 fi
 
-export WAREHOUSE_NEO4J_URI="${WAREHOUSE_NEO4J_URI:-bolt://127.0.0.1:47687}"
-export WAREHOUSE_NEO4J_USER="${WAREHOUSE_NEO4J_USER:-neo4j}"
-export WAREHOUSE_NEO4J_PASSWORD="${WAREHOUSE_NEO4J_PASSWORD:-test123456}"
-export WAREHOUSE_NEO4J_DATABASE="${WAREHOUSE_NEO4J_DATABASE:-neo4j}"
-export WAREHOUSE_NEO4J_PACKAGE_DIR="${WAREHOUSE_NEO4J_PACKAGE_DIR:-$ROOT/data/generated/warehouse100-day1}"
-export WAREHOUSE_SIMULATION_DATASET_DIR="${WAREHOUSE_SIMULATION_DATASET_DIR:-$ROOT/data/generated/warehouse100-day1}"
-export WAREHOUSE_NEO4J_WRITE_ENABLED="${WAREHOUSE_NEO4J_WRITE_ENABLED:-1}"
-export WAREHOUSE_NEO4J_WRITE_MODE="${WAREHOUSE_NEO4J_WRITE_MODE:-robot-actors}"
-export RAY_AUTH_MODE="${RAY_AUTH_MODE:-disabled}"
-
-CONSOLE_ARGS=(
-  --backend ray
-  --ray-address=127.0.0.1:26380
-  --ray-actor-cpus=0.1
-  --robot-count=100
-  --max-active-robots=100
-  --simulation-dataset-dir="$WAREHOUSE_SIMULATION_DATASET_DIR"
-  --port=4173
-)
-
-if [ "$MODE" = "new" ]; then
-  CHECKPOINT="$CHECKPOINT_DIR/console-csv-ray-$(date +%Y%m%d-%H%M%S).json"
-elif [ -n "${CHECKPOINT:-}" ]; then
-  :
-else
-  CHECKPOINT="$(find "$CHECKPOINT_DIR" -maxdepth 1 -name 'console-csv-ray-*.json' -printf '%T@ %p\n' 2>/dev/null \
-    | sort -nr | head -1 | cut -d' ' -f2-)"
-  if [ -z "$CHECKPOINT" ]; then
-    CHECKPOINT="$CHECKPOINT_DIR/console-csv-ray-$(date +%Y%m%d-%H%M%S).json"
+if [ "$STACK" = "medium" ]; then
+  LIVE_DATASET="${LIVE_DATASET:-medium1728}"
+  LIVE_OUTPUT_ROOT="${LIVE_OUTPUT_ROOT:-$ROOT/data/local-runs}"
+  LIVE_ARGS=(
+    --source-root "$ROOT"
+    --registry "$ROOT/config/live-wheeled-datasets.json"
+    --dataset-id "$LIVE_DATASET"
+    --output-root "$LIVE_OUTPUT_ROOT"
+    --mode rules
+    --knowledge-backend journal
+    --mobility wheeled
+    --commit-seconds "${COMMIT_SECONDS:-5}"
+    --dist "$ROOT/dist/medium"
+    --port 4173
+  )
+  if [ -n "${MAX_ACTIVE_ROBOTS:-}" ]; then
+    LIVE_ARGS+=(--max-active-robots "$MAX_ACTIVE_ROBOTS")
   fi
-fi
+  echo "Starting medium live 4173 ($LIVE_DATASET, 120x90/48 racks/2304 slots)..."
+  nohup "$ROOT/run_in_lade.sh" python "$ROOT/ops/warehouse_live.py" "${LIVE_ARGS[@]}" \
+    >"$LOG_DIR/4173.log" 2>&1 9>&- &
+  CONSOLE_PID=$!
+  echo "$CONSOLE_PID" >"$PID_DIR/4173.pid"
 
-if [ "$MODE" = "resume" ] && [ -f "$CHECKPOINT" ]; then
-  CONSOLE_ARGS+=(--checkpoint-path "$CHECKPOINT" --resume --allow-code-change)
-  echo "Resuming 4173 from $CHECKPOINT"
+  if ! wait_http "http://127.0.0.1:4173/api/health" 90; then
+    echo "4173 medium live page did not become healthy; see $LOG_DIR/4173.log" >&2
+    tail -30 "$LOG_DIR/4173.log" >&2 || true
+    exit 1
+  fi
 else
-  CONSOLE_ARGS+=(--checkpoint-path "$CHECKPOINT")
-  echo "Starting a fresh 4173 run with checkpoint $CHECKPOINT"
-fi
+  export WAREHOUSE_NEO4J_URI="${WAREHOUSE_NEO4J_URI:-bolt://127.0.0.1:47687}"
+  export WAREHOUSE_NEO4J_USER="${WAREHOUSE_NEO4J_USER:-neo4j}"
+  export WAREHOUSE_NEO4J_PASSWORD="${WAREHOUSE_NEO4J_PASSWORD:-}"
+  export WAREHOUSE_NEO4J_DATABASE="${WAREHOUSE_NEO4J_DATABASE:-neo4j}"
+  export WAREHOUSE_NEO4J_PACKAGE_DIR="${WAREHOUSE_NEO4J_PACKAGE_DIR:-$ROOT/data/generated/warehouse100-day1}"
+  export WAREHOUSE_SIMULATION_DATASET_DIR="${WAREHOUSE_SIMULATION_DATASET_DIR:-$ROOT/data/generated/warehouse100-day1}"
+  export WAREHOUSE_NEO4J_WRITE_ENABLED="${WAREHOUSE_NEO4J_WRITE_ENABLED:-1}"
+  export WAREHOUSE_NEO4J_WRITE_MODE="${WAREHOUSE_NEO4J_WRITE_MODE:-robot-actors}"
+  export RAY_AUTH_MODE="${RAY_AUTH_MODE:-disabled}"
 
-echo "Starting 4173 console..."
-nohup "$ROOT/run_in_lade.sh" python -m backend.server "${CONSOLE_ARGS[@]}" \
-  >"$LOG_DIR/4173.log" 2>&1 &
-CONSOLE_PID=$!
-echo "$CONSOLE_PID" >"$PID_DIR/4173.pid"
+  CONSOLE_ARGS=(
+    --backend ray
+    --ray-address=127.0.0.1:26380
+    --ray-actor-cpus=0.1
+    --robot-count=100
+    --max-active-robots=100
+    --simulation-dataset-dir="$WAREHOUSE_SIMULATION_DATASET_DIR"
+    --port=4173
+  )
 
-if ! wait_http "http://127.0.0.1:4173/api/health" 45; then
-  echo "4173 did not become healthy; see $LOG_DIR/4173.log" >&2
-  tail -20 "$LOG_DIR/4173.log" >&2 || true
-  exit 1
+  if [ "$MODE" = "new" ]; then
+    CHECKPOINT="$CHECKPOINT_DIR/console-csv-ray-$(date +%Y%m%d-%H%M%S).json"
+  elif [ -n "${CHECKPOINT:-}" ]; then
+    :
+  else
+    CHECKPOINT="$(find "$CHECKPOINT_DIR" -maxdepth 1 -name 'console-csv-ray-*.json' -printf '%T@ %p\n' 2>/dev/null \
+      | sort -nr | head -1 | cut -d' ' -f2-)"
+    if [ -z "$CHECKPOINT" ]; then
+      CHECKPOINT="$CHECKPOINT_DIR/console-csv-ray-$(date +%Y%m%d-%H%M%S).json"
+    fi
+  fi
+
+  if [ "$MODE" = "resume" ] && [ -f "$CHECKPOINT" ]; then
+    CONSOLE_ARGS+=(--checkpoint-path "$CHECKPOINT" --resume --allow-code-change)
+    echo "Resuming legacy 4173 from $CHECKPOINT"
+  else
+    CONSOLE_ARGS+=(--checkpoint-path "$CHECKPOINT")
+    echo "Starting a fresh legacy 4173 run with checkpoint $CHECKPOINT"
+  fi
+
+  echo "Starting legacy 4173 console..."
+  nohup "$ROOT/run_in_lade.sh" python -m backend.server "${CONSOLE_ARGS[@]}" \
+    >"$LOG_DIR/4173.log" 2>&1 9>&- &
+  CONSOLE_PID=$!
+  echo "$CONSOLE_PID" >"$PID_DIR/4173.pid"
+
+  if ! wait_http "http://127.0.0.1:4173/api/health" 45; then
+    echo "4173 did not become healthy; see $LOG_DIR/4173.log" >&2
+    tail -20 "$LOG_DIR/4173.log" >&2 || true
+    exit 1
+  fi
 fi
 if ! port_owned_by 4173 "$CONSOLE_PID"; then
   owner="$(port_pid 4173)"
@@ -250,7 +291,7 @@ if port_busy 14185; then
 else
   echo "Starting replay service..."
   nohup "$ROOT/run_in_lade.sh" python -m backend.replay_service \
-    >"$LOG_DIR/replay.log" 2>&1 &
+    >"$LOG_DIR/replay.log" 2>&1 9>&- &
   REPLAY_PID=$!
   echo "$REPLAY_PID" >"$PID_DIR/replay.pid"
   if ! wait_port 14185 20; then
@@ -277,7 +318,11 @@ else
 fi
 
 echo
-echo "4173 console:      http://127.0.0.1:4173/       (pid $CONSOLE_PID)"
+if [ "$STACK" = "medium" ]; then
+  echo "4173 medium live:  http://127.0.0.1:4173/  ($LIVE_DATASET, pid $CONSOLE_PID)"
+  echo "Live run output:   $LIVE_OUTPUT_ROOT/<runId>/"
+else
+  echo "4173 legacy:       http://127.0.0.1:4173/  (pid $CONSOLE_PID)"
+fi
 echo "Multi-run replay:  http://127.0.0.1:14185/wide.html"
 echo "Logs:              $LOG_DIR/4173.log, $LOG_DIR/replay.log"
-echo "Replay records:    data/local-runs/console-<runId>/"

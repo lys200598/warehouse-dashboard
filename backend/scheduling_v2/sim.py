@@ -183,6 +183,9 @@ class Simulation(BaselineSimulation):
             return True
         return False
 
+    def _inbound_admission_order(self):
+        return self.pending
+
     def _release(self):
         while self.cursor < len(self.release_order):
             key = self.release_order[self.cursor]
@@ -193,12 +196,12 @@ class Simulation(BaselineSimulation):
             task['status'] = 'waiting'
             self.pending.append(key)
             self.event('task_released', task_id=key)
-        for key in self.pending:
+        for key in self._inbound_admission_order():
             task = self.tasks[key]
             if task['task_type'] != 'INBOUND' or task['status'] != 'waiting':
                 continue
             slot = self.slots[task['target_id']]
-            if self.inside >= 1728 or slot['occupied'] or slot['reservedBy'] or self.ports[task['source_id']] >= 6:
+            if self.inside >= len(self.slots) or slot['occupied'] or slot['reservedBy'] or self.ports[task['source_id']] >= 6:
                 continue
             task.update(status='accepted', received_at=self.elapsed)
             slot['reservedBy'] = key
