@@ -1,6 +1,8 @@
 import {adaptPlatformFrame,platformControl} from './original-platform.mjs';
 import {acceptsFrame,formatClock as platformClock,exportRows} from './live-model.mjs';
 import {createKnowledgePanel} from './original-knowledge.mjs';
+import {platformMotionOrigin,platformRenderPosition,platformRoutePoints} from './motion-view.mjs';
+import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTaskPresentation,shouldPickRobot} from './dashboard-view.mjs';
 (() => {
   "use strict";
 
@@ -96,6 +98,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
   let backendReconnectTimer = 0;
   let backendLatency = null;
   let backendSnapshotAt = 0;
+  let backendFrameReceivedAt = 0;
   let backendInterpolationDuration = 250;
   let lastBackendTick = null;
   let lastBackendRun = null;
@@ -737,7 +740,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
   function drawRackCached(rack){
     if(!rack.platform)return drawRack(rack);
     const key=[state.view,state.zoom,state.panX,state.panY,state.cameraYaw,state.cameraPitch,state.level,
-      renderWidth,renderHeight,state.selectedId,...rack.slots.map(s=>s.occupied?1:0)].join('|');
+      renderWidth,renderHeight,state.selectedId,...rack.slots.map(s=>`${s.occupied?1:0}:${s.reservedBy??''}`)].join('|');
     let sprite=rackSprites.get(rack.id);
     if(sprite?.key!==key){
       const pts=[0,rack.width].flatMap(dx=>[0,rack.depth].flatMap(dy=>[0,RACK_HEIGHT+.4].map(z=>project(rack.x+dx,rack.y+dy,z))));
@@ -795,7 +798,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
         ctx.fillRect(x, y, width, height);
         if (isTarget || isFresh) {
           ctx.globalAlpha = 1;
-          ctx.strokeStyle = isFresh ? COLORS.lime : robotTypeFor(slot.reservedBy || 1).accent;
+          ctx.strokeStyle = isFresh ? COLORS.lime : (robots.find(r=>r.id===slot.reservedBy)?.type||robotTypeFor(slot.reservedBy||1)).accent;
           ctx.lineWidth = 1.3;
           ctx.strokeRect(x, y, width, height);
         }
@@ -902,14 +905,14 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
 
   function drawSlotHighlight(rack, slot, fresh) {
     const geometry = slotGeometry(rack, slot);
-    const frontY = rack.y + rack.depth + 0.02;
+    const frontY = rack.platform&&slot.depthRow===0?rack.y-0.02:rack.y+ rack.depth+0.02;
     const points = [
       project(geometry.x, frontY, geometry.baseZ),
       project(geometry.x + geometry.width, frontY, geometry.baseZ),
       project(geometry.x + geometry.width, frontY, geometry.baseZ + geometry.height + 0.05),
       project(geometry.x, frontY, geometry.baseZ + geometry.height + 0.05),
     ];
-    const reservedType = robotTypeFor(slot.reservedBy || 1);
+    const reservedType = robots.find(r=>r.id===slot.reservedBy)?.type||robotTypeFor(slot.reservedBy||1);
     ctx.save();
     pathPolygon(points, fresh ? "rgba(201,244,108,0.08)" : "rgba(104,199,255,0.055)", fresh ? COLORS.lime : reservedType.accent, 1.2);
     const anchor = points[3];
@@ -1093,10 +1096,18 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     if (!state.routes) return;
     const selected = robots.find((robot) => robot.id === state.selectedId);
     if(platformFrame){
-      for(const r of robots.filter(r=>r.id===state.selectedId)){
-        if(r.observedTrail.length<2)continue;
-        const pts=r.observedTrail.map(p=>project(p.x,p.y,.03));ctx.save();ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
-        for(const p of pts.slice(1))ctx.lineTo(p.x,p.y);ctx.strokeStyle=COLORS.lime;ctx.lineWidth=1.3;ctx.stroke();ctx.restore();
+      const moving=robots.filter(r=>r.path?.length>r.pathIndex);
+      const routes=[...new Map([...moving.filter(r=>r.id%13===0),selected].filter(Boolean).map(r=>[r.id,r])).values()];
+      const amount=clamp((performance.now()-backendSnapshotAt)/backendInterpolationDuration,0,1);
+      for(const r of routes){
+        const route=platformRoutePoints(r,amount);
+        if(route.length<2)continue;
+        const pts=route.map(p=>project(p.x,p.y,.03));ctx.save();ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+        for(const p of pts.slice(1))ctx.lineTo(p.x,p.y);
+        ctx.strokeStyle=r.id===state.selectedId?COLORS.lime:'rgba(104,199,255,0.20)';
+        ctx.lineWidth=r.id===state.selectedId?1.25:.65;ctx.setLineDash(r.id===state.selectedId?[5,4]:[2,5]);ctx.stroke();
+        const end=pts.at(-1);ctx.setLineDash([]);ctx.beginPath();ctx.arc(end.x,end.y,r.id===state.selectedId?3.2:2,0,Math.PI*2);
+        ctx.fillStyle=r.id===state.selectedId?COLORS.lime:'rgba(104,199,255,0.45)';ctx.fill();ctx.restore();
       }
       return;
     }
@@ -1465,7 +1476,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
   }
 
   function stageProgress(robot) {
-    if(robot.platform)return robot.stage==="charging"?robot.battery:null;
+    if(robot.platform)return platformStageProgress(robot);
     if (["picking", "placing"].includes(robot.stage)) {
       return clamp((robot.actionTimer / robot.actionDuration) * 100, 0, 100);
     }
@@ -1499,14 +1510,18 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     $("#batteryBar").style.background = robot.battery < 18 ? COLORS.red : COLORS.lime;
     const hasTask = !backendAuthoritative || Boolean(robot.taskId);
     $("#selectedTaskId").textContent = hasTask ? `#${taskCode(robot)}` : "无执行任务";
-    $("#selectedTaskTitle").textContent = robot.platform ? (hasTask?`${robot.label} · 位置标识 ${robot.location_id||"—"}`:"等待主进程派单 / 待命充电") : hasTask ? (robot.stage === "returning" ? "任务已完成，正在返回" : `将货物送至 ${rackLabel}`) : "等待主进程派单";
-    $("#selectedCargo").textContent = robot.platform ? `${cargoCode(robot)} · 实际载货：${robot.carrying?"是":"否"}` : hasTask ? `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置` : "当前未携带执行任务";
-    $("#selectedLevel").textContent = robot.platform ? "层位见任务查询" : hasTask ? `L${robot.level} · ${targetHeight.toFixed(2)}m` : "—";
+    const taskView=robot.platform?platformTaskPresentation(robot):null;
+    $("#selectedTaskTitle").textContent = robot.platform ? taskView.title : hasTask ? (robot.stage === "returning" ? "任务已完成，正在返回" : `将货物送至 ${rackLabel}`) : "等待主进程派单";
+    $("#selectedCargo").textContent = robot.platform ? `${taskView.goods} · 实际载货：${robot.carrying?"是":"否"}` : hasTask ? `${cargoCode(robot)} · 小型箱 · ${robot.type.key} 伸臂放置` : "当前未携带执行任务";
+    $("#selectedLevel").textContent = robot.platform ? taskView.level : hasTask ? `L${robot.level} · ${targetHeight.toFixed(2)}m` : "—";
     $("#selectedAction").textContent = stageLabel(robot);
-    $("#selectedProgressText").textContent = progress===null?"阶段已确认":`${progress}%`;
-    $("#selectedProgressBar").style.width = progress===null?"阶段已确认":`${progress??0}%`;
+    const progressView=progressPresentation(progress);
+    $("#selectedProgressText").textContent = progressView.text;
+    $("#selectedProgressBar").style.width = progressView.width;
+    $("#selectedProgressBar").style.opacity = progressView.known?'1':'0';
 
     const steps = $$(".task-steps span");
+    steps[2].lastChild.textContent=taskView?taskView.lastStep:'上架';
     steps.forEach((step) => { step.className = ""; });
     if(robot.platform&&!robot.taskId){
       // No active task: leave all three steps neutral.
@@ -1543,7 +1558,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     const blocked = robots.filter(r=>r.blocked).length;
     const lowBattery = robots.filter(r=>r.platform ? r.category==="warning"&&!r.blocked : r.battery<28 && r.stage!=="charging").length;
     const otherWarning = robots.filter(r=>r.stage==="warning" && !r.blocked).length;
-    $("#attentionDetail").textContent = `路径阻塞 ${blocked} · 低电量 ${lowBattery} · 其他 ${otherWarning}`;
+    $("#attentionDetail").textContent = `${platformFrame?'故障/阻塞':'路径阻塞'} ${blocked} · 低电量 ${lowBattery} · 其他 ${otherWarning}`;
     $("#sceneCapacity").textContent = backendMetrics ? `空闲格位 ${backendMetrics.freeSlots} · 已占用 ${backendMetrics.occupiedSlots}（不自动清空）` : "离线演示，无真实任务队列";
     $("#filterAll").textContent = robots.length;
     $("#filterMoving").textContent = counts.moving;
@@ -1580,7 +1595,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
       const items=robots.filter(r=>r.taskId).slice(0,4);queue.replaceChildren();
       for(const r of items){const a=document.createElement('article');a.className='queue-item';
         const d=document.createElement('div'),h=document.createElement('h4'),p=document.createElement('p');
-        h.textContent=`#${r.taskId} · ${robotCode(r.id)}`;p.textContent=`${r.label} · ${r.cargoId||'暂无货物ID'}`;d.append(h,p);a.append(d);queue.append(a);}
+        h.textContent=`#${r.taskId} · ${robotCode(r.id)}`;p.textContent=`${r.label} · ${platformTaskPresentation(r).goods}`;d.append(h,p);a.append(d);queue.append(a);}
       if(!items.length)queue.textContent='当前无执行中的任务';return;
     }
     const items = robots
@@ -1614,6 +1629,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
 
   function applyBackendSnapshot(snapshot) {
     snapshot=snapshot.snapshot||snapshot;
+    let physicalRepeat=false;
     if(snapshot.sourceKind==='live_simulation_memory'){
       if(!platformScene||platformSceneHash!==snapshot.metadata?.scene_sha256){
         if(!acceptsFrame(platformFrame,snapshot,retiredInstances)||!acceptsFrame(pendingPlatform,snapshot,retiredInstances))return;
@@ -1621,11 +1637,14 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
       }
       if(!acceptsFrame(platformFrame,snapshot,retiredInstances))return;
       if(platformFrame?.runtimeInstanceId&&platformFrame.runtimeInstanceId!==snapshot.runtimeInstanceId)retiredInstances.add(platformFrame.runtimeInstanceId);
-      const raw=snapshot;snapshot=adaptPlatformFrame(raw,platformScene,platformFrame,platformTrails);platformFrame=raw;
+      const raw=snapshot;physicalRepeat=samePhysicalFrame(platformFrame,raw);
+      snapshot=adaptPlatformFrame(raw,platformScene,platformFrame,platformTrails);platformFrame=raw;
       WORLD.width=platformScene.spec.width;WORLD.height=platformScene.spec.depth;SHELF_COLUMNS=platformScene.spec.baysPerFace;RACK_HEIGHT=platformScene.spec.rackHeight;SHELF_GAP=RACK_HEIGHT/platformScene.spec.levels;
       $("#sceneDescription").textContent=`${WORLD.width} × ${WORLD.height}m · ${platformScene.racks.length}架 / ${platformScene.capacity}货位 · ${platformScene.docks.length}泊位`;
       $("#heatToggle").title="当前帧机器人位置密度（非历史通行统计）";
-      $("#routeToggle").title='显示选中机器人在本页收到的连续真实位置轨迹；跳帧时断开';$("#routeToggle").lastChild.textContent='轨迹';
+      $("#routeToggle").title='显示选中机器人真实已预约的剩余规划路径；不以历史位置或目标直线代替';$("#routeToggle").lastChild.textContent='路径';
+      $("[data-filter=idle] .filter-name").lastChild.textContent='待命 / 补能 / 等待';
+      $("#legendIdle").previousElementSibling.textContent='待命/补能/等待';
       document.body.classList.add('platform-fixed');
       $("#priorityTaskButton").hidden=true;$("#taskBatchButton").hidden=true;
       $("#queueMode").textContent="执行中 · 最多4台";
@@ -1641,10 +1660,11 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     $("#sceneName").textContent = backendScene?.name || "WAREHOUSE CONTROL / 后端连接";
     const receivedAt = performance.now();
     const previousById = new Map(robots.map((robot) => [robot.id, robot]));
-    if (backendSnapshotAt > 0) {
+    if (!physicalRepeat && backendSnapshotAt > 0) {
       backendInterpolationDuration = clamp(receivedAt - backendSnapshotAt, 80, 500);
     }
-    backendSnapshotAt = receivedAt;
+    if(!physicalRepeat)backendSnapshotAt = receivedAt;
+    backendFrameReceivedAt = receivedAt;
     const rackById = new Map();
     racks = snapshot.racks.map((rack) => {
       const hydrated = { ...rack, slots: rack.slots.map((slot) => ({ ...slot })) };
@@ -1655,7 +1675,8 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
       const previous = previousById.get(payload.id);
       // Only interpolate an actual consecutive committed segment. Reconnecting,
       // dropping frames, or changing run must not invent a chord through a rack.
-      const origin = backendFrameOrigin(previous,payload,backendAuthoritative && lastBackendRun===snapshot.runId && snapshot.tick===lastBackendTick+1 && (!payload.platform || (snapshot.continuousFrame && previous && (payload.x===previous.renderTargetX || payload.y===previous.renderTargetY))));
+      const continuous=backendAuthoritative&&lastBackendRun===snapshot.runId&&snapshot.tick===lastBackendTick+1;
+      const origin=payload.platform?platformMotionOrigin(previous,payload,continuous&&snapshot.continuousFrame):backendFrameOrigin(previous,payload,continuous);
       const rack = rackById.get(payload.rackId) || (payload.platform?null:racks[0]);
       const slot = rack?.slots.find((item) => item.slotId === payload.slotId) || (payload.platform?null:rack?.slots[0]);
       return {
@@ -1666,6 +1687,8 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
         renderFromY: origin.y,
         renderTargetX: payload.x,
         renderTargetY: payload.y,
+        ...(payload.platform&&physicalRepeat&&previous?{x:previous.x,y:previous.y,renderFromX:previous.renderFromX,
+          renderFromY:previous.renderFromY,renderTargetX:previous.renderTargetX,renderTargetY:previous.renderTargetY,renderMotion:previous.renderMotion}:{}),
         rack,
         slot,
         type:payload.platform?(ROBOT_TYPES.find(t=>t.key===payload.typeKey)||{key:payload.typeKey||"—",name:payload.typeKey||"型号未提供",maxLevel:0,maxHeight:0,extension:0,accent:COLORS.blue}):payload.type,
@@ -1779,8 +1802,8 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     if (backendAuthoritative) {
       const interpolation = clamp((timestamp - backendSnapshotAt) / backendInterpolationDuration, 0, 1);
       robots.forEach((robot) => {
-        robot.x = lerp(robot.renderFromX, robot.renderTargetX, interpolation);
-        robot.y = lerp(robot.renderFromY, robot.renderTargetY, interpolation);
+        if(robot.platform){const point=platformRenderPosition(robot,interpolation);robot.x=point.x;robot.y=point.y;}
+        else {robot.x = lerp(robot.renderFromX, robot.renderTargetX, interpolation);robot.y = lerp(robot.renderFromY, robot.renderTargetY, interpolation);}
       });
     }
 
@@ -2055,7 +2078,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     });
 
     canvas.addEventListener("pointerup", (event) => {
-      if (!dragMoved && event.button === 0 && pointerStart.mode === "orbit") {
+      if (shouldPickRobot(dragMoved,event.button,event.shiftKey)) {
         selectNearestRobot(event.clientX, event.clientY);
       }
       isDragging = false;
@@ -2083,7 +2106,7 @@ import {createKnowledgePanel} from './original-knowledge.mjs';
     connectBackend();
     if(window.location.protocol!=="file:"){
       fetch('/api/snapshot',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(f=>{if(f)applyBackendSnapshot(f);}).catch(()=>{});
-      setInterval(()=>{if(!backendConnected||performance.now()-backendSnapshotAt>2500)fetch('/api/snapshot',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();}).then(applyBackendSnapshot).catch(()=>{});},2000);
+      setInterval(()=>{if(!backendConnected||performance.now()-backendFrameReceivedAt>2500)fetch('/api/snapshot',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();}).then(applyBackendSnapshot).catch(()=>{});},2000);
     }
     requestAnimationFrame(animate);
   }

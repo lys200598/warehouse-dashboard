@@ -135,7 +135,19 @@ export function controlAvailability(frame,busy=false){
     step:ready&&['ready','paused'].includes(phase),speed:ready&&phase!=='failed',new_run:ready};
 }
 export function exportRows(frame){
-  const fields=['robot_id','stage','x','y','battery','carrying','task_id','cargo_id','dock_id'];
+  const fields=['robot_id','stage','x','y','battery','carrying','task_id','cargo_id','dock_id',
+    'robot_type','max_level','task','cargo','rack','bay','depth_row','level','slot_occupied',
+    'source_id','target_id','run_id','tick'];
   const escape=v=>`"${String(v??'').replaceAll('"','""')}"`;
-  return [fields.join(','),...frame.robots.map(r=>fields.map(key=>escape(r[key])).join(','))].join('\r\n');
+  const occupied=new Set(frame.occupiedSlots||[]),profiles=frame.metadata?.fleet_capabilities?.profiles||{};
+  return [fields.join(','),...frame.robots.map(r=>{
+    const work=r.work?.task_id===r.task_id?r.work:null;
+    const match=typeof work?.slot_id==='string'?work.slot_id.match(/^(R\d+)-L(\d+)-C(\d+)-F([12])$/):null;
+    const row={...r,robot_type:r.robot_type_key,max_level:profiles[r.robot_type_key]?.maxLevel??({A1:1,R2:2,X3:3})[r.robot_type_key],
+      task:r.task_id,cargo:r.cargo_id||work?.goods_id,rack:match?.[1],bay:match?Number(match[3]):'',
+      depth_row:match?Number(match[4])-1:'',level:match?Number(match[2]):'',
+      slot_occupied:match?occupied.has(work.slot_id):'',source_id:work?.source_id,target_id:work?.target_id,
+      run_id:frame.runId,tick:frame.tick};
+    return fields.map(key=>escape(row[key])).join(',');
+  })].join('\r\n');
 }

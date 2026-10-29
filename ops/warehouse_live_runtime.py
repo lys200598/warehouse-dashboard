@@ -24,6 +24,8 @@ import traceback
 from types import SimpleNamespace
 import uuid
 
+from ops.live_motion_view import LiveMotionView
+
 
 VERSION = 'warehouse-owned-live-runtime-v1'
 QUERY_POINT_VERSION = 'warehouse-live-query-point-v1'
@@ -630,6 +632,11 @@ class WarehouseLiveRuntime:
 
     def _publish(self):
         snap = self._sim.frame()
+        if 'robots' in snap and hasattr(self._sim, 'jobs'):
+            if not hasattr(self, '_motion_view'):
+                self._motion_view = LiveMotionView()
+            self._motion_view.annotate(snap['robots'], self._sim.jobs, self._sim.elapsed,
+                tasks=getattr(self._sim, 'tasks', {}), slots=getattr(self._sim, 'slots', {}))
         stamp = int(time.time() * 1000)
         knowledge = self._store.status(self._sim.run_id)
         knowledge.update(committed_sim_time=self._last_commit, physical_sim_time=self._sim.elapsed)
@@ -652,7 +659,7 @@ class WarehouseLiveRuntime:
                         'knowledge_mode': self.knowledge_mode, 'knowledge_backend': self.knowledge_backend,
                         'output': str(self._output), 'motion_speed_mps': self._sim.config.speed,
                         'resource_graph':self.resource_graph_enabled,
-                        'max_active_robots':self._sim.config.max_active_robots,
+                        'max_active_robots':getattr(self._sim.config,'max_active_robots',100),
                         'fleet_mode':getattr(self._sim.config,'fleet_mode','all-x3'),
                         'fleet_capabilities':self._sim.run_metadata.get('fleet_capabilities')})
         if self._sim.run_metadata.get('boundary_routing'):
