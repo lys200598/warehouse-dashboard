@@ -1,5 +1,7 @@
 # 给lys：任务数据怎样接到这座仓库
 
+> **先看这里（2026-10-30）**：本文第2节起描述的是旧版90×76米、36架1728货位地图，仅作历史对照。新数据请使用120×90米medium地图 `data/layouts/expansion-candidates/medium/layout.json`（48架2304货位），流程见[轮式扩仓对接总览](WAREHOUSE_WHEELED_HANDOFF_20261029.md)，接口边界见[对接约定草案](INTEGRATION_CONTRACT_DRAFT.md)。
+
 我们完成了一个可重复运行的100机器人仓库场景：固定地图、货位与收发位置、任务分配、避碰、取放、充电、低电接力和时序记录。你生成的任务文件可以直接作为实验输入，让同一批数据分别比较调度、共享知识与查询方案。
 
 本文先讲数据侧要知道的边界，再给出文件格式和验证步骤。仓库与算法背景见[仓库设计指南](WAREHOUSE_DESIGN_GUIDE.md)，完整运行与知识模块见[平台指南](WAREHOUSE_PLATFORM_GUIDE.md)。
