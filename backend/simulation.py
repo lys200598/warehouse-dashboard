@@ -770,6 +770,7 @@ class SimulationCoordinator:
             "y": round(state["y"], 4),
             "heading": state["heading"],
             "stage": state["stage"],
+            "taskType": state.get("task_type"),
             "speed": state["speed"],
             "battery": round(state["battery"], 3),
             "carrying": state["carrying"],

@@ -33,3 +33,7 @@ test('first real frame never animates from synthetic demo positions',()=>{
   const result=originHelper()(undefined,{x:7,y:8},false);
   assert.equal(result.x,7);assert.equal(result.y,8);
 });
+test('topbar exposes a replay link to the standalone playback page',()=>{
+  const html=readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');
+  assert.match(html,/id="replayLink"[^>]*href="http:\/\/127\.0\.0\.1:14185\/"/);
+});

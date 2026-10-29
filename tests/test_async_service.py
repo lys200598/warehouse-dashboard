@@ -12,7 +12,7 @@ class AsyncServiceTest(unittest.IsolatedAsyncioTestCase):
         from backend.server import ServerSettings,SimulationService
         with tempfile.TemporaryDirectory() as tmp:
             service=SimulationService(ServerSettings(backend='local',robot_count=1,knowledge_backend='none',
-                checkpoint_path=Path(tmp)/'checkpoint.json'))
+                checkpoint_path=Path(tmp)/'checkpoint.json', replay_record=False))
             completed=[]
             def slow():
                 time.sleep(.15);completed.append(True)

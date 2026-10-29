@@ -14,6 +14,7 @@ from typing import Any
 from starlette.websockets import WebSocket
 
 from .checkpoint import read_checkpoint, write_checkpoint
+from .console_replay import ConsoleFrameRecorder
 from .runtime import build_runtime
 from .simulation import SimulationConfig, SimulationCoordinator
 from .knowledge import build_knowledge_store, KnowledgeError, source_fingerprint
@@ -85,6 +86,9 @@ class ServerSettings:
     warehouse_neo4j_write_enabled: bool = False
     warehouse_neo4j_write_mode: str = "robot-actors"
     warehouse_neo4j_state_interval_ticks: int = 4
+    replay_record: bool = True
+    replay_record_seconds: float = 5.0
+    replay_record_dir: Path = PROJECT_ROOT / "data/local-runs"
 
 
 class SimulationService:
@@ -155,6 +159,9 @@ class SimulationService:
         self.runner: asyncio.Task[None] | None = None
         self.stopping = False
         self.latest_snapshot = self.coordinator.snapshot()
+        self.replay_recorder: ConsoleFrameRecorder | None = None
+        self.replay_record_error: str | None = None
+        self._reset_replay_recorder()
         self.warehouse_graph = Neo4jWarehouseGraph(
             uri=settings.warehouse_neo4j_uri, user=settings.warehouse_neo4j_user,
             password=settings.warehouse_neo4j_password, database=settings.warehouse_neo4j_database,
@@ -181,6 +188,26 @@ class SimulationService:
         self.query_executor = ThreadPoolExecutor(max_workers=16,thread_name_prefix='warehouse-query')
         if settings.warehouse_neo4j_write_enabled and settings.warehouse_neo4j_write_mode == "robot-actors":
             self._configure_robot_graph_writers()
+
+    def _reset_replay_recorder(self) -> None:
+        if self.replay_recorder is not None:
+            try:
+                self.replay_recorder.close()
+            except Exception as exc:
+                self.replay_record_error = f"{type(exc).__name__}: {exc}"
+            self.replay_recorder = None
+        if not self.settings.replay_record:
+            return
+        try:
+            self.replay_recorder = ConsoleFrameRecorder(
+                self.settings.replay_record_dir,
+                self.coordinator.run_id,
+                self.settings.replay_record_seconds,
+            )
+            self.replay_record_error = None
+        except Exception as exc:
+            self.replay_recorder = None
+            self.replay_record_error = f"{type(exc).__name__}: {exc}"
 
     def _configure_robot_graph_writers(self) -> None:
         if not self.settings.warehouse_neo4j_password:
@@ -218,6 +245,11 @@ class SimulationService:
 
     async def start(self) -> None:
         await self._blocking(self._save_checkpoint_locked)
+        if self.replay_recorder is not None:
+            try:
+                await self._blocking(self.replay_recorder.record, self.latest_snapshot)
+            except Exception as exc:
+                self.replay_record_error = f"{type(exc).__name__}: {exc}"
         self.stopping = False
         self.runner = asyncio.create_task(self._run_loop(), name="warehouse-simulation-loop")
         if (self.settings.warehouse_neo4j_write_enabled
@@ -241,6 +273,12 @@ class SimulationService:
                 pass
         async with self.lock:
             await self._blocking(self._save_checkpoint_locked)
+            if self.replay_recorder is not None:
+                try:
+                    await self._blocking(self.replay_recorder.close)
+                except Exception as exc:
+                    self.replay_record_error = f"{type(exc).__name__}: {exc}"
+                self.replay_recorder = None
             await self._blocking(self.coordinator.close)
             if self.knowledge:
                 await self._blocking(self.knowledge.close)
@@ -255,6 +293,12 @@ class SimulationService:
             snapshot = await self._blocking(self.coordinator.control,action,value)
             self.latest_snapshot = snapshot
             if action == "reset":
+                self._reset_replay_recorder()
+                if self.replay_recorder is not None:
+                    try:
+                        await self._blocking(self.replay_recorder.record, snapshot)
+                    except Exception as exc:
+                        self.replay_record_error = f"{type(exc).__name__}: {exc}"
                 await self._blocking(self._save_checkpoint_locked)
                 if (self.settings.warehouse_neo4j_write_enabled
                         and self.settings.warehouse_neo4j_write_mode == "robot-actors"):
@@ -344,6 +388,11 @@ class SimulationService:
                             self.coordinator.record_system_event('已达到本场景有界运行步数；重置可开始新 run')
                             snapshot = await self._blocking(self.coordinator.control,'pause',None)
                         self.latest_snapshot = snapshot
+                        if self.replay_recorder is not None and self.replay_recorder.due(self.coordinator.elapsed):
+                            try:
+                                await self._blocking(self.replay_recorder.record, snapshot)
+                            except Exception as exc:
+                                self.replay_record_error = f"{type(exc).__name__}: {exc}"
                         every = self.settings.checkpoint_every_ticks
                         if every > 0 and self.coordinator.tick % every == 0:
                             await self._blocking(self._save_checkpoint_locked)
@@ -449,6 +498,12 @@ def create_app(settings: ServerSettings | None = None) -> Any:
                 ),
                 "stateIntervalTicks": service.settings.warehouse_neo4j_state_interval_ticks,
                 "lastError": service.runtime_graph_last_error or (worker_errors[0]["error"] if worker_errors else None),
+            },
+            "replayRecord": {
+                "enabled": service.settings.replay_record,
+                "directory": str(service.replay_recorder.directory) if service.replay_recorder is not None else None,
+                "intervalSeconds": service.settings.replay_record_seconds,
+                "error": service.replay_record_error,
             },
             **snapshot["runtime"],
         }
@@ -666,6 +721,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--warehouse-neo4j-state-interval-ticks", type=int, default=int(os.environ.get("WAREHOUSE_NEO4J_STATE_INTERVAL_TICKS", "4")))
     parser.add_argument(
+        "--replay-record",
+        dest="replay_record",
+        action=argparse.BooleanOptionalAction,
+        default=os.environ.get("REPLAY_RECORD", "1") == "1",
+        help="write 4173 snapshots into data/local-runs for the replay service",
+    )
+    parser.add_argument(
+        "--replay-record-seconds",
+        type=float,
+        default=float(os.environ.get("REPLAY_RECORD_SECONDS", "5")),
+    )
+    parser.add_argument(
+        "--replay-record-dir",
+        type=Path,
+        default=Path(os.environ.get("REPLAY_RECORD_DIR", str(PROJECT_ROOT / "data/local-runs"))),
+    )
+    parser.add_argument(
         "--warehouse-neo4j-write-mode",
         choices=["robot-actors", "central"],
         default=os.environ.get("WAREHOUSE_NEO4J_WRITE_MODE", "robot-actors"),
@@ -690,6 +762,8 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit("checkpoint already exists; use --resume or a fresh --checkpoint-path")
     if args.wall_interval <= 0:
         raise SystemExit("--wall-interval must be positive")
+    if args.replay_record_seconds <= 0:
+        raise SystemExit("--replay-record-seconds must be positive")
     settings = ServerSettings(
         backend=args.backend,
         robot_count=args.robot_count,
@@ -725,6 +799,9 @@ def main(argv: list[str] | None = None) -> None:
         warehouse_neo4j_write_enabled=os.environ.get("WAREHOUSE_NEO4J_WRITE_ENABLED", "0") == "1",
         warehouse_neo4j_write_mode=args.warehouse_neo4j_write_mode,
         warehouse_neo4j_state_interval_ticks=args.warehouse_neo4j_state_interval_ticks,
+        replay_record=args.replay_record,
+        replay_record_seconds=args.replay_record_seconds,
+        replay_record_dir=args.replay_record_dir,
     )
     try:
         import uvicorn

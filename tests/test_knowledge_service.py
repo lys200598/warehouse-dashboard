@@ -12,7 +12,8 @@ class ServiceKnowledgeTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)
             settings = ServerSettings(backend="local", robot_count=3, max_active_robots=3,
-                checkpoint_path=path/"checkpoint.json", journal_path=path/"journal.sqlite")
+                checkpoint_path=path/"checkpoint.json", journal_path=path/"journal.sqlite",
+                replay_record=False)
             service = SimulationService(settings)
             original_run = service.coordinator.run_id
             write_checkpoint(settings.checkpoint_path, service.coordinator.checkpoint_payload())
@@ -33,7 +34,8 @@ class ServiceKnowledgeTest(unittest.TestCase):
         from backend.server import create_app, ServerSettings
         with tempfile.TemporaryDirectory() as tmp:
             app = create_app(ServerSettings(backend="local", robot_count=1, knowledge_backend="none",
-                                           checkpoint_path=Path(tmp)/"checkpoint.json"))
+                                           checkpoint_path=Path(tmp)/"checkpoint.json",
+                                           replay_record=False))
             service = app.state.simulation_service
             try:
                 route = next(r for r in app.routes if getattr(r,"path",None)=="/ws/simulation")
