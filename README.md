@@ -2,15 +2,28 @@
 
 本分支提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口为 **`python -m backend.warehouse`**，中央V5协调器推进100个真实仿真机器人，保留能量、交通、库存和恢复门禁。
 
+## 会议后增量
+
+**2026-10-29轮式扩仓与独立进程交付**：[对接总览](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)说明120×90米、48架2304位、1.5m/s、有限换电与自由进出货口；[机器人进程读写](docs/ROBOT_AGENT_IO_GUIDE.md)说明每台机器人独立HTTP写查；[压测指南](docs/LOAD_TEST_GUIDE.md)及[百万查询A/B](docs/QUERY_AB_REGRESSION_20261029.md)提供真实进程、冷热/错峰/突发及完整源验真。默认legacy入口保留，新run显式选择 `--mobility wheeled --robot-agents`。完整七天参考数据已在 [`data/examples/seven-patterns-20261028/`](data/examples/seven-patterns-20261028/README.md)。
+
+货架资源与历史库存、三型号能力门禁、独立扩仓候选和运力对照见 [2026-10-28会议交付](docs/MEETING_DELIVERY_20261028.md)。原正式地图与全X3配置保持；候选的完成、晚点和假设速度分别报告。
+
+入库口背压、期限与取货节拍优化见 [2026-10-29晚点优化](docs/LATENESS_OPTIMIZATION_20261029.md)：保留默认策略，另提供显式启用的疏口候选；全部对照、剩余晚点和出库侧代价分别记录。
+
 ## 阅读路线
 
+- **网页压测控制台**：`python pressure_test.py --gui`，打开本机14595端口，按[使用说明](docs/PRESSURE_GUI_GUIDE.md)选择参数、看图表及历史；与原仓库网页独立。
+- **不想拼压测命令**：在项目目录执行 `bash pressure_test.sh`，按[新手向导](docs/PRESSURE_TEST_QUICKSTART.md)输入地址、选择方案，自动生成中文报告；已有Python环境可运行 `python pressure_test.py`。
+- **第一次接触本项目**：[从仓库设计到实际运行](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)、[压测一步一步操作与API改动兼容表](docs/LOAD_TEST_COOKBOOK.md)
 - **整体实现与运行**：[平台指南](docs/WAREHOUSE_PLATFORM_GUIDE.md)
+- **开始使用实时界面**：[实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md)
 - **数据生成同学 lys**：[对接说明](docs/LYS_DATASET_HANDOFF.md)、[地图与输入契约](docs/dataset-contract/README.md)
 - **布局与调度**：[仓库设计指南](docs/WAREHOUSE_DESIGN_GUIDE.md)
 - **仓库查询与KG对应**：[查询指南](docs/WAREHOUSE_QUERY_GUIDE.md)
 - **历史控制**：[实际控制链](docs/HISTORY_RUNTIME.md)
 - **连续多日生成**：[生成规则](docs/MULTIDAY_DATASET.md)
 - **向量用途、算法与验证**：[检索指南](docs/VECTOR_RETRIEVAL_GUIDE.md)
+- **实际结果与待验收边界**：[完整周回归记录](docs/PLATFORM_REGRESSION_20261028.md)
 - **原实时控制台与Ray**：[保留入口](docs/LEGACY_CONTROL_PANEL.md)
 
 ## 最小运行
@@ -27,6 +40,8 @@ python -m backend.warehouse serve --output data/runs/my-smoke --port 14183
 ```
 
 输出目录、run-id使用新的唯一值，同一次暂停运行用`--resume`继续。网页读取实际保存帧，保留相机交互。
+
+实时控制使用`python -m backend.warehouse live`，部署入口为`http://127.0.0.1:14186/`；它直接运行V5真实协调器并持续写图，支持固定数据集、开始/暂停/单步、墙钟倍速和按需知识查询。原`serve`继续专用于已保存帧回放。
 
 ## 真实图谱与历史控制
 
@@ -54,3 +69,11 @@ python -m backend.warehouse validate --dataset data/datasets/my-seven-days
 长运行可显式设`--commit-seconds 300`：全部业务事件保留，100机器人状态按此间隔和关键协作边界提交。5秒与300秒结果分别计量。大输入设置合适的`--max-wall-seconds`和存储预算，长任务不默认保存巨大网页帧。
 
 原Ray控制台保留；新版中央执行器的100机器人实体、100客户端查询、100独立Actor分别记录。LLM不在本分支交付范围。运行与性能结论均应关联相应输入、源码及验收记录。
+
+## 逻辑入出库边界与自由工位
+
+[自由边界指南](docs/FREE_BOUNDARIES_GUIDE_20261029.md)说明七字段中使用`INBOUND / OUTBOUND`、由仿真选择实际工位及记录计划/实际关系的方法。现有8IN/8OUT、每IN六件和物理约束保持；当前1728高峰自由口场景全部按时完成。旧固定口数据和运行继续保留，其他日型与查询性能分别验收。
+
+## 查询增量摘要与原生入口
+
+[查询部署指南](docs/QUERY_TAIL_DEPLOYMENT_20261029.md)说明单Runtime、8个query-only进程、原子发布点和原生HTTP路由。当前S9动态124131完整响应源验真通过，完整HTTP P99约303ms，仍保留24条超500ms；固定百万前缀与动态规模资格分别报告。输入、源码、SHA及对接说明见[本轮总结](docs/codex_notes/10/29-自由进出货口与查询长尾优化.md)。

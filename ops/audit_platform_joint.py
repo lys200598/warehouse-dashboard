@@ -5,6 +5,7 @@ correct query batch, and actual overlap are checked separately, then coupled
 by source/data/run hashes. All query durations, including failures, are kept.
 """
 import argparse
+from bisect import bisect_right
 from collections import Counter
 import gzip
 import hashlib
@@ -57,6 +58,12 @@ def peak(records):
     for _,delta in sorted(points):
         active+=delta;answer=max(active,answer)
     return answer
+
+
+def latest_observed_head(observations,clocks,started_ns):
+    """Same last <= timestamp semantics, with logarithmic lookup per request."""
+    position=bisect_right(clocks,started_ns)-1
+    return observations[position]['committed_seq'] if position>=0 else None
 
 
 def response_point(payload):
@@ -243,10 +250,11 @@ def audit(manifest_path):
             'observed_head_advanced':len(inside)>1 and inside[-1]['committed_seq']>inside[0]['committed_seq']}
     if q.get('require_writer_overlap',True):check('same_run_graph_write_advance_in_each_query_round',all(v['observed_head_advanced'] for v in overlap.values()))
     observed_fresh=True
+    observation_clocks=[o['observed_at_ns'] for o in observations]
     for row in requests.values():
         if row['point_kind']!='latest':continue
-        prior=[o for o in observations if o['observed_at_ns']<=row['start_ns']]
-        if not prior or row['seq']<prior[-1]['committed_seq']:observed_fresh=False
+        prior=latest_observed_head(observations,observation_clocks,row['start_ns'])
+        if prior is None or row['seq']<prior:observed_fresh=False
     if q.get('require_latest',True):check('latest_cutoff_not_older_than_pre_request_observed_head',observed_fresh)
     stages=spec['stages']
     if not isinstance(stages,list) or not stages:raise ValueError('nonempty executed stages required')

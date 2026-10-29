@@ -14,7 +14,7 @@ from backend.knowledge import digest
 from backend.query_catalog import QueryCatalogService
 
 
-def worker(number,clients,run,round_id,folder,head,lock,barrier,baseline,think,max_seconds,pool_size):
+def worker(number,clients,run,round_id,folder,head,lock,barrier,baseline,think,max_seconds,pool_size,min_seconds=0.,head_advance=2):
     root=Path(folder);service=QueryCatalogService.from_env(timeout=15,pool_size=pool_size)
     def client(owner):
         records=[];values=[]
@@ -33,8 +33,9 @@ def worker(number,clients,run,round_id,folder,head,lock,barrier,baseline,think,m
                 'response_sha256':digest(value),'request':request,'error':error})
             values.append({'request_id':rid,'result':value})
             sample+=1
-            with lock:advanced=head.value>=baseline+2
-            if sample>=20 and advanced or time.monotonic()-started>=max_seconds:break
+            with lock:advanced=head.value>=baseline+head_advance
+            elapsed=time.monotonic()-started
+            if sample>=20 and advanced and elapsed>=min_seconds or elapsed>=max_seconds:break
             time.sleep(think)
         return records,values
     try:
@@ -51,8 +52,16 @@ def main(argv=None):
     p=argparse.ArgumentParser();p.add_argument('--run-id',required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--milestones',default='12000,180000,540000');p.add_argument('--think-seconds',type=float,default=1.)
     p.add_argument('--max-round-seconds',type=float,default=120);p.add_argument('--max-wall-seconds',type=float,default=23000)
+    p.add_argument('--min-round-seconds',type=float,default=0.,help='planned real load duration, never included in an individual request interval')
     p.add_argument('--pool-size',type=int,default=3,help='per-worker Bolt connection budget; API waiting remains timed')
+    p.add_argument('--round-offset',type=int,default=0,help='retain unique original round IDs in additional planned phases')
+    p.add_argument('--min-run-nodes',type=int,default=0,help='before issuing measured requests, require this many distinct nodes of this same run')
+    p.add_argument('--min-head-advance',type=int,default=2,help='planned writer-watermark advance before a round can finish')
     args=p.parse_args(argv)
+    if not (0<=args.think_seconds and 0<=args.min_round_seconds<=args.max_round_seconds):
+        p.error('nonnegative think/min duration and min <= max round duration required')
+    if args.min_run_nodes<0:p.error('min-run-nodes must be nonnegative')
+    if args.min_head_advance<1:p.error('min-head-advance must be positive')
     args.output.mkdir(parents=True,exist_ok=False)
     ctx=mp.get_context('spawn');head=ctx.Value('q',0,lock=False);lock=ctx.Lock();stop=threading.Event()
     monitor_errors=[];service=QueryCatalogService.from_env(timeout=15,pool_size=1);started=time.monotonic()
@@ -75,15 +84,31 @@ def main(argv=None):
     monitor.latest_time=-1
     thread=threading.Thread(target=monitor,daemon=True);thread.start();rounds=[]
     try:
-        for round_id,milestone in enumerate(map(int,args.milestones.split(',')),1):
+        for round_id,milestone in enumerate(map(int,args.milestones.split(',')),1+args.round_offset):
             while monitor.latest_time<milestone:
                 if time.monotonic()-started>args.max_wall_seconds:raise TimeoutError('writer milestone not reached')
                 time.sleep(1)
+            if args.min_run_nodes:
+                with (args.output/f'round-{round_id}-node-size-observations.jsonl').open('x') as observations:
+                    while True:
+                        with lock:head_before=head.value
+                        count_start=time.time_ns()
+                        counts=service.store.mirror.query('MATCH (n) WHERE n.run_id=$run RETURN count(n) AS nodes',{'run':args.run_id},timeout=120)
+                        count_end=time.time_ns()
+                        if len(counts)!=1:raise ValueError('one actual same-run node count required')
+                        nodes=int(counts[0]['nodes'])
+                        with lock:head_after=head.value
+                        observations.write(json.dumps({'round':round_id,'run_id':args.run_id,'start_ns':count_start,
+                            'end_ns':count_end,'distinct_nodes':nodes,'observed_head_before':head_before,
+                            'observed_head_after':head_after,'required_nodes':args.min_run_nodes})+'\n');observations.flush()
+                        if nodes>=args.min_run_nodes:break
+                        if time.monotonic()-started>args.max_wall_seconds:raise TimeoutError('same-run graph node budget not reached')
+                        time.sleep(1)
             folder=args.output/f'round-{round_id}';folder.mkdir()
             barrier=ctx.Barrier(100)
             with lock:baseline=head.value
             processes=[ctx.Process(target=worker,args=(n,list(range(n+1,101,8)),args.run_id,round_id,str(folder),head,lock,barrier,
-                baseline,args.think_seconds,args.max_round_seconds,args.pool_size)) for n in range(8)]
+                baseline,args.think_seconds,args.max_round_seconds,args.pool_size,args.min_round_seconds,args.min_head_advance)) for n in range(8)]
             beginning=time.time_ns()
             for process in processes:process.start()
             for process in processes:process.join(timeout=args.max_round_seconds+120)
@@ -103,8 +128,8 @@ def main(argv=None):
             with lock:seq=head.value;beginning=time.time_ns()
             request={'query_id':kind,'run_id':args.run_id,'seq':seq,'robot_id':1,'task_id':task,
                 'start_seq':max(1,seq-3),'event_limit':10000,'history_limit':1000,'window_steps':60,'max_candidates':10000,'limit':5}
-            value=service.execute(request);ending=time.time_ns();rid=f'functional-{kind}'
-            functional.append({'request_id':rid,'round':4,'client_id':1,'run_id':args.run_id,'seq':seq,
+            value=service.execute(request);ending=time.time_ns();rid=f'functional-r{round_id}-{kind}'
+            functional.append({'request_id':rid,'round':round_id+1,'client_id':1,'run_id':args.run_id,'seq':seq,
                 'point_kind':'latest','start_ns':beginning,'end_ns':ending,'ok':True,'response_sha256':digest(value),'request':request})
             complete.append({'request_id':rid,'result':value})
         with (args.output/'requests.jsonl').open('x') as out,gzip.open(args.output/'responses.jsonl.gz','wt',encoding='utf-8') as responses:
@@ -118,6 +143,9 @@ def main(argv=None):
             for r in complete:responses.write(json.dumps(r,ensure_ascii=False,allow_nan=False)+'\n')
         (args.output/'load-result.json').write_text(json.dumps({'rounds':rounds,'monitor_errors':monitor_errors,
             'think_seconds':args.think_seconds,'max_round_seconds':args.max_round_seconds,'per_worker_pool':args.pool_size,
+            'min_round_seconds':args.min_round_seconds,
+            'min_run_nodes':args.min_run_nodes,
+            'min_head_advance':args.min_head_advance,
             'validation_during_query':False,'cpu_processes':8,'clients':100},indent=2)+'\n')
     finally:
         stop.set();thread.join(timeout=20);service.close()

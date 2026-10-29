@@ -1,0 +1,8 @@
+{
+  "version": "warehouse-load-v1",
+  "description": "Live gateway selects the current committed cutoff. Query-only sidecars require explicit seq instead.",
+  "cases": [
+    {"name": "robot-self", "query_class": "light", "kind": "read", "weight": 1,
+     "path": "/api/knowledge/query", "body": {"query_id": "self", "run_id": "{{run_id}}", "robot_id": "{{client_id}}"}}
+  ]
+}

@@ -1,9 +1,9 @@
 {
-  "scope": "implementation integration; full-week joint regression still in progress",
+  "scope": "implementation integration; seven-day 300s physics/source checks complete; strict million-prefix follow-up density120 running",
   "source_zip_sha256": "6f049ddbfaf16575ad2867ec0fa0fff427a447df3f11589a5361304d3531fc0a",
   "git_tree_regression": {
-    "total": 569,
-    "passed": 562,
+    "passed": 636,
+    "total": 643,
     "optional_skipped": 7
   },
   "actual_smoke": {
@@ -17,5 +17,44 @@
   },
   "new_seven_day_csv_sha256": "f92781517b4007caa2b8f2799f3b987ded541c252b8d3cc592ca7101725e1e0a",
   "full_week_joint_complete": false,
-  "old_commit_preserved": "52c9206c8b285eb906c2aaf03a2ecbffd1a4a259"
+  "old_commit_preserved": "52c9206c8b285eb906c2aaf03a2ecbffd1a4a259",
+  "full_week_physical_complete": true,
+  "same_run_300s_distinct_nodes": 994184,
+  "strict_300s_qualification_failures": [
+    "below_1000000_nodes",
+    "round_4_actual_api_peak_61",
+    "control_bracket_not_fully_covered_by_actual_inflight"
+  ],
+  "density120_followup": {
+    "same_inputs_and_physical_config": true,
+    "state": "running",
+    "root": "/data/workspace/wz/warehouse-platform-density120-20261028"
+  },
+  "frontend_checks_passed": 75,
+  "live_console": {
+    "tasks": 50112,
+    "ready": true,
+    "knowledge_backend": "neo4j",
+    "mode": "required",
+    "url": "http://127.0.0.1:14186/",
+    "default_dataset": "seven-patterns",
+    "http_and_runtime_tests": 14,
+    "commit_seconds": 5,
+    "required_sample": {
+      "strict_source_verified": true,
+      "completed": 19,
+      "history_queries": 2,
+      "durable_seq": 400,
+      "mirrored_seq": 400,
+      "catalog_requests": 12,
+      "handoffs": 1
+    },
+    "neo4j_port": 17690,
+    "real_browser_controls_verified": [
+      "step",
+      "start",
+      "pause",
+      "self_query"
+    ]
+  }
 }

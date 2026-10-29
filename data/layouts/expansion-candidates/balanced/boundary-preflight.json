@@ -40,7 +40,7 @@
   ],
   "interpretation": "84m violates this generator circulation contract; this is not a proof every possible 84m design is physically impossible",
   "source_identity": {
-    "core_factory_sha256": "ff46d621b7d1de0de9da1d1d7f78e66260c8d2a9c39c64a9ce57a6bbdc03d6cc",
+    "core_factory_sha256": "1eb153bae7f07cbb72a7a5e5909069e5ca15d873492020c74cbf5fd0d05af090",
     "base_scene_sha256": "ce99154d80fc643610dcb6d27384ca3724f95dc9121b8d2934212d56ba9eda24"
   },
   "source_files_unchanged": true,

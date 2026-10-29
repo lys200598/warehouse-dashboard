@@ -1,0 +1,24 @@
+{
+  "version": "warehouse-live-datasets-v1",
+  "base_directory": "..",
+  "default_dataset": "sample19",
+  "datasets": {
+    "sample19": {
+      "label": "快速闭环：19任务与低电接力",
+      "scene": "data/layouts/warehouse100-wide-v2.json",
+      "dataset": "data/examples/warehouse-v5",
+      "disturbances_json": "config/live-sample-disturbances.json"
+    },
+    "peak1728": {
+      "label": "高峰：1728任务 / 100机器人",
+      "scene": "data/layouts/warehouse100-wide-v2.json",
+      "dataset": "data/examples/regression/peak",
+      "config": {"charging_policy": "critical-only"}
+    },
+    "seven-patterns": {
+      "label": "七天典型波动：50112任务",
+      "scene": "data/layouts/warehouse100-wide-v2.json",
+      "dataset": "data/datasets/live-seven-patterns"
+    }
+  }
+}

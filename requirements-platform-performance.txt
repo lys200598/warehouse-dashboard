@@ -1,0 +1,5 @@
+# Isolated reproduction environment for the tested accelerated driver.
+# Alternative to requirements-platform.txt; do not modify a shared environment.
+# This package exposes the same `neo4j` import/API.
+neo4j-rust-ext==6.4.1.0
+numpy>=1.26,<3

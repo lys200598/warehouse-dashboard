@@ -193,3 +193,27 @@ python -m backend.warehouse run \
 交付者完成本轮Git提交后，可以把分支链接、明确commit和下面几项一起发给lys：
 
 > 我这边把仓库布局、100机器人调度和仿真、进出库与低电接力、知识图谱记录和查询整理在`wz/warehouse-design`分支。你可以先看`docs/LYS_DATASET_HANDOFF.md`，再看`docs/dataset-contract/README.md`和位置表，运行入口统一为`python -m backend.warehouse`。地图是90×76米、1728货位、100个充电兼待命位，任务还是七字段CSV。你主要安排每天的进出数量、发布时间、空间分布和期限，连续维护库存和货物编号；电量、机器人分配和接力放在我的仿真配置里。先用一份小样例跑过`validate`，再交一天或多天数据，附初始库存、manifest、种子、地图SHA和期限规则，我们就可以固定同一输入一起回归。最新提交和实际通过范围以我附上的commit与平台指南交付记录为准。
+
+
+## 2026-10-28会议后增量：扩仓与三型号
+
+本文件原90×76m/1728位合同继续对应正式V2基线。新候选独立放在 `data/layouts/expansion-candidates/`，每个目录自带 `layout.json / task-locations.csv / manifest.json / geometry-audit.json`。balanced为100×90m/40架1920位，medium为120×90m/48架2304位，large为150×100m/60架2880位；最终采用哪个版本以[会议增量交付](MEETING_DELIVERY_20261028.md)的实际结果为准。
+
+- 七字段任务CSV与两字段初始库存保持；Robot型号/电量/派单/接力由运行配置负责。
+- 请使用所选目录的新位置表与scene SHA，manifest.capacity取该地图容量；原独立 `docs/dataset-contract/validate_package.py`仍验证固定V2交接包，新候选使用 `python -m backend.warehouse validate --scene <候选layout.json> --dataset <数据目录>`。
+- 老R01—R36和原货位编号保留，坐标已变化；新增货架ID只在相应新版本存在。
+- 原图谱资源设计已通过 `backend/resource_graph/`连接真实时序库存。Warehouse/Rack/Location规范ID按内容身份生成，Dataset包含实际输入SHA；直接沿用“版本+日期”ID容易让不同seed互相覆盖。
+- 数据集可用原三型40/40/20或其他显式比例作实验。高层任务多时需要评估X3负载；接力接收者也必须能完成剩余取放。
+- 主对照保留同CSV及原时限；额外全货架覆盖实验保持任务ID、货物ID、类型与发布时间/截止时间，仅映射货位，并记录完整映射，独立列为覆盖实验。
+
+建议先看 `docs/MEETING_DELIVERY_20261028.md` 与 `docs/RACK_RESOURCE_GRAPH_GUIDE.md`，再选择地图后生成数据。当前主线继续以共同知识与时序查询为研究目标；新增地图和型号是能够产生可信货物流转的实验环境。
+
+### 2026-10-29入库背压增量
+
+[晚点优化指南](LATENESS_OPTIMIZATION_20261029.md)记录了同一balanced高峰输入的逐任务归因和全部候选。七字段CSV、初始库存、地图SHA与每口6件约束保持；调度新增显式opt-in疏口候选，1728任务晚点23→5，出库0晚点但平均流转有所增加。默认FIFO/off和现有实时服务保持。新日型请继续保留各入口发布时间、数量与期限分布，双方固定同一输入做IN/OUT联合回归；最终选择的完整运行配置见`config/warehouse-balanced-port-relief.json`及指南的收尾记录。
+
+### 2026-10-29逻辑边界与数据对接
+
+[自由边界指南](FREE_BOUNDARIES_GUIDE_20261029.md)增加了更简洁的端口约定：七字段中，入库`source_id=INBOUND`、出库`target_id=OUTBOUND`，货架端点保持；manifest声明`warehouse-logical-boundaries-v1`。用统一`convert-boundaries --dataset ... --scene ... --output ... --role both`创建新数据，再执行`validate`。仿真按实际状态选择工位，入库准入/出库发布后固定，计划与实际位置分别记录到知识图谱。
+
+现100×90m、100台、0.8m/s和8IN/8OUT/每IN六件的高峰1728任务已全部按时完成，旧固定门基线保留。请继续设计货量、货物身份、库存连续性、发布时间及期限；无需预先给每件货指定具体入口。未来扩展站点需同步地图、校验和图谱登记，逻辑CSV可保持。不同日型、多天与设备验收范围见新指南；使用双方约定的commit与完整配置对接。

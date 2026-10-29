@@ -61,7 +61,7 @@ bash run_in_lade.sh python -m backend.warehouse --help
 bash run_in_lade.sh python -m backend.warehouse status
 ```
 
-统一入口分为七类操作：
+统一入口分为八类操作：
 
 |子命令|用途|
 |---|---|
@@ -70,10 +70,26 @@ bash run_in_lade.sh python -m backend.warehouse status
 |`run`|推进仿真、写入日志/图谱并保存恢复状态|
 |`query`|调用标准仓库知识查询|
 |`serve`|展示指定运行保存的实际帧|
+|`live`|真实实时控制台：固定数据、单写者运行、图谱更新与查询|
 |`status`|查看选定模块、版本、身份及使用入口|
 |`retrieval-eval`|执行向量检索的质量/性能对照|
 
 各子命令的完整参数以`python -m backend.warehouse <子命令> --help`为准。下面先使用最小闭环，不要求安装或启动LLM。
+
+### 运行环境与性能复现
+
+统一入口的常规依赖在`requirements-platform.txt`；原FastAPI/Ray控制台继续使用原`requirements.txt`。本轮Pro6000生产查询使用CPython3.10.12、Neo4j驱动API6.4.1及`neo4j-rust-ext`6.4.1.0。测试时通过独立`PYTHONPATH`目录复用加速驱动，共享虚拟环境保持原样。
+
+新机器可在自己的独立环境中选用`requirements-platform-performance.txt`复现驱动版本；它作为普通平台依赖文件的替代项。安装后的业务导入仍为`import neo4j`。Rust扩展是Neo4j官方提供的加速方案，依赖及安装关系见[官方性能指南](https://neo4j.com/docs/python-manual/current/performance/)与[官方扩展仓库](https://github.com/neo4j/neo4j-python-driver-rust-ext)。新机器的实际性能仍需要重新测量。
+
+```bash
+python3 -m venv .venv-platform
+.venv-platform/bin/python -m pip install -r requirements-platform-performance.txt
+export LADE_ENV_DIR="$PWD/.venv-platform"
+bash run_in_lade.sh python -m backend.warehouse status
+```
+
+连接数也要符合数据库的处理预算。本轮私有Neo4j的Bolt处理线程上限为32；100客户端压力由8个进程共享每进程3条连接，另留观察器和写者连接。客户端等待连接的时间完整计入API耗时。最初放大连接池时出现的31条`NoThreadsAvailable`失败请求保留在诊断记录中；后续轮次在明确的连接预算下重新执行。100客户端数量与24条业务Bolt连接分别记录，避免通过无限连接把数据库线程耗尽。
 
 ### 3.1 先校验19条任务的小样例
 
@@ -190,8 +206,8 @@ bash run_in_lade.sh python -m backend.warehouse generate \
 
 ### 本轮交付记录
 
-当前实现集成已通过实际Git工作树完整回归：569项，562通过、7项可选集成跳过；新版真实Neo4j小样例19/19完成、1次低电交接、2次历史授权，300秒采样及关键边界发布通过。源码包SHA256为`6f049ddbfaf16575ad2867ec0fa0fff427a447df3f11589a5361304d3531fc0a`，Git中108个后端py/json文件与实际运行源逐字节相同。
+当前实现集成已通过实际Git工作树完整回归：643项，636通过、7项可选集成跳过；前端75项通过。实验源码包SHA256为`6f049ddbfaf16575ad2867ec0fa0fff427a447df3f11589a5361304d3531fc0a`，其中108份后端文件与实现提交`21a8271`逐字节一致。后续实时功能增加`live`CLI转发及独立ops adapter，旧实验继续从原冻结目录运行与恢复。
 
-新七天50,112任务的规则/历史模式正在进行完整联合回归，300秒周期采样保留全部业务事件，并加入每日两次低电测量。历史模式已完成首日边界暂停并按原身份恢复；完整周结果及最新读写混合的最终验真在后续记录中补齐。本次实现提交不提前声明全周通过。
+七天300秒采样基线的规则/历史模式均50,112任务完成、0迟到、14次低电接力，最终物理状态一致；28次历史授权的来源与实际动作逐条通过审计。60,240次轻量请求和18次功能请求的完整来源验真通过。该run实际994,184节点；第四轮100-client实际API峰值61，严格组合审计与百万资格继续保留未通过。新120秒采样规模回归已独立启动，保持同输入和物理策略。分轮性能、已测提速原型及后续门槛见[完整回归记录](PLATFORM_REGRESSION_20261028.md)。
 
-当前独立新样例回放默认端口14183；旧14182/V5等服务保留。原Git提交`52c9206...`可用于回看原仓库交付，旧运行应由其原冻结源恢复。
+实时交互入口现为14186，加载相同七天CSV并使用独立17690数据库；当前批量规模回归使用独立run和数据库。真实浏览器已验证单步、运行、暂停及图谱查询。操作与数据选择见[实时控制台指南](LIVE_CONSOLE_GUIDE.md)。14183/14184回放与旧14182/V5等服务保留。原Git提交`52c9206...`可用于回看原仓库交付，旧运行应由其原冻结源恢复。

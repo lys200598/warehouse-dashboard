@@ -95,7 +95,7 @@ class CatalogTests(unittest.TestCase):
     def call(self,q,**kw):return self.service.execute({'query_id':q,'run_id':RUN,'seq':SEQ,**kw})['result']
 
     def test_catalog_and_all_56_explicit_mapping_statuses(self):
-        self.assertEqual(len(QueryCatalogService.describe()['queries']),11)
+        self.assertEqual(len(QueryCatalogService.describe()['queries']),12)
         mapping=json.loads((ROOT/'backend/query_catalog/kg56_mapping.json').read_text(encoding='utf-8'))
         self.assertEqual({r['id'] for r in mapping['entries']},{'i'+str(i) for i in range(56)})
         self.assertTrue(all(r['warehouse_query_id'] in CATALOG and r['adaptation'] for r in mapping['entries']))

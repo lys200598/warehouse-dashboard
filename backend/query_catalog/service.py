@@ -18,6 +18,7 @@ from . import VERSION
 
 
 CATALOG = {
+    'rack_inventory':'Rack occupancy and actual goods custody at a committed historical cutoff',
     'self': 'Specified robot and its task at the committed point',
     'readiness': 'Snapshot identity, source watermark and observed readiness',
     'task': 'Exact task version plus cargo and cooperation provenance',
@@ -221,16 +222,29 @@ class QueryCatalogService:
         self._local.metrics=value
 
     @classmethod
-    def from_env(cls, timeout=15, *, pool_size=120):
+    def from_env(cls, timeout=15, *, pool_size=120, summary_root=None,
+                 summary_cache_root=None, cache_fleet=False, catch_up_on_read=True,
+                 cache_event_counts=False):
+        if type(cache_event_counts) is not bool:
+            raise ValueError('typed event-count acceleration flag required')
         from ..query_v2.service_tail import TailQueryService
-        return cls(TailQueryService.from_env(timeout=timeout, pool_size=pool_size))
+        store=TailQueryService.from_env(timeout=timeout, pool_size=pool_size)
+        if summary_root is not None or cache_fleet or cache_event_counts:
+            from ..query_views.catalog import AcceleratedCatalog
+            from ..query_views.event_counts import EventCountCatalog
+            from ..query_views import SummaryDirectory
+            summaries=SummaryDirectory(summary_root,summary_cache_root) if summary_root is not None else None
+            catalog=EventCountCatalog if cache_event_counts else AcceleratedCatalog
+            return catalog(store,summaries=summaries,cache_fleet=cache_fleet,
+                                      catch_up_on_read=catch_up_on_read)
+        return cls(store)
 
     @classmethod
     def describe(cls):
         return {'version':VERSION,'queries':deepcopy(CATALOG),
             'required_common':['query_id','run_id','seq'],
             'optional_common':['robot_id','task_id','goods_id','start_seq','event_limit','history_limit',
-                'max_tasks','zone','radius_m','min_soc','limit','variant','window_steps','embargo_steps','max_candidates'],
+                'max_tasks','zone','radius_m','min_soc','limit','variant','window_steps','embargo_steps','max_candidates','rack_id','include_empty'],
             'time_semantics':'explicit committed cutoff; window is inclusive commit sequence, not uniform elapsed duration',
             'control_use':'catalog is read-only/advisory; knowledge_runtime separately consumes cooperation_context',
             'mapping_file':'backend/query_catalog/kg56_mapping.json'}
@@ -241,7 +255,13 @@ class QueryCatalogService:
 
     def _read(self, query, params):
         self._metrics['statements'] += 1
-        return self.store.mirror.query(query, params, timeout=self.store.timeout)
+        started=time.perf_counter()
+        try:return self.store.mirror.query(query, params, timeout=self.store.timeout)
+        finally:
+            key=('fleet' if query==FLEET_QUERY else 'events' if query==EVENTS_QUERY
+                 else 'task_counts' if query==TASK_COUNTS_QUERY else 'point_or_other')
+            timing=self._metrics.setdefault('bolt_stage_ms',{})
+            timing[key]=timing.get(key,0.)+(time.perf_counter()-started)*1000
 
     def _point(self, row, run, seq, token=None):
         if row.get('run_id')!=run or type(row.get('head')) is not int or row['head']<seq:
@@ -345,6 +365,17 @@ class QueryCatalogService:
         if completed!=fleet['step']['completed']:raise IncompleteContext('task summary and committed Step completion count disagree')
         return counts
 
+    def _event_kind_counts(self,run,seq,start,limit,fleet,*,robot=None,task=None):
+        """Complete, validated window; seam permits explicit immutable reuse.
+
+        Default behaviour still reads and validates every original payload.
+        Counts are global-window facts, not inferred from current robot zones.
+        """
+        events=self._events(run,seq,start,limit,fleet['token'],robot=robot,task=task)
+        if any(e['event']['sim_time']>fleet['step']['sim_time'] for e in events):
+            raise ValueError('future event effective time')
+        return dict(Counter(e['event']['kind'] for e in events))
+
     def _task(self, run, seq, task):
         rows=self._read(TASK_POINT_QUERY,{'run':run,'seq':seq,'task':task})
         if len(rows)!=1:raise ValueError('task absent at requested cutoff')
@@ -372,7 +403,12 @@ class QueryCatalogService:
             if request.get(field) is not None:identity(request[field],field)
         started=time.perf_counter();self._metrics={'statements':0,'observed_heads':[]}
         try:
-            if query in ('self','readiness'):
+            if query=='rack_inventory':
+                from ..resource_graph import RackInventoryService
+                result=RackInventoryService(self.store.mirror,timeout=self.store.timeout).inventory(
+                    run,seq,identity(request.get('rack_id'),'rack'),include_empty=request.get('include_empty',True))
+                self._metrics['statements']=1
+            elif query in ('self','readiness'):
                 value=self.store.robot_context(run,seq,[robot])
                 if (value['run_id']!=run or type(value['seq']) is not int or value['seq']!=seq
                         or type(value['graph_committed_seq']) is not int or value['graph_committed_seq']<seq):
@@ -426,12 +462,13 @@ class QueryCatalogService:
                 elif variant=='full-ann':
                     task=identity(request.get('task_id'),'task');goods=identity(request.get('goods_id'),'goods')
                     result=self.store.full_query(run,seq,robot,goods,task)
+                    self._metrics['full_ann_store']=deepcopy(getattr(self.store,'latest_metrics',{}))
                 else:raise ValueError('unknown similarity variant')
                 result={'variant':variant,'context':result,'control_role':'advisory; cannot authorize cargo transfer'}
             else:
                 fleet=self._fleet(run,seq);scene=fleet['metadata']['scene'];me=fleet['robots'][robot-1]
                 events=[]
-                if query in ('assistance','progress','memory','local_awareness','global'):
+                if query in ('assistance','progress','memory'):
                     events=self._events(run,seq,start,event_limit,fleet['token'],
                         robot=robot if query=='memory' else None,task=request.get('task_id') if query=='progress' else None)
                     if any(e['event']['sim_time']>fleet['step']['sim_time'] for e in events):
@@ -486,6 +523,7 @@ class QueryCatalogService:
                             'position_span_m':span,'stationary_by_position':span<=1. if len(history)>1 else None,
                             'sample_counts_are_continuous_durations':False})
                 elif query in ('local_awareness','global'):
+                    event_kind_counts=self._event_kind_counts(run,seq,start,event_limit,fleet)
                     counts=self._tasks(run,seq,fleet,maximum)
                     zones=sorted({r['zone'] for r in scene['racks']})
                     zone=request.get('zone',rack_zone(me,scene)) if query=='local_awareness' else None
@@ -498,13 +536,16 @@ class QueryCatalogService:
                         step=fleet['step'],bay_counts={'physical_bays':100,
                             'occupied':sum(bool(b['occupant_robot_ids']) for b in fleet['bays']),
                             'charging':sum(b['charging_robot_id'] is not None for b in fleet['bays'])},
-                        recent_event_kind_counts=dict(Counter(e['event']['kind'] for e in events)),
+                        recent_event_kind_counts=event_kind_counts,
                         event_window_scope='global run window; event zone is not inferred from current task ownership',
                         window={'start_seq':start,'end_seq':seq,'complete':True})
             result={'catalog_version':VERSION,'query_id':query,'run_id':run,'seq':seq,
                 'read_only':True,'used_by_live_control':False,'result':result}
             # Include complete JSON encoding/decoding in the API, not driver time only.
-            return json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
+            materialize_started=time.perf_counter()
+            output=json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
+            self._metrics['json_roundtrip_ms']=(time.perf_counter()-materialize_started)*1000
+            return output
         finally:
             self._metrics['service_ms']=(time.perf_counter()-started)*1000
 

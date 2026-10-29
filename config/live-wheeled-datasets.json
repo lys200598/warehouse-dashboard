@@ -1,0 +1,20 @@
+{
+  "version": "warehouse-live-datasets-v1",
+  "base_directory": "..",
+  "default_dataset": "medium1728",
+  "datasets": {
+    "medium1728": {
+      "label": "轮式中型仓库：48架 / 1728高峰任务 / 自由口",
+      "scene": "data/layouts/expansion-candidates/medium/layout.json",
+      "dataset": "data/examples/wheeled-medium-peak",
+      "config_json": "config/wheeled-medium-100.json"
+    },
+    "medium19": {
+      "label": "轮式中型仓库：19任务与低电接力",
+      "scene": "data/layouts/expansion-candidates/medium/layout.json",
+      "dataset": "data/examples/wheeled-medium-sample19",
+      "config_json": "config/wheeled-medium-100.json",
+      "disturbances_json": "config/live-sample-disturbances.json"
+    }
+  }
+}
