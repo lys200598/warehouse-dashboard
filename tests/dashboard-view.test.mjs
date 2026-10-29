@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {progressPresentation,platformStageProgress,platformTaskPresentation,samePhysicalFrame,shouldPickRobot} from '../dist/dashboard-view.mjs';
+import {progressPresentation,platformStageProgress,platformTaskPresentation,samePhysicalFrame,shouldPickRobot,nextFrameInterval,FRAME_INTERVAL_MAX_MS} from '../dist/dashboard-view.mjs';
 import {exportRows} from '../dist/live-model.mjs';
 
 test('unknown progress clears CSS width rather than retaining an earlier battery percentage',()=>{
@@ -49,4 +49,26 @@ test('original app renders real future routes and keeps repeated-frame animation
   assert.match(source,/physicalRepeat&&previous/);assert.match(source,/if\(!physicalRepeat\)backendSnapshotAt/);
   assert.doesNotMatch(source,/style\.width = progress===null\?"阶段已确认"/);
   assert.match(source,/p\.textContent=`\$\{r\.label\} · \$\{platformTaskPresentation\(r\)\.goods\}`/);
+});
+
+test('interpolation follows the real one-second frame cadence instead of stopping at 500 ms',()=>{
+  let state={samples:[],duration:250};
+  for(const gap of [1010,1360,990,1400,1020])state=nextFrameInterval(state.samples,gap);
+  assert.ok(state.duration>=1000&&state.duration<=1400,'duration '+state.duration);
+});
+test('a save stall or reconnect gap does not stretch later motion',()=>{
+  let state={samples:[],duration:250};
+  for(const gap of [1000,1000,1000])state=nextFrameInterval(state.samples,gap);
+  const before=state.duration;
+  state=nextFrameInterval(state.samples,4029);
+  assert.equal(state.duration,before);
+  assert.equal(state.samples.length,3);
+});
+test('accelerated playback shortens interpolation and stays bounded',()=>{
+  let state={samples:[],duration:250};
+  for(let i=0;i<7;i++)state=nextFrameInterval(state.samples,55);
+  assert.equal(state.duration,80);
+  for(let i=0;i<7;i++)state=nextFrameInterval(state.samples,2400);
+  assert.equal(state.duration,FRAME_INTERVAL_MAX_MS);
+  assert.equal(nextFrameInterval([],NaN).duration,250);
 });

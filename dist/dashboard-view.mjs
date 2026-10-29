@@ -31,3 +31,17 @@ export function platformTaskPresentation(robot){
 export function shouldPickRobot(dragMoved,button,shift=false){
   return !dragMoved&&button===0&&!shift;
 }
+
+// Physical frames arrive at the simulator's real cadence (about 1 s at speed 1,
+// faster when accelerated). Interpolate over the recent median interval so a
+// robot moves for the whole gap instead of finishing early and standing still.
+// A save stall or reconnect gap is not a cadence sample; the robot simply rests
+// at its last real position until the next frame.
+export const FRAME_INTERVAL_MIN_MS=80,FRAME_INTERVAL_MAX_MS=2000;
+export function nextFrameInterval(samples,interval,keep=7){
+  const valid=Number.isFinite(interval)&&interval>=FRAME_INTERVAL_MIN_MS/2&&interval<=FRAME_INTERVAL_MAX_MS*1.25;
+  const next=valid?[...samples,interval].slice(-keep):[...samples];
+  if(!next.length)return {samples:next,duration:250};
+  const sorted=[...next].sort((a,b)=>a-b),median=sorted[sorted.length>>1];
+  return {samples:next,duration:Math.min(FRAME_INTERVAL_MAX_MS,Math.max(FRAME_INTERVAL_MIN_MS,median))};
+}

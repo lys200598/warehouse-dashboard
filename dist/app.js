@@ -2,7 +2,8 @@ import {adaptPlatformFrame,platformControl} from './original-platform.mjs';
 import {acceptsFrame,formatClock as platformClock,exportRows} from './live-model.mjs';
 import {createKnowledgePanel} from './original-knowledge.mjs';
 import {platformMotionOrigin,platformRenderPosition,platformRoutePoints} from './motion-view.mjs';
-import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTaskPresentation,shouldPickRobot} from './dashboard-view.mjs';
+import {createFrameBuffer,bufferDelayFromQuery} from './frame-buffer.mjs';
+import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTaskPresentation,shouldPickRobot,nextFrameInterval} from './dashboard-view.mjs';
 (() => {
   "use strict";
 
@@ -100,6 +101,10 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   let backendSnapshotAt = 0;
   let backendFrameReceivedAt = 0;
   let backendInterpolationDuration = 250;
+  let frameIntervalSamples = [];
+  // Live frames pass through a short playback buffer (see frame-buffer.mjs).
+  const frameBuffer = createFrameBuffer({delayMs: bufferDelayFromQuery(window.location.search)});
+  const enqueueBackendFrame = (frame) => { for (const next of frameBuffer.push(frame, performance.now())) applyBackendSnapshot(next); };
   let lastBackendTick = null;
   let lastBackendRun = null;
   let isDragging = false;
@@ -1660,8 +1665,9 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     $("#sceneName").textContent = backendScene?.name || "WAREHOUSE CONTROL / 后端连接";
     const receivedAt = performance.now();
     const previousById = new Map(robots.map((robot) => [robot.id, robot]));
+    if (lastBackendRun !== snapshot.runId) frameIntervalSamples = [];
     if (!physicalRepeat && backendSnapshotAt > 0) {
-      backendInterpolationDuration = clamp(receivedAt - backendSnapshotAt, 80, 500);
+      ({samples:frameIntervalSamples,duration:backendInterpolationDuration}=nextFrameInterval(frameIntervalSamples,receivedAt-backendSnapshotAt));
     }
     if(!physicalRepeat)backendSnapshotAt = receivedAt;
     backendFrameReceivedAt = receivedAt;
@@ -1741,6 +1747,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     try {
       const payload=platformFrame?platformControl(action,value,platformFrame,$("#datasetSelect").value):{action,value};
       const response=await backendPost("/api/control",payload);const snapshot=response.snapshot||response;
+      for(const held of frameBuffer.flush())applyBackendSnapshot(held);
       applyBackendSnapshot(snapshot);return snapshot;
     } catch(error){showToast(`后端操作失败：${error.message}`,"!");return null;}
     finally{controlBusy=false;}
@@ -1772,7 +1779,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     backendSocket.addEventListener("message", (event) => {
       if(backendSocket!==currentSocket)return;
       try {
-        applyBackendSnapshot(JSON.parse(event.data));
+        enqueueBackendFrame(JSON.parse(event.data));
       } catch (error) {
         console.error("Invalid backend snapshot", error);
       }
@@ -1791,6 +1798,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   function animate(timestamp) {
     const rawDelta = Math.min(0.06, Math.max(0, (timestamp - lastTime) / 1000));
     lastTime = timestamp;
+    for (const next of frameBuffer.due(timestamp)) applyBackendSnapshot(next);
     const delta = state.running && !backendAuthoritative ? rawDelta * state.speed : 0;
     if (delta > 0) {
       state.elapsed += delta;
@@ -2105,8 +2113,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     renderLatestEvent();
     connectBackend();
     if(window.location.protocol!=="file:"){
-      fetch('/api/snapshot',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(f=>{if(f)applyBackendSnapshot(f);}).catch(()=>{});
-      setInterval(()=>{if(!backendConnected||performance.now()-backendFrameReceivedAt>2500)fetch('/api/snapshot',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();}).then(applyBackendSnapshot).catch(()=>{});},2000);
+      fetch('/api/snapshot',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(f=>{if(f)enqueueBackendFrame(f);}).catch(()=>{});
+      setInterval(()=>{if(!backendConnected||performance.now()-backendFrameReceivedAt>2500)fetch('/api/snapshot',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();}).then(enqueueBackendFrame).catch(()=>{});},2000);
     }
     requestAnimationFrame(animate);
   }
