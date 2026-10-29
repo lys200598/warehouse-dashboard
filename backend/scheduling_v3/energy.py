@@ -13,7 +13,7 @@ from typing import Any, Iterable, Mapping
 
 
 MOVING_PHASES = frozenset({"moving", "to_source", "to_target", "to_charge", "returning", "yielding", "to_handoff"})
-WAITING_PHASES = frozenset({"idle", "standby", "traffic_wait", "mission_queue", "charge_queue", "blocked", "fault_wait", "recovery_wait"})
+WAITING_PHASES = frozenset({"idle", "standby", "traffic_wait", "mission_queue", "charge_queue", "blocked", "fault_wait", "recovery_wait", "swapping"})
 HANDLING_PHASES = frozenset({"picking", "placing", "handoff", "handoff_give", "handoff_receive", "docking", "undocking"})
 
 

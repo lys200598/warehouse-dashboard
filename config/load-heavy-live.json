@@ -1,0 +1,8 @@
+{
+  "version": "warehouse-load-v1",
+  "description": "Deliberately separate global/heavy workload; no claim that robots need this on every tick.",
+  "cases": [
+    {"name": "global-window", "query_class": "heavy", "kind": "read", "weight": 1,
+     "path": "/api/knowledge/query", "body": {"query_id": "global", "run_id": "{{run_id}}", "robot_id": "{{client_id}}", "window_steps": 60, "event_limit": 10000}}
+  ]
+}

@@ -1,0 +1,601 @@
+{
+  "scope": "read-only completed capacity cases; sparse snapshots are not full continuous trajectory proof",
+  "matrix": "/data/workspace/wz/warehouse-wheel-agents-20261029/capacity-v1",
+  "source": "/data/workspace/wz/warehouse-wheel-agents-20261029/source-wheel-v1",
+  "plan_sha256": "979a5403557d35813a6a7c02548cc458699c4664bcf50f93a485055c1ef1f5f8",
+  "cases": [
+    {
+      "name": "balanced-old",
+      "status": "complete",
+      "accepted_final_state_audit": true,
+      "all_input_completed": true,
+      "completed": 1728,
+      "late": 0,
+      "elapsed": 4195,
+      "inventory": {
+        "inside": 864,
+        "stored": 864,
+        "carried": 0,
+        "at_inbound": 0,
+        "shipped": 864,
+        "received": 864,
+        "completed": 1728
+      },
+      "battery_pool": null,
+      "residual_physical_jobs": {
+        "count": 30,
+        "unfinished_swap_jobs": 0,
+        "all_robots_parked_and_replenished_claim": false
+      },
+      "input_sha256": {
+        "scene_sha256": "2688227a87fad53a6c50c67ce9f23b54396990de4b574fab2716388689232693",
+        "tasks_sha256": "328fb09a6252889b2a8adba9cfffb67cee8ddb68bfaa33e570b5918a7adc7c64",
+        "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+        "manifest_sha256": "f26e2caa077adb026c86d5a444b1036b79dd5ad5fe410adfd183256260a96e7d"
+      },
+      "frozen_backend_sha256": "87409c1bf2597acdfac7f5fc916423f96208ccfadb816b5818a649fcccaab9fc",
+      "raw_sha256": {
+        "results.json": "5463e9cd905348a420f6d1ec63e91c9b975e41a20a2cc9394a7f1e81c89dcd1d",
+        "checkpoint.json": "9f32a633e8f8bc4306bfb9133b92b706c00dde62917011f9f3568d99eaa49e2f",
+        "journal.sqlite": "620dc6e8f65ee170a8a1d7a42bc6fc2af71bd00447893cbf59d663e45c173799",
+        "frames.sqlite": "84287d74aa1806862dbe7f7f2f4dc1e3a21da2bf0342bf5ba5fce19a34661f05"
+      },
+      "coverage": {
+        "task_racks": 36,
+        "all_racks": 40,
+        "all_racks_referenced_by_tasks": false,
+        "plan_coverage_claim": false
+      },
+      "final_positions_and_soc": {
+        "min_pair_separation_m": 1.5,
+        "minimum_soc": 35.32421898199063,
+        "maximum_soc": 76.34301449779953
+      },
+      "journal_snapshot_audit": {
+        "commits": 15,
+        "events": 10712,
+        "minimum_pair_separation_m": 1.131370849898472,
+        "minimum_soc": 33.82463895403158,
+        "maximum_soc": 79.82128721589615
+      },
+      "event_counts": {
+        "initial_stock": 864,
+        "boundary_port_bound": 1728,
+        "task_released": 1728,
+        "received": 864,
+        "task_assigned": 1728,
+        "picked": 1728,
+        "placed": 864,
+        "shipped": 864,
+        "task_progress_warning": 290,
+        "charge_reserved": 27,
+        "charge_started": 27
+      },
+      "frames": {
+        "count": 421,
+        "first_second": 0,
+        "last_second": 4195,
+        "maximum_gap_seconds": 10,
+        "sampled_min_separation_m": 1.0999999999999943,
+        "all_sampled_positions_passed": true,
+        "continuous_between_samples_independently_verified": false
+      },
+      "runtime_reported_swept_audit": {
+        "motion_audit_pairs": 134931,
+        "min_separation_m": 1.0999999999999943,
+        "max_inside": 932,
+        "min_inside": 815,
+        "min_soc": 33.57463895403159,
+        "progress_warnings": 290,
+        "recovery_rejections": 0
+      },
+      "continuous_trajectory_audited_independently": false,
+      "runner_confound": "baseline warehouse real_scale runner versus standalone wheel V3 journal runner; wall time not pure planning ablation"
+    },
+    {
+      "name": "balanced-wheel",
+      "status": "complete",
+      "accepted_final_state_audit": true,
+      "all_input_completed": true,
+      "completed": 1728,
+      "late": 0,
+      "elapsed": 4071,
+      "inventory": {
+        "inside": 864,
+        "stored": 864,
+        "carried": 0,
+        "at_inbound": 0,
+        "shipped": 864,
+        "received": 864,
+        "completed": 1728
+      },
+      "battery_pool": {
+        "physical_pack_count": 148,
+        "installed_count": 100,
+        "spare_count": 48,
+        "status_counts": {
+          "ready": 48
+        },
+        "station_count": 12,
+        "offline_channels": 24,
+        "identity_and_inventory_passed": true
+      },
+      "residual_physical_jobs": {
+        "count": 38,
+        "unfinished_swap_jobs": 0,
+        "all_robots_parked_and_replenished_claim": false
+      },
+      "input_sha256": {
+        "scene_sha256": "2688227a87fad53a6c50c67ce9f23b54396990de4b574fab2716388689232693",
+        "tasks_sha256": "328fb09a6252889b2a8adba9cfffb67cee8ddb68bfaa33e570b5918a7adc7c64",
+        "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+        "manifest_sha256": "f26e2caa077adb026c86d5a444b1036b79dd5ad5fe410adfd183256260a96e7d"
+      },
+      "frozen_backend_sha256": "87409c1bf2597acdfac7f5fc916423f96208ccfadb816b5818a649fcccaab9fc",
+      "raw_sha256": {
+        "results.json": "f368a63c52cb38b9ea5b05812b7fcd7101c83656d3706bacc76e5bd41b5e7d55",
+        "checkpoint.json": "4eacf614e68c02b6e2c2c49693d30556258f09dfc184bd8ba4542f56f7c83a57",
+        "journal.sqlite": "0811a2ed74965845acc49f3a677115b6c57ec49010e4a5ffa58638361cce4ec9",
+        "frames.sqlite": "9c7efb38b12225fb5028b772870db7f85db01790806b64a686aa6a7be9eb61c1"
+      },
+      "coverage": {
+        "task_racks": 36,
+        "all_racks": 40,
+        "all_racks_referenced_by_tasks": false,
+        "plan_coverage_claim": false
+      },
+      "final_positions_and_soc": {
+        "min_pair_separation_m": 1.5,
+        "minimum_soc": 35.13847300026461,
+        "maximum_soc": 78.50857005335557
+      },
+      "journal_snapshot_audit": {
+        "commits": 15,
+        "events": 10623,
+        "minimum_pair_separation_m": 1.131370849898472,
+        "minimum_soc": 33.7534500385283,
+        "maximum_soc": 79.82128721589615
+      },
+      "event_counts": {
+        "initial_stock": 864,
+        "boundary_port_bound": 1728,
+        "task_released": 1728,
+        "received": 864,
+        "task_assigned": 1728,
+        "picked": 1728,
+        "placed": 864,
+        "shipped": 864,
+        "task_progress_warning": 209,
+        "charge_reserved": 23,
+        "charge_started": 23
+      },
+      "frames": {
+        "count": 409,
+        "first_second": 0,
+        "last_second": 4071,
+        "maximum_gap_seconds": 10,
+        "sampled_min_separation_m": 1.0999999999999943,
+        "all_sampled_positions_passed": true,
+        "continuous_between_samples_independently_verified": false
+      },
+      "runtime_reported_swept_audit": {
+        "motion_audit_pairs": 129670,
+        "min_separation_m": 1.0999999999999943,
+        "max_inside": 931,
+        "min_inside": 823,
+        "min_soc": 33.716542396169864,
+        "progress_warnings": 209,
+        "recovery_rejections": 0
+      },
+      "continuous_trajectory_audited_independently": false,
+      "runner_confound": "baseline warehouse real_scale runner versus standalone wheel V3 journal runner; wall time not pure planning ablation"
+    },
+    {
+      "name": "medium-wheel-preserve",
+      "status": "complete",
+      "accepted_final_state_audit": true,
+      "all_input_completed": true,
+      "completed": 1728,
+      "late": 0,
+      "elapsed": 4302,
+      "inventory": {
+        "inside": 864,
+        "stored": 864,
+        "carried": 0,
+        "at_inbound": 0,
+        "shipped": 864,
+        "received": 864,
+        "completed": 1728
+      },
+      "battery_pool": {
+        "physical_pack_count": 148,
+        "installed_count": 100,
+        "spare_count": 48,
+        "status_counts": {
+          "ready": 48
+        },
+        "station_count": 12,
+        "offline_channels": 24,
+        "identity_and_inventory_passed": true
+      },
+      "residual_physical_jobs": {
+        "count": 51,
+        "unfinished_swap_jobs": 0,
+        "all_robots_parked_and_replenished_claim": false
+      },
+      "input_sha256": {
+        "scene_sha256": "3848c2c391a27bc4499b68b90ea79bd0c26f160489b1d7b47fc6552e61ffcd4e",
+        "tasks_sha256": "328fb09a6252889b2a8adba9cfffb67cee8ddb68bfaa33e570b5918a7adc7c64",
+        "initial_inventory_sha256": "15f6e44b67c01064e3f7c5417ed0434e72283c1d3fd4fd2e9cdeab467d2cda40",
+        "manifest_sha256": "2b1a72b2cb798b98bcd3601211c5170af534c66a9f206c28ae042681baffd3c7"
+      },
+      "frozen_backend_sha256": "87409c1bf2597acdfac7f5fc916423f96208ccfadb816b5818a649fcccaab9fc",
+      "raw_sha256": {
+        "results.json": "fe55ba6635f359e6424e7368eeb0b2e57ec301d3c0d1d4392d59f29cfd68b3e5",
+        "checkpoint.json": "c9fa33a7b816ed22e07e777e4c62c3a8d2e1ca6c12a919923ace94b880701493",
+        "journal.sqlite": "26fff34ff4860fb2689129c71528b5f7349832a2fef4147d61e9df75debe813e",
+        "frames.sqlite": "64d31901b2c50d0e44b3403b008c7208ab4e343c23fb6b9518d564f96899dd27"
+      },
+      "coverage": {
+        "task_racks": 36,
+        "all_racks": 48,
+        "all_racks_referenced_by_tasks": false,
+        "plan_coverage_claim": false
+      },
+      "final_positions_and_soc": {
+        "min_pair_separation_m": 1.5,
+        "minimum_soc": 34.079523723566076,
+        "maximum_soc": 79.94750000000046
+      },
+      "journal_snapshot_audit": {
+        "commits": 16,
+        "events": 10844,
+        "minimum_pair_separation_m": 1.1180339887498898,
+        "minimum_soc": 33.04282544372267,
+        "maximum_soc": 79.94750000000046
+      },
+      "event_counts": {
+        "initial_stock": 864,
+        "boundary_port_bound": 1728,
+        "task_released": 1728,
+        "received": 864,
+        "task_assigned": 1728,
+        "picked": 1728,
+        "placed": 864,
+        "shipped": 864,
+        "task_progress_warning": 412,
+        "charge_reserved": 32,
+        "charge_started": 31,
+        "charge_complete": 1
+      },
+      "frames": {
+        "count": 432,
+        "first_second": 0,
+        "last_second": 4302,
+        "maximum_gap_seconds": 10,
+        "sampled_min_separation_m": 1.0999999999999943,
+        "all_sampled_positions_passed": true,
+        "continuous_between_samples_independently_verified": false
+      },
+      "runtime_reported_swept_audit": {
+        "motion_audit_pairs": 104099,
+        "min_separation_m": 1.0999999999999943,
+        "max_inside": 934,
+        "min_inside": 798,
+        "min_soc": 32.84699211038918,
+        "progress_warnings": 412,
+        "recovery_rejections": 0
+      },
+      "continuous_trajectory_audited_independently": false,
+      "runner_confound": "baseline warehouse real_scale runner versus standalone wheel V3 journal runner; wall time not pure planning ablation"
+    },
+    {
+      "name": "medium-wheel-cover",
+      "status": "complete",
+      "accepted_final_state_audit": true,
+      "all_input_completed": true,
+      "completed": 1728,
+      "late": 4,
+      "elapsed": 4385,
+      "inventory": {
+        "inside": 864,
+        "stored": 864,
+        "carried": 0,
+        "at_inbound": 0,
+        "shipped": 864,
+        "received": 864,
+        "completed": 1728
+      },
+      "battery_pool": {
+        "physical_pack_count": 148,
+        "installed_count": 100,
+        "spare_count": 48,
+        "status_counts": {
+          "ready": 48
+        },
+        "station_count": 12,
+        "offline_channels": 24,
+        "identity_and_inventory_passed": true
+      },
+      "residual_physical_jobs": {
+        "count": 42,
+        "unfinished_swap_jobs": 0,
+        "all_robots_parked_and_replenished_claim": false
+      },
+      "input_sha256": {
+        "scene_sha256": "3848c2c391a27bc4499b68b90ea79bd0c26f160489b1d7b47fc6552e61ffcd4e",
+        "tasks_sha256": "d20741c4b6bf719e78427c87c4f5430b15cd1340be5c66c2e7683624902867d4",
+        "initial_inventory_sha256": "1819cf7c9408a056d8806780b335789718c929c204898c5a09e8f0f6b643a8ef",
+        "manifest_sha256": "519a129496c0e65777fd4223bf8455f8cd6d8d65acde588d97b971d4469afa66"
+      },
+      "frozen_backend_sha256": "87409c1bf2597acdfac7f5fc916423f96208ccfadb816b5818a649fcccaab9fc",
+      "raw_sha256": {
+        "results.json": "91b2a349e521b3920d3aa33e4bf99d0d2fb59758b45d4a671e69190755c3efb3",
+        "checkpoint.json": "5dee44d3c40cf0ed6e9dea7746a97eaee5b44c8003a337e4a035b23b437e5453",
+        "journal.sqlite": "23c03f934856def721660125c75aa94414549268841f66f9d3473a5e23e48284",
+        "frames.sqlite": "76eb6845e3bce895fdb3b20fbf1da7fdcbde2b1a315af5b255dae14c138441b6"
+      },
+      "coverage": {
+        "task_racks": 48,
+        "all_racks": 48,
+        "all_racks_referenced_by_tasks": true,
+        "plan_coverage_claim": true
+      },
+      "final_positions_and_soc": {
+        "min_pair_separation_m": 1.1313708498984745,
+        "minimum_soc": 33.81615514426635,
+        "maximum_soc": 79.99472222222224
+      },
+      "journal_snapshot_audit": {
+        "commits": 16,
+        "events": 10885,
+        "minimum_pair_separation_m": 1.1180339887498885,
+        "minimum_soc": 33.25622781630592,
+        "maximum_soc": 80
+      },
+      "event_counts": {
+        "initial_stock": 864,
+        "boundary_port_bound": 1728,
+        "task_released": 1728,
+        "received": 864,
+        "task_assigned": 1728,
+        "picked": 1728,
+        "placed": 864,
+        "shipped": 864,
+        "task_progress_warning": 452,
+        "charge_reserved": 32,
+        "charge_started": 31,
+        "charge_complete": 2
+      },
+      "frames": {
+        "count": 440,
+        "first_second": 0,
+        "last_second": 4385,
+        "maximum_gap_seconds": 10,
+        "sampled_min_separation_m": 1.0999999999999943,
+        "all_sampled_positions_passed": true,
+        "continuous_between_samples_independently_verified": false
+      },
+      "runtime_reported_swept_audit": {
+        "motion_audit_pairs": 101225,
+        "min_separation_m": 1.0999999999999943,
+        "max_inside": 929,
+        "min_inside": 790,
+        "min_soc": 33.06319522248609,
+        "progress_warnings": 452,
+        "recovery_rejections": 0
+      },
+      "continuous_trajectory_audited_independently": false,
+      "runner_confound": "baseline warehouse real_scale runner versus standalone wheel V3 journal runner; wall time not pure planning ablation"
+    },
+    {
+      "name": "large-wheel-cover",
+      "status": "complete",
+      "accepted_final_state_audit": true,
+      "all_input_completed": true,
+      "completed": 1728,
+      "late": 535,
+      "elapsed": 5449,
+      "inventory": {
+        "inside": 864,
+        "stored": 864,
+        "carried": 0,
+        "at_inbound": 0,
+        "shipped": 864,
+        "received": 864,
+        "completed": 1728
+      },
+      "battery_pool": {
+        "physical_pack_count": 148,
+        "installed_count": 100,
+        "spare_count": 48,
+        "status_counts": {
+          "ready": 48
+        },
+        "station_count": 12,
+        "offline_channels": 24,
+        "identity_and_inventory_passed": true
+      },
+      "residual_physical_jobs": {
+        "count": 45,
+        "unfinished_swap_jobs": 0,
+        "all_robots_parked_and_replenished_claim": false
+      },
+      "input_sha256": {
+        "scene_sha256": "0b286ca3a99f35836ccb265f248414b5be15c95ae756bafb2d6e3557d73e161e",
+        "tasks_sha256": "f867ec57e77bf7da1277fd0637ccb98d4c5e6cdaaeaaf98d84da8bca86acd734",
+        "initial_inventory_sha256": "8772ffe02ecf590b05fc123c4b14c02c9ab0041223d482c6345781a6537ccde3",
+        "manifest_sha256": "5c3a9438119f7b675eb51703aab05d1011793ed59434dfda59b4e7b3af6c65cf"
+      },
+      "frozen_backend_sha256": "87409c1bf2597acdfac7f5fc916423f96208ccfadb816b5818a649fcccaab9fc",
+      "raw_sha256": {
+        "results.json": "980fb89242fe6ad021c1e11f45bdd306b9130e989d45e6420d528a4ecd0ef405",
+        "checkpoint.json": "a1257c94e0f75220b08db65c566930437ad5a54ca0e5d702d8c0cf2e824f041e",
+        "journal.sqlite": "fc420c5d84500514814ff390b98d58fee7863abc3f2748a30dff5943feb9e80b",
+        "frames.sqlite": "9f89f4c8f35f24d8051b4af6cce35146ebfb2b42c135d2bd799db05160f8f616"
+      },
+      "coverage": {
+        "task_racks": 60,
+        "all_racks": 60,
+        "all_racks_referenced_by_tasks": true,
+        "plan_coverage_claim": true
+      },
+      "final_positions_and_soc": {
+        "min_pair_separation_m": 1.131370849898472,
+        "minimum_soc": 35.35802675660518,
+        "maximum_soc": 79.9269444444451
+      },
+      "journal_snapshot_audit": {
+        "commits": 20,
+        "events": 11544,
+        "minimum_pair_separation_m": 1.1113517454168236,
+        "minimum_soc": 32.78022805729338,
+        "maximum_soc": 79.95416666666706
+      },
+      "event_counts": {
+        "initial_stock": 864,
+        "boundary_port_bound": 1728,
+        "task_released": 1728,
+        "received": 864,
+        "task_assigned": 1728,
+        "picked": 1728,
+        "shipped": 864,
+        "placed": 864,
+        "task_progress_warning": 1072,
+        "charge_reserved": 46,
+        "charge_started": 46,
+        "charge_complete": 12
+      },
+      "frames": {
+        "count": 546,
+        "first_second": 0,
+        "last_second": 5449,
+        "maximum_gap_seconds": 10,
+        "sampled_min_separation_m": 1.0999999999999943,
+        "all_sampled_positions_passed": true,
+        "continuous_between_samples_independently_verified": false
+      },
+      "runtime_reported_swept_audit": {
+        "motion_audit_pairs": 127013,
+        "min_separation_m": 1.0999999999999943,
+        "max_inside": 930,
+        "min_inside": 722,
+        "min_soc": 32.45106139062645,
+        "progress_warnings": 1072,
+        "recovery_rejections": 0
+      },
+      "continuous_trajectory_audited_independently": false,
+      "runner_confound": "baseline warehouse real_scale runner versus standalone wheel V3 journal runner; wall time not pure planning ablation"
+    },
+    {
+      "name": "medium-swap-cover",
+      "status": "complete",
+      "accepted_final_state_audit": true,
+      "all_input_completed": true,
+      "completed": 1728,
+      "late": 0,
+      "elapsed": 4212,
+      "inventory": {
+        "inside": 864,
+        "stored": 864,
+        "carried": 0,
+        "at_inbound": 0,
+        "shipped": 864,
+        "received": 864,
+        "completed": 1728
+      },
+      "battery_pool": {
+        "physical_pack_count": 148,
+        "installed_count": 100,
+        "spare_count": 48,
+        "status_counts": {
+          "ready": 28,
+          "reserved": 1,
+          "charging": 19
+        },
+        "station_count": 12,
+        "offline_channels": 48,
+        "identity_and_inventory_passed": true
+      },
+      "residual_physical_jobs": {
+        "count": 22,
+        "unfinished_swap_jobs": 1,
+        "all_robots_parked_and_replenished_claim": false
+      },
+      "input_sha256": {
+        "scene_sha256": "3848c2c391a27bc4499b68b90ea79bd0c26f160489b1d7b47fc6552e61ffcd4e",
+        "tasks_sha256": "d20741c4b6bf719e78427c87c4f5430b15cd1340be5c66c2e7683624902867d4",
+        "initial_inventory_sha256": "1819cf7c9408a056d8806780b335789718c929c204898c5a09e8f0f6b643a8ef",
+        "manifest_sha256": "519a129496c0e65777fd4223bf8455f8cd6d8d65acde588d97b971d4469afa66"
+      },
+      "frozen_backend_sha256": "87409c1bf2597acdfac7f5fc916423f96208ccfadb816b5818a649fcccaab9fc",
+      "raw_sha256": {
+        "results.json": "0f23ae5218635876ec896e56e7cc8b45c7e52eb1ba5776cb9859984850fe8fc6",
+        "checkpoint.json": "0caa3e54405c06e57ab815d28e975ed06f176cc7ddc5457d69705df3937bdc77",
+        "journal.sqlite": "9bb283486c7a52577f193c8e78abfdeff38b88868311c53a8d34c14b9119fd3a",
+        "frames.sqlite": "d25e0cb5b3c21f4a0ce052eb12d098279f8f8ba15e2d66a3b90f896ff7058bbb"
+      },
+      "coverage": {
+        "task_racks": 48,
+        "all_racks": 48,
+        "all_racks_referenced_by_tasks": true,
+        "plan_coverage_claim": true
+      },
+      "final_positions_and_soc": {
+        "min_pair_separation_m": 1.5,
+        "minimum_soc": 34.393385648656945,
+        "maximum_soc": 99.8672222222234
+      },
+      "journal_snapshot_audit": {
+        "commits": 16,
+        "events": 10874,
+        "minimum_pair_separation_m": 1.131370849898472,
+        "minimum_soc": 33.556752919278445,
+        "maximum_soc": 99.92277777777836
+      },
+      "event_counts": {
+        "initial_stock": 864,
+        "boundary_port_bound": 1728,
+        "task_released": 1728,
+        "received": 864,
+        "task_assigned": 1728,
+        "picked": 1728,
+        "placed": 864,
+        "shipped": 864,
+        "task_progress_warning": 424,
+        "charge_reserved": 11,
+        "charge_started": 11,
+        "battery_swap_reserved": 20,
+        "battery_swap_started": 20,
+        "battery_swap_completed": 19,
+        "charge_complete": 1
+      },
+      "frames": {
+        "count": 423,
+        "first_second": 0,
+        "last_second": 4212,
+        "maximum_gap_seconds": 10,
+        "sampled_min_separation_m": 1.1095135907970086,
+        "all_sampled_positions_passed": true,
+        "continuous_between_samples_independently_verified": false
+      },
+      "runtime_reported_swept_audit": {
+        "motion_audit_pairs": 98739,
+        "min_separation_m": 1.0999999999999943,
+        "max_inside": 929,
+        "min_inside": 794,
+        "min_soc": 33.494530697056014,
+        "progress_warnings": 424,
+        "recovery_rejections": 0
+      },
+      "continuous_trajectory_audited_independently": false,
+      "runner_confound": "baseline warehouse real_scale runner versus standalone wheel V3 journal runner; wall time not pure planning ablation"
+    },
+    {
+      "name": "large-swap-cover",
+      "status": "pending-no-final-results",
+      "accepted": false
+    }
+  ]
+}
+

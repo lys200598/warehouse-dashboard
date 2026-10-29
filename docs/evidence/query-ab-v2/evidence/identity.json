@@ -1,0 +1,25 @@
+{
+  "source": "/data/workspace/wz/warehouse-wheel-agents-20261029/source-integrated-v2",
+  "manifest_sha256": "5bf072bfadef64d8d529c34a071793cab202fd4541a59743fd47d200013baade",
+  "verified_files": 308,
+  "run_id": "wh-density120-week-required-20261028",
+  "seq": 5073,
+  "graph_before": {
+    "at_unix_ns": 1793242863167850768,
+    "run_id": "wh-density120-week-required-20261028",
+    "seq": 5073,
+    "head": 5073,
+    "created_at": "2026-10-28T08:43:59.115Z",
+    "source_run": "wh-density120-week-required-20261028",
+    "step_seq": 5073,
+    "checksum": "e2c31e1fc372dc4543e8810e4af77874d83d60d6e009f8b0368cd6f1ca4e54de",
+    "nodes": 1652135,
+    "future_nodes": 0
+  },
+  "orchestrator_sha256": "6c2d431b3d7bbc58c9cb50c9682743c8bfb18330cae69ec6505929d0a3b41ad6",
+  "harness_sha256": "12e1a1b3d9baca7920450b654e865694d01e26314a381fdd9fc5894211b336ae",
+  "oracle": "/data/workspace/wz/warehouse-query-tail-v2-20261029/outputs/oracle.sqlite",
+  "oracle_sha256": "7a5a2f5641a3fd1697c632e86647e4515d06b97e7ac54bc4e014f195fa8c1cbe",
+  "graph_writes": false,
+  "source_journal": "/data/workspace/wz/warehouse-query-tail-v2-20261029/journals/wh-density120-week-required-20261028/journal.sqlite"
+}

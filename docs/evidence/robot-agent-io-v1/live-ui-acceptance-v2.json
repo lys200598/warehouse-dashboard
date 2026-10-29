@@ -1,0 +1,90 @@
+{
+  "passed": true,
+  "final_run": "wh-live-20261029T033858Z-fd02a766",
+  "final_status": "ready",
+  "final_elapsed": 0,
+  "workers": 100,
+  "mobility": "wheeled",
+  "speed": 1.5,
+  "scene_sha256": "3848c2c391a27bc4499b68b90ea79bd0c26f160489b1d7b47fc6552e61ffcd4e",
+  "original_index_sha256": "7e66e1ec5a0ccba52f86fdcdcd6b3b3aea22c509baeeb483c76f0d486784c4aa",
+  "original_index_identical": true,
+  "sample_step_elapsed": 1,
+  "retired_runs": [
+    "wh-live-20261029T033033Z-ef91b342",
+    "wh-live-20261029T033840Z-8a045f1d"
+  ],
+  "old_fleet_closed": {
+    "agents": 100,
+    "live_processes": 0,
+    "unique_pids": 100,
+    "backend": "neo4j",
+    "failed": false,
+    "contexts_available": 100,
+    "advisory_only": true,
+    "metrics": {
+      "accepted": 106,
+      "duplicates": 0,
+      "queries": 102,
+      "query_queue_rejected": 0,
+      "write_batches": 5,
+      "max_batch": 54
+    },
+    "http_service_alive": false,
+    "writer_alive": false,
+    "all_owned_processes_stopped": true,
+    "closed": true
+  },
+  "final_self_response": {
+    "catalog_version": "warehouse-query-catalog-v1",
+    "query_id": "self",
+    "run_id": "wh-live-20261029T033858Z-fd02a766",
+    "seq": 1,
+    "read_only": true,
+    "used_by_live_control": false,
+    "result": {
+      "context": {
+        "run_id": "wh-live-20261029T033858Z-fd02a766",
+        "seq": 1,
+        "graph_committed_seq": 1,
+        "batch_checksum": "d2c6a6ad707f9dae525aa842bc68e91bfde9d5ff116a7641aa5c264a3daf8d51",
+        "robots": [
+          {
+            "robot_id": 1,
+            "robot": {
+              "active_seconds": 0,
+              "battery": 46.120194509596075,
+              "cargo_id": null,
+              "carrying": false,
+              "charge_seconds": 0,
+              "completed": 0,
+              "distance": 0.0,
+              "dock_id": null,
+              "home_id": "P001",
+              "last_completed": 0,
+              "location_id": "P001",
+              "missions": 0,
+              "queue_seconds": 0,
+              "robot_id": 1,
+              "robot_type_key": "X3",
+              "stage": "idle",
+              "task_id": null,
+              "x": 2.25,
+              "y": 2.4
+            },
+            "robot_sha256": "7d2261700098a15571f06804b5eaf13036c6de0b9214680cf5df12bc9f385cca",
+            "task": null
+          }
+        ]
+      },
+      "readiness": {
+        "requested_point_present": true,
+        "future_point_used": false,
+        "known_committed_lag_steps": 0,
+        "ready_for_live_action": false,
+        "note": "historical read; live coordinator must recheck current ownership/reservations"
+      }
+    }
+  },
+  "ui_port": 14192
+}

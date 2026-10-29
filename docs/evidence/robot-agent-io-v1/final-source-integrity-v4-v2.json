@@ -1,0 +1,10 @@
+{
+  "scope": "production/runtime and benchmark code identity; capacity auditor is separately versioned after full-suite freeze",
+  "exact_v4_matching_code_files": 43,
+  "production_code_differences": [],
+  "frozen_source_drift": [],
+  "capacity_auditor_sha256": "75f590f5ad853980ae0646f117d95476e1376021d825f8ce3b2724ae3473b41f",
+  "capacity_auditor_validation": "3 dedicated tests and actual 10-case final audit; see final-v3.json",
+  "passed": true,
+  "prior_all_44_negative_check_preserved": "final-source-integrity-v4.json"
+}

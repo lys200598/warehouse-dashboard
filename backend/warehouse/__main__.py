@@ -42,6 +42,8 @@ def parser():
         if action.dest=='scene':action.required=False
     q.add_argument('--mode',dest='knowledge_mode',choices=['required','rules'],default=argparse.SUPPRESS)
     q.add_argument('--resource-graph',action='store_true',help='project racks/resources in the same Neo4j commit; new run only')
+    from .composition import add_options
+    add_options(q)
     q=sub.add_parser('query',help='versioned read-only warehouse query catalog')
     q.add_argument('--catalog',action='store_true');q.add_argument('--request-json')
     q.add_argument('--output');q.add_argument('--timeout',type=float,default=15)
@@ -100,13 +102,17 @@ def main(argv=None):
     if args.command=='run':
         from functools import partial
         from ..knowledge_runtime.runner import run
-        from ..knowledge_runtime.sim import KnowledgeSimulation
-        from ..real_scale.writer import Config,RealMirror,audit_real
-        factory=partial(KnowledgeSimulation,commit_seconds=args.commit_seconds,knowledge_mode=args.knowledge_mode,resource_graph=args.resource_graph)
+        from ..real_scale.writer import RealMirror,audit_real
+        from .composition import physical_classes,with_agents,agent_options
+        Simulation,Config=physical_classes(args.mobility)
+        if args.robot_agents and args.knowledge_backend!='neo4j':
+            p.error('--robot-agents requires Neo4j; journal protocol tests have separate entrypoints')
+        factory=partial(Simulation,commit_seconds=args.commit_seconds,knowledge_mode=args.knowledge_mode,resource_graph=args.resource_graph)
         if args.resource_graph:
             if args.knowledge_backend!='neo4j':p.error('--resource-graph needs Neo4j')
             from ..resource_graph_mirror import ResourceMirror
             RealMirror=ResourceMirror
+        RealMirror=with_agents(RealMirror,output=args.output,enabled=args.robot_agents,options=agent_options(args))
         return run(args,simulation_class=factory,config_class=Config,mirror_class=RealMirror,graph_auditor=audit_real)
     if args.command=='query':
         from ..query_catalog import QueryCatalogService

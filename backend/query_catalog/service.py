@@ -223,14 +223,19 @@ class QueryCatalogService:
 
     @classmethod
     def from_env(cls, timeout=15, *, pool_size=120, summary_root=None,
-                 summary_cache_root=None, cache_fleet=False, catch_up_on_read=True):
+                 summary_cache_root=None, cache_fleet=False, catch_up_on_read=True,
+                 cache_event_counts=False):
+        if type(cache_event_counts) is not bool:
+            raise ValueError('typed event-count acceleration flag required')
         from ..query_v2.service_tail import TailQueryService
         store=TailQueryService.from_env(timeout=timeout, pool_size=pool_size)
-        if summary_root is not None or cache_fleet:
+        if summary_root is not None or cache_fleet or cache_event_counts:
             from ..query_views.catalog import AcceleratedCatalog
+            from ..query_views.event_counts import EventCountCatalog
             from ..query_views import SummaryDirectory
             summaries=SummaryDirectory(summary_root,summary_cache_root) if summary_root is not None else None
-            return AcceleratedCatalog(store,summaries=summaries,cache_fleet=cache_fleet,
+            catalog=EventCountCatalog if cache_event_counts else AcceleratedCatalog
+            return catalog(store,summaries=summaries,cache_fleet=cache_fleet,
                                       catch_up_on_read=catch_up_on_read)
         return cls(store)
 
@@ -360,6 +365,17 @@ class QueryCatalogService:
         if completed!=fleet['step']['completed']:raise IncompleteContext('task summary and committed Step completion count disagree')
         return counts
 
+    def _event_kind_counts(self,run,seq,start,limit,fleet,*,robot=None,task=None):
+        """Complete, validated window; seam permits explicit immutable reuse.
+
+        Default behaviour still reads and validates every original payload.
+        Counts are global-window facts, not inferred from current robot zones.
+        """
+        events=self._events(run,seq,start,limit,fleet['token'],robot=robot,task=task)
+        if any(e['event']['sim_time']>fleet['step']['sim_time'] for e in events):
+            raise ValueError('future event effective time')
+        return dict(Counter(e['event']['kind'] for e in events))
+
     def _task(self, run, seq, task):
         rows=self._read(TASK_POINT_QUERY,{'run':run,'seq':seq,'task':task})
         if len(rows)!=1:raise ValueError('task absent at requested cutoff')
@@ -452,7 +468,7 @@ class QueryCatalogService:
             else:
                 fleet=self._fleet(run,seq);scene=fleet['metadata']['scene'];me=fleet['robots'][robot-1]
                 events=[]
-                if query in ('assistance','progress','memory','local_awareness','global'):
+                if query in ('assistance','progress','memory'):
                     events=self._events(run,seq,start,event_limit,fleet['token'],
                         robot=robot if query=='memory' else None,task=request.get('task_id') if query=='progress' else None)
                     if any(e['event']['sim_time']>fleet['step']['sim_time'] for e in events):
@@ -507,6 +523,7 @@ class QueryCatalogService:
                             'position_span_m':span,'stationary_by_position':span<=1. if len(history)>1 else None,
                             'sample_counts_are_continuous_durations':False})
                 elif query in ('local_awareness','global'):
+                    event_kind_counts=self._event_kind_counts(run,seq,start,event_limit,fleet)
                     counts=self._tasks(run,seq,fleet,maximum)
                     zones=sorted({r['zone'] for r in scene['racks']})
                     zone=request.get('zone',rack_zone(me,scene)) if query=='local_awareness' else None
@@ -519,7 +536,7 @@ class QueryCatalogService:
                         step=fleet['step'],bay_counts={'physical_bays':100,
                             'occupied':sum(bool(b['occupant_robot_ids']) for b in fleet['bays']),
                             'charging':sum(b['charging_robot_id'] is not None for b in fleet['bays'])},
-                        recent_event_kind_counts=dict(Counter(e['event']['kind'] for e in events)),
+                        recent_event_kind_counts=event_kind_counts,
                         event_window_scope='global run window; event zone is not inferred from current task ownership',
                         window={'start_seq':start,'end_seq':seq,'complete':True})
             result={'catalog_version':VERSION,'query_id':query,'run_id':run,'seq':seq,

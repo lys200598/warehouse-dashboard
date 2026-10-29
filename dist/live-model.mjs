@@ -81,17 +81,17 @@ export function normalizeDatasets(value){
 export function robotCategory(robot){
   if(/fault|blocked/.test(robot.stage))return 'warning';
   if(['picking','placing','handoff','handoff_receive','handoff_give'].includes(robot.stage))return 'handling';
-  if(robot.stage==='charging')return 'charging';
+  if(['charging','swapping'].includes(robot.stage))return 'charging';
   if(['idle','standby'].includes(robot.stage))return 'idle';
   if(/wait|queue|yield/.test(robot.stage))return 'waiting';
   return 'moving';
 }
 export function attentionReason(robot){
   if(/fault|blocked/.test(robot.stage))return '故障 / 阻塞';
-  if(robot.battery<25&&!['charging','to_charge','returning','idle'].includes(robot.stage))return '低SOC / 协作观察';
+  if(robot.battery<25&&!['charging','swapping','to_charge','returning','idle'].includes(robot.stage))return '低SOC / 协作观察';
   return null;
 }
-export function stageLabel(stage){return ({idle:'待命',standby:'待命',to_source:'前往取货点',to_target:'送往目标点',picking:'取货',placing:'放货',to_charge:'前往充电',returning:'返回泊位',charging:'充电',to_handoff:'前往交接',handoff:'货物交接',handoff_receive:'接收货物',handoff_give:'交出货物',traffic_wait:'交通预约等待',recovery_wait:'恢复等待',fault_wait:'故障等待',yielding:'让行',charge_queue:'充电等待',mission_queue:'任务等待'})[stage]||stage;}
+export function stageLabel(stage){return ({idle:'待命',standby:'待命',to_source:'前往取货点',to_target:'送往目标点',picking:'取货',placing:'放货',to_charge:'前往补能',returning:'返回泊位',charging:'充电',swapping:'换电中',to_handoff:'前往交接',handoff:'货物交接',handoff_receive:'接收货物',handoff_give:'交出货物',traffic_wait:'交通预约等待',recovery_wait:'恢复等待',fault_wait:'故障等待',yielding:'让行',charge_queue:'补能等待',mission_queue:'任务等待'})[stage]||stage;}
 export function knowledgeFacts(frame){
   const k=frame.knowledge||{},meta=frame.metadata||{};
   return {durable:k.durable_seq??0,mirrored:k.mirrored_seq??0,lag:k.lag??0,

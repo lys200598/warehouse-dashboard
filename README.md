@@ -4,6 +4,8 @@
 
 ## 会议后增量
 
+**2026-10-29轮式扩仓与独立进程交付**：[对接总览](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)说明120×90米、48架2304位、1.5m/s、有限换电与自由进出货口；[机器人进程读写](docs/ROBOT_AGENT_IO_GUIDE.md)说明每台机器人独立HTTP写查；[压测指南](docs/LOAD_TEST_GUIDE.md)及[百万查询A/B](docs/QUERY_AB_REGRESSION_20261029.md)提供真实进程、冷热/错峰/突发及完整源验真。默认legacy入口保留，新run显式选择 `--mobility wheeled --robot-agents`。完整七天参考数据已在 [`data/examples/seven-patterns-20261028/`](data/examples/seven-patterns-20261028/README.md)。
+
 货架资源与历史库存、三型号能力门禁、独立扩仓候选和运力对照见 [2026-10-28会议交付](docs/MEETING_DELIVERY_20261028.md)。原正式地图与全X3配置保持；候选的完成、晚点和假设速度分别报告。
 
 入库口背压、期限与取货节拍优化见 [2026-10-29晚点优化](docs/LATENESS_OPTIMIZATION_20261029.md)：保留默认策略，另提供显式启用的疏口候选；全部对照、剩余晚点和出库侧代价分别记录。

@@ -1,0 +1,9 @@
+{
+  "version": "warehouse-load-v1",
+  "description": "Per-robot authenticated reads. WAREHOUSE_AGENT_AUTH_1..100 each contain Bearer plus that robot token. No fabricated observation writes.",
+  "cases": [
+    {"name": "agent-own-history", "query_class": "agent-light", "kind": "read", "weight": 1,
+     "path": "/api/agent/query", "headers_env": {"Authorization": "WAREHOUSE_AGENT_AUTH_{client_id}"},
+     "body": {"run_id": "{{run_id}}", "robot_id": "{{client_id}}", "limit": 8}}
+  ]
+}

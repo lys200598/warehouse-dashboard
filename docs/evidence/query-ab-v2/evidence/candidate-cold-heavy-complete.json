@@ -1,0 +1,82 @@
+{
+  "mode": "candidate",
+  "phase": "cold-heavy",
+  "analysis_exit": 0,
+  "all_requests_under_500ms": true,
+  "actual_server_api_peak": 1,
+  "server_peak_qualified": true,
+  "planned_arrivals": 1,
+  "outcomes": {
+    "ok": 1
+  },
+  "groups": {
+    "heavy": {
+      "arrivals": 1,
+      "errors_or_drops": 0,
+      "network_all_observed": {
+        "count": 1,
+        "mean_ms": 257.446087,
+        "p50_ms": 257.446087,
+        "p95_ms": 257.446087,
+        "p99_ms": 257.446087,
+        "max_ms": 257.446087,
+        "over_500ms": 0
+      },
+      "network_success_only": {
+        "count": 1,
+        "mean_ms": 257.446087,
+        "p50_ms": 257.446087,
+        "p95_ms": 257.446087,
+        "p99_ms": 257.446087,
+        "max_ms": 257.446087,
+        "over_500ms": 0
+      },
+      "complete_http_json": {
+        "count": 1,
+        "mean_ms": 257.940426,
+        "p50_ms": 257.940426,
+        "p95_ms": 257.940426,
+        "p99_ms": 257.940426,
+        "max_ms": 257.940426,
+        "over_500ms": 0
+      },
+      "server_service_header": {
+        "count": 1,
+        "mean_ms": 245.306808501482,
+        "p50_ms": 245.306808501482,
+        "p95_ms": 245.306808501482,
+        "p99_ms": 245.306808501482,
+        "max_ms": 245.306808501482,
+        "over_500ms": 0
+      },
+      "server_queue_header": {
+        "count": 1,
+        "mean_ms": 0.14578551054000854,
+        "p50_ms": 0.14578551054000854,
+        "p95_ms": 0.14578551054000854,
+        "p99_ms": 0.14578551054000854,
+        "max_ms": 0.14578551054000854,
+        "over_500ms": 0
+      },
+      "upstream_header": {
+        "count": 0,
+        "mean_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "max_ms": null,
+        "over_500ms": 0
+      },
+      "json_parse_outside_network": {
+        "count": 1,
+        "mean_ms": 0.493928,
+        "p50_ms": 0.493928,
+        "p95_ms": 0.493928,
+        "p99_ms": 0.493928,
+        "max_ms": 0.493928,
+        "over_500ms": 0
+      }
+    }
+  },
+  "full_source_validation": true
+}

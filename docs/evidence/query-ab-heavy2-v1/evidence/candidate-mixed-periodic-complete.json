@@ -1,0 +1,149 @@
+{
+  "mode": "candidate",
+  "phase": "mixed-periodic",
+  "analysis_exit": 0,
+  "all_requests_under_500ms": true,
+  "actual_server_api_peak": 1,
+  "server_peak_qualified": true,
+  "planned_arrivals": 300,
+  "outcomes": {
+    "ok": 300
+  },
+  "groups": {
+    "light": {
+      "arrivals": 294,
+      "errors_or_drops": 0,
+      "network_all_observed": {
+        "count": 294,
+        "mean_ms": 7.500604931972794,
+        "p50_ms": 6.757635,
+        "p95_ms": 10.354833,
+        "p99_ms": 40.815875,
+        "max_ms": 42.970087,
+        "over_500ms": 0
+      },
+      "network_success_only": {
+        "count": 294,
+        "mean_ms": 7.500604931972794,
+        "p50_ms": 6.757635,
+        "p95_ms": 10.354833,
+        "p99_ms": 40.815875,
+        "max_ms": 42.970087,
+        "over_500ms": 0
+      },
+      "complete_http_json": {
+        "count": 294,
+        "mean_ms": 7.580185268707479,
+        "p50_ms": 6.830919,
+        "p95_ms": 10.429489,
+        "p99_ms": 40.867712,
+        "max_ms": 43.07398,
+        "over_500ms": 0
+      },
+      "server_service_header": {
+        "count": 294,
+        "mean_ms": 4.374660624406573,
+        "p50_ms": 4.415565170347691,
+        "p95_ms": 6.124076433479786,
+        "p99_ms": 6.9192443042993546,
+        "max_ms": 13.865656219422817,
+        "over_500ms": 0
+      },
+      "server_queue_header": {
+        "count": 294,
+        "mean_ms": 0.10234139682281584,
+        "p50_ms": 0.09350292384624481,
+        "p95_ms": 0.16896147280931473,
+        "p99_ms": 0.2136165276169777,
+        "max_ms": 0.43620262295007706,
+        "over_500ms": 0
+      },
+      "upstream_header": {
+        "count": 0,
+        "mean_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "max_ms": null,
+        "over_500ms": 0
+      },
+      "json_parse_outside_network": {
+        "count": 294,
+        "mean_ms": 0.07878803401360546,
+        "p50_ms": 0.07411,
+        "p95_ms": 0.136512,
+        "p99_ms": 0.20665,
+        "max_ms": 0.263271,
+        "over_500ms": 0
+      }
+    },
+    "heavy": {
+      "arrivals": 6,
+      "errors_or_drops": 0,
+      "network_all_observed": {
+        "count": 6,
+        "mean_ms": 30.070215666666666,
+        "p50_ms": 25.188511,
+        "p95_ms": 49.637471,
+        "p99_ms": 49.637471,
+        "max_ms": 49.637471,
+        "over_500ms": 0
+      },
+      "network_success_only": {
+        "count": 6,
+        "mean_ms": 30.070215666666666,
+        "p50_ms": 25.188511,
+        "p95_ms": 49.637471,
+        "p99_ms": 49.637471,
+        "max_ms": 49.637471,
+        "over_500ms": 0
+      },
+      "complete_http_json": {
+        "count": 6,
+        "mean_ms": 31.00940266666667,
+        "p50_ms": 25.703425,
+        "p95_ms": 51.20508,
+        "p99_ms": 51.20508,
+        "max_ms": 51.20508,
+        "over_500ms": 0
+      },
+      "server_service_header": {
+        "count": 6,
+        "mean_ms": 27.091069612652063,
+        "p50_ms": 20.80317959189415,
+        "p95_ms": 47.354004345834255,
+        "p99_ms": 47.354004345834255,
+        "max_ms": 47.354004345834255,
+        "over_500ms": 0
+      },
+      "server_queue_header": {
+        "count": 6,
+        "mean_ms": 0.08681075026591618,
+        "p50_ms": 0.07063522934913635,
+        "p95_ms": 0.12995488941669464,
+        "p99_ms": 0.12995488941669464,
+        "max_ms": 0.12995488941669464,
+        "over_500ms": 0
+      },
+      "upstream_header": {
+        "count": 0,
+        "mean_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "max_ms": null,
+        "over_500ms": 0
+      },
+      "json_parse_outside_network": {
+        "count": 6,
+        "mean_ms": 0.9384893333333335,
+        "p50_ms": 0.647822,
+        "p95_ms": 1.566197,
+        "p99_ms": 1.566197,
+        "max_ms": 1.566197,
+        "over_500ms": 0
+      }
+    }
+  },
+  "full_source_validation": true
+}

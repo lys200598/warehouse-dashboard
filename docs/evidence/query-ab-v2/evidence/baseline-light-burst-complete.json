@@ -1,0 +1,82 @@
+{
+  "mode": "baseline",
+  "phase": "light-burst",
+  "analysis_exit": 0,
+  "all_requests_under_500ms": true,
+  "actual_server_api_peak": 97,
+  "server_peak_qualified": true,
+  "planned_arrivals": 200,
+  "outcomes": {
+    "ok": 200
+  },
+  "groups": {
+    "light": {
+      "arrivals": 200,
+      "errors_or_drops": 0,
+      "network_all_observed": {
+        "count": 200,
+        "mean_ms": 31.250595830000016,
+        "p50_ms": 29.946875,
+        "p95_ms": 58.875159,
+        "p99_ms": 64.016334,
+        "max_ms": 71.901753,
+        "over_500ms": 0
+      },
+      "network_success_only": {
+        "count": 200,
+        "mean_ms": 31.250595830000016,
+        "p50_ms": 29.946875,
+        "p95_ms": 58.875159,
+        "p99_ms": 64.016334,
+        "max_ms": 71.901753,
+        "over_500ms": 0
+      },
+      "complete_http_json": {
+        "count": 200,
+        "mean_ms": 31.322905114999994,
+        "p50_ms": 30.011691,
+        "p95_ms": 58.95665,
+        "p99_ms": 64.120612,
+        "max_ms": 72.002182,
+        "over_500ms": 0
+      },
+      "server_service_header": {
+        "count": 200,
+        "mean_ms": 23.31811685115099,
+        "p50_ms": 25.223305448889732,
+        "p95_ms": 34.29700154811144,
+        "p99_ms": 38.514493964612484,
+        "max_ms": 43.42213273048401,
+        "over_500ms": 0
+      },
+      "server_queue_header": {
+        "count": 200,
+        "mean_ms": 15.500069330446422,
+        "p50_ms": 18.436307087540627,
+        "p95_ms": 24.85158946365118,
+        "p99_ms": 26.503623463213444,
+        "max_ms": 29.46786768734455,
+        "over_500ms": 0
+      },
+      "upstream_header": {
+        "count": 0,
+        "mean_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "max_ms": null,
+        "over_500ms": 0
+      },
+      "json_parse_outside_network": {
+        "count": 200,
+        "mean_ms": 0.07176911999999996,
+        "p50_ms": 0.064708,
+        "p95_ms": 0.118788,
+        "p99_ms": 0.141884,
+        "max_ms": 0.20569,
+        "over_500ms": 0
+      }
+    }
+  },
+  "full_source_validation": true
+}

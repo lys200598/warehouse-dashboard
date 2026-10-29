@@ -1,0 +1,585 @@
+{
+  "scope": "finite battery supply sensitivity; no task/traffic/KG acceptance",
+  "source_sha256": "1b3be85e3fa8e769bb1e380b561f4fb36275d319bbc2c3c8be65d08dff382d3c",
+  "cases": [
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "full",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 0,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "replenishment_requests": 300,
+        "ready_pack_misses": 156,
+        "ordinary_charge_starts": 156,
+        "swap_starts": 144,
+        "swaps_completed": 144,
+        "ordinary_charge_completions": 156,
+        "offline_charge_completions": 112
+      },
+      "robot_seconds": {
+        "working": 3839760,
+        "queued": 33120,
+        "swapping": 25920,
+        "charging": 421200
+      },
+      "productive_fraction": 0.8888333333333334,
+      "minimum_soc": 34.6,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "ready": 16,
+        "offline": 32
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 0,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "replenishment_requests": 368,
+        "swap_starts": 216,
+        "swaps_completed": 214,
+        "ready_pack_misses": 152,
+        "ordinary_charge_starts": 152,
+        "ordinary_charge_completions": 119,
+        "offline_charge_completions": 173
+      },
+      "robot_seconds": {
+        "working": 3911532,
+        "queued": 2352,
+        "swapping": 38846,
+        "charging": 367270
+      },
+      "productive_fraction": 0.9054472222222222,
+      "minimum_soc": 34.79611111111111,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "ready": 5,
+        "reserved": 2,
+        "offline": 41
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 48,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 206,
+        "replenishment_requests": 367,
+        "swap_starts": 207,
+        "offline_charge_completions": 200,
+        "ready_pack_misses": 160,
+        "ordinary_charge_starts": 160,
+        "ordinary_charge_completions": 147
+      },
+      "robot_seconds": {
+        "working": 3868008,
+        "queued": 1561,
+        "swapping": 37068,
+        "charging": 413363
+      },
+      "productive_fraction": 0.8953722222222222,
+      "minimum_soc": 34.782222222222224,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "reserved": 2,
+        "ready": 8,
+        "offline": 38
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "full",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 0,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "replenishment_requests": 300,
+        "ready_pack_misses": 156,
+        "ordinary_charge_starts": 156,
+        "swap_starts": 144,
+        "swaps_completed": 144,
+        "ordinary_charge_completions": 156,
+        "offline_charge_completions": 112
+      },
+      "robot_seconds": {
+        "working": 3839760,
+        "queued": 33120,
+        "swapping": 25920,
+        "charging": 421200
+      },
+      "productive_fraction": 0.8888333333333334,
+      "minimum_soc": 34.6,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "ready": 16,
+        "offline": 32
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 0,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "replenishment_requests": 373,
+        "swap_starts": 236,
+        "swaps_completed": 234,
+        "ready_pack_misses": 136,
+        "ordinary_charge_starts": 136,
+        "ordinary_charge_completions": 108,
+        "offline_charge_completions": 192
+      },
+      "robot_seconds": {
+        "working": 3948911,
+        "queued": 5644,
+        "swapping": 42204,
+        "charging": 323241
+      },
+      "productive_fraction": 0.9140997685185185,
+      "minimum_soc": 34.699999999999996,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "reserved": 3,
+        "ready": 3,
+        "offline": 42
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 48,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 206,
+        "offline_charge_completions": 202,
+        "ordinary_charge_completions": 109,
+        "replenishment_requests": 324,
+        "swap_starts": 206,
+        "ready_pack_misses": 118,
+        "ordinary_charge_starts": 118
+      },
+      "robot_seconds": {
+        "working": 3977930,
+        "queued": 2215,
+        "swapping": 37073,
+        "charging": 302782
+      },
+      "productive_fraction": 0.9208171296296296,
+      "minimum_soc": 34.699999999999996,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "reserved": 2,
+        "ready": 20,
+        "offline": 26
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": false,
+        "warmup_hours": 0,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "replenishment_requests": 266,
+        "swap_starts": 217,
+        "swaps_completed": 216,
+        "ready_pack_misses": 217,
+        "offline_charge_completions": 169
+      },
+      "robot_seconds": {
+        "working": 2996802,
+        "queued": 1284297,
+        "swapping": 38901
+      },
+      "productive_fraction": 0.6937041666666667,
+      "minimum_soc": 27.544999999999998,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 50,
+      "pack_counts_end": {
+        "reserved": 1,
+        "offline": 47
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": false,
+        "warmup_hours": 48,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 193,
+        "offline_charge_completions": 193,
+        "swap_starts": 193,
+        "replenishment_requests": 190,
+        "ready_pack_misses": 190
+      },
+      "robot_seconds": {
+        "working": 2483536,
+        "queued": 1801816,
+        "swapping": 34648
+      },
+      "productive_fraction": 0.5748925925925926,
+      "minimum_soc": 27.04111111111111,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 50,
+      "pack_counts_end": {
+        "reserved": 1,
+        "offline": 47
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": false,
+        "warmup_hours": 0,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "replenishment_requests": 331,
+        "swap_starts": 331,
+        "swaps_completed": 328,
+        "ready_pack_misses": 57,
+        "offline_charge_completions": 294
+      },
+      "robot_seconds": {
+        "working": 4134477,
+        "queued": 126250,
+        "swapping": 59273
+      },
+      "productive_fraction": 0.9570548611111112,
+      "minimum_soc": 31.971007401525114,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 25,
+      "pack_counts_end": {
+        "reserved": 3,
+        "ready": 11,
+        "offline": 34
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": false,
+        "warmup_hours": 48,
+        "measure_hours": 12,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 341,
+        "replenishment_requests": 340,
+        "swap_starts": 340,
+        "offline_charge_completions": 316
+      },
+      "robot_seconds": {
+        "working": 4258861,
+        "queued": 0,
+        "swapping": 61139
+      },
+      "productive_fraction": 0.9858474537037037,
+      "minimum_soc": 31.971007401525114,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 25,
+      "pack_counts_end": {
+        "reserved": 1,
+        "ready": 3,
+        "offline": 44
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": false,
+        "warmup_hours": 48,
+        "measure_hours": 168,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 2683,
+        "offline_charge_completions": 2682,
+        "swap_starts": 2682,
+        "replenishment_requests": 2677,
+        "ready_pack_misses": 2677
+      },
+      "robot_seconds": {
+        "working": 34821317,
+        "queued": 25175895,
+        "swapping": 482788
+      },
+      "productive_fraction": 0.5757492890211641,
+      "minimum_soc": 27.04111111111111,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 50,
+      "pack_counts_end": {
+        "offline": 48
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 2,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 48,
+        "measure_hours": 168,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 2796,
+        "replenishment_requests": 4816,
+        "swap_starts": 2795,
+        "offline_charge_completions": 2796,
+        "ready_pack_misses": 2021,
+        "ordinary_charge_starts": 2021,
+        "ordinary_charge_completions": 2021
+      },
+      "robot_seconds": {
+        "working": 54498395,
+        "queued": 21789,
+        "swapping": 503116,
+        "charging": 5456700
+      },
+      "productive_fraction": 0.901097800925926,
+      "minimum_soc": 34.782222222222224,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "ready": 16,
+        "offline": 32
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": false,
+        "warmup_hours": 48,
+        "measure_hours": 168,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 4597,
+        "replenishment_requests": 4595,
+        "swap_starts": 4595,
+        "offline_charge_completions": 4581
+      },
+      "robot_seconds": {
+        "working": 59652838,
+        "queued": 0,
+        "swapping": 827162
+      },
+      "productive_fraction": 0.9863233796296297,
+      "minimum_soc": 31.971007401525114,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 25,
+      "pack_counts_end": {
+        "ready": 13,
+        "offline": 35
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    },
+    {
+      "parameters": {
+        "channels_per_station": 4,
+        "initial": "staggered",
+        "seed": 20261029,
+        "fallback": true,
+        "warmup_hours": 48,
+        "measure_hours": 168,
+        "robot_count": 100,
+        "stations": 12,
+        "spares_per_station": 4,
+        "swap_seconds": 180
+      },
+      "counts": {
+        "swaps_completed": 3022,
+        "offline_charge_completions": 3028,
+        "ordinary_charge_completions": 1744,
+        "replenishment_requests": 4764,
+        "swap_starts": 3021,
+        "ready_pack_misses": 1743,
+        "ordinary_charge_starts": 1743
+      },
+      "robot_seconds": {
+        "working": 55210186,
+        "queued": 19171,
+        "swapping": 543924,
+        "charging": 4706719
+      },
+      "productive_fraction": 0.912866832010582,
+      "minimum_soc": 34.699999999999996,
+      "pack_identity_conserved": true,
+      "physical_pack_count": 148,
+      "max_waiting_robots": 0,
+      "pack_counts_end": {
+        "reserved": 1,
+        "ready": 31,
+        "offline": 16
+      },
+      "traffic_included": false,
+      "warehouse_business_acceptance": false,
+      "ordinary_charge_capacity_assumption": "100 chargers, no travel/occupancy delay; optimistic supply upper bound"
+    }
+  ],
+  "energy_parameters": {
+    "name": "transport-assumed-v1",
+    "empty_soc_per_second": 0.004166666666666667,
+    "loaded_factor": 1.2,
+    "handling_factor": 1.2,
+    "idle_soc_per_second": 0.0005555555555555556,
+    "charge_soc_per_second": 0.016666666666666666,
+    "taper_start_soc": 80.0,
+    "taper_factor": 0.5,
+    "hardware_calibrated": false
+  },
+  "energy_source_sha256": "1035ef72edc223d556eef3644ff89e510525711e71375b473ff1e40bf88b4f2b",
+  "analytical": {
+    "loaded_100_to_35_hours": 3.611111111111111,
+    "charge_35_to_100_minutes": 85.0,
+    "100_robots_full_load_pack_demand_per_hour": 27.692307692307693,
+    "24_channels_pack_supply_per_hour": 16.941176470588236,
+    "48_channels_pack_supply_per_hour": 33.88235294117647
+  }
+}

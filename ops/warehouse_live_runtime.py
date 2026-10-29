@@ -5,7 +5,7 @@ handlers consume snapshots or submit commands; they never touch the simulator.
 No legacy server, replay cursor, random demo, signal pause, or old run is used.
 """
 from collections import Counter, deque
-from concurrent.futures import Future
+from concurrent.futures import Future, TimeoutError as FuturesTimeoutError
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -112,7 +112,17 @@ class WarehouseLiveRuntime:
                  run_id=None, config=None, commit_seconds=5, knowledge_mode='rules',
                  knowledge_backend='journal', wall_interval=1., disturbances_json=None,
                  resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False,
-                 query_summary_root=None, query_summary_cache=None, query_point_path=None):
+                 query_summary_root=None, query_summary_cache=None, query_point_path=None,
+                 mobility='legacy', robot_agents=False, agent_options=None):
+        if mobility not in ('legacy','wheeled') or type(robot_agents) is not bool:
+            raise ValueError('explicit mobility and robot_agents options required')
+        if robot_agents and knowledge_backend!='neo4j':
+            raise ValueError('independent robot graph I/O requires Neo4j')
+        self.mobility=mobility
+        self.robot_agents=robot_agents
+        self.agent_options=deepcopy(agent_options or {})
+        if isinstance(startup_timeout,bool) or not isinstance(startup_timeout,(int,float)) or not math.isfinite(startup_timeout) or startup_timeout<=0:
+            raise ValueError('startup_timeout must be finite and positive')
         if knowledge_mode not in ('rules', 'required') or knowledge_backend not in ('journal', 'neo4j'):
             raise ValueError('explicit rules/required and journal/neo4j modes required')
         if knowledge_mode == 'required' and knowledge_backend != 'neo4j':
@@ -188,9 +198,12 @@ class WarehouseLiveRuntime:
         self._thread.start()
         try:
             self._ready.result(timeout=startup_timeout)
-        except TimeoutError:
+        except FuturesTimeoutError as exc:
             self._stopping = True
-            raise
+            # Keep cleanup with the owner when a bounded driver call is in
+            # progress. Cancelling its ready Future would break error cleanup.
+            self._thread.join(min(5., startup_timeout))
+            raise TimeoutError('live startup deadline exceeded; owner cancellation requested') from exc
 
     def latest(self):
         with self._lock:
@@ -257,6 +270,9 @@ class WarehouseLiveRuntime:
                 self._query_summary=SummaryDirectory(self.query_summary_root,cache_root=self.query_summary_cache)
             dataset, run, resume = self._initial
             self._create_run(dataset, run_id=run or resume, resume=bool(resume))
+            if self._stopping:
+                self._close()
+                return
             self._ready.set_result(True)
         except Exception as exc:
             self._ready.set_exception(exc)
@@ -297,13 +313,15 @@ class WarehouseLiveRuntime:
     def _create_run(self, dataset_id, *, run_id=None, config=None, resume=False):
         names = ('_output', '_dataset_id', '_identity', '_sim', '_store', '_provider',
                  '_disturbances', '_applied', '_done', '_events', '_error', '_last_commit',
-                 '_rate_points', '_run_started', '_state', '_scene')
+                 '_rate_points', '_run_started', '_state', '_scene', '_query_summary_status',
+                 '_last_query_point', '_published_scene', '_latest', '_revision')
         previous = {name: getattr(self, name, None) for name in names}
         try:
             self._create_run_impl(dataset_id, run_id=run_id, config=config, resume=resume)
         except Exception as exc:
             if self._store is not previous['_store']:
-                self._close()
+                try:self._close()
+                except Exception:traceback.print_exc()
             for name, value in previous.items():
                 setattr(self, name, value)
             if previous['_sim'] is not None:
@@ -311,13 +329,18 @@ class WarehouseLiveRuntime:
             raise
         # Only retire old resources AFTER the new, independently owned run has
         # completed its initial durable boundary and published a real frame.
-        try:
-            if previous['_provider'] is not None:
-                previous['_provider'].close()
-            if previous['_store'] is not None:
-                previous['_store'].close()
-        except Exception:
-            traceback.print_exc()
+        retirement_errors=[]
+        for name in ('_provider','_store'):
+            if previous[name] is not None:
+                try:previous[name].close()
+                except Exception as exc:
+                    retirement_errors.append({'resource':name,'error':type(exc).__name__})
+                    traceback.print_exc()
+        if retirement_errors:
+            try:
+                (self._output/'retirement-errors.json').write_text(canonical(retirement_errors)+'\n',encoding='utf-8')
+            finally:
+                raise RuntimeError('prior live run resource cleanup failed; all resources attempted')
 
     def _create_run_impl(self, dataset_id, *, run_id=None, config=None, resume=False):
         if dataset_id not in self.registry:
@@ -332,11 +355,18 @@ class WarehouseLiveRuntime:
             cfg.update(json.loads(Path(spec['config_json']).read_text(encoding='utf-8')))
         cfg.update(spec.get('config') or {})
         cfg.update(config or {})
-        physical_config = self._core.writer.Config(**cfg)
+        if self.mobility=='legacy':
+            simulation_class,config_class=self._core.sim.KnowledgeSimulation,self._core.writer.Config
+        else:
+            from backend.warehouse.composition import physical_classes
+            simulation_class,config_class=physical_classes(self.mobility)
+        physical_config = config_class(**cfg)
         disturbance_path = spec.get('disturbances_json') or self.default_disturbances
         disturbances = json.loads(Path(disturbance_path).read_text(encoding='utf-8')) if disturbance_path else []
         validate_disturbances(disturbances)
         identity = {'version': VERSION, 'run_id': run_id, 'dataset_id': dataset_id,
+                    'mobility':self.mobility, 'robot_agents':self.robot_agents,
+                    'agent_options':self.agent_options,
                     'source_sha256': self._source_sha, 'adapter_sha256': file_sha(__file__),
                     'scene_sha256': file_sha(spec['scene']),
                     'tasks_sha256': file_sha(Path(spec['dataset']) / 'tasks.csv'),
@@ -362,7 +392,7 @@ class WarehouseLiveRuntime:
             if not uri or self.expected_neo4j_uri and uri != self.expected_neo4j_uri:
                 raise ValueError('live Neo4j URI differs from its explicit isolated target')
         # Validate core/input before closing a previous completed/paused run.
-        sim = self._core.sim.KnowledgeSimulation(spec['scene'], spec['dataset'], run_id,
+        sim = simulation_class(spec['scene'], spec['dataset'], run_id,
             physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode,
             **({'resource_graph':True} if self.resource_graph_enabled else {}))
         layout = self._core.layout.audit_roadmap(sim.roadmap, circle_probes=False)
@@ -373,6 +403,9 @@ class WarehouseLiveRuntime:
         if self.resource_graph_enabled:
             from backend.resource_graph_mirror import ResourceMirror
             mirror_class=ResourceMirror
+        if self.robot_agents:
+            from backend.warehouse.composition import with_agents
+            mirror_class=with_agents(mirror_class,output=output,enabled=True,options=self.agent_options)
         mirror = mirror_class.from_env() if self.knowledge_backend == 'neo4j' else None
         try:
             if mirror and not resume and mirror.query('MATCH (r:WHRun {run_id:$run}) RETURN count(r) AS runs', {'run': run_id})[0]['runs']:
@@ -615,6 +648,15 @@ class WarehouseLiveRuntime:
                         'fleet_capabilities':self._sim.run_metadata.get('fleet_capabilities')})
         if self._sim.run_metadata.get('boundary_routing'):
             snap['metadata']['boundary_routing']=deepcopy(self._sim.run_metadata['boundary_routing'])
+        snap['metadata']['mobility']=getattr(self,'mobility','legacy')
+        snap['metadata']['robot_agents_enabled']=getattr(self,'robot_agents',False)
+        fleet=getattr(self._store.mirror,'agent_fleet',None) if self._store.mirror else None
+        if fleet is not None:
+            pids=sorted(fleet.pids.values())
+            snap['runtime']={'workerProcessCount':len(pids),'workerPids':pids,
+                'coordinatorPid':os.getpid(),'coordination':'central-physics-independent-robot-http-io',
+                'process_count_scope':'registered independent robot I/O processes; coordinator additional',
+                'agent_io_failed':fleet.failed}
         point = None
         if getattr(self, 'query_point_path', None) is not None:
             seq = self._sim.knowledge_seq

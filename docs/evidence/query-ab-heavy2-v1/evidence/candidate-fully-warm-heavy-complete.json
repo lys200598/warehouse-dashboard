@@ -1,0 +1,82 @@
+{
+  "mode": "candidate",
+  "phase": "fully-warm-heavy",
+  "analysis_exit": 0,
+  "all_requests_under_500ms": true,
+  "actual_server_api_peak": 100,
+  "server_peak_qualified": true,
+  "planned_arrivals": 200,
+  "outcomes": {
+    "ok": 200
+  },
+  "groups": {
+    "heavy": {
+      "arrivals": 200,
+      "errors_or_drops": 0,
+      "network_all_observed": {
+        "count": 200,
+        "mean_ms": 219.91766557499994,
+        "p50_ms": 237.157012,
+        "p95_ms": 324.740162,
+        "p99_ms": 361.828392,
+        "max_ms": 409.611873,
+        "over_500ms": 0
+      },
+      "network_success_only": {
+        "count": 200,
+        "mean_ms": 219.91766557499994,
+        "p50_ms": 237.157012,
+        "p95_ms": 324.740162,
+        "p99_ms": 361.828392,
+        "max_ms": 409.611873,
+        "over_500ms": 0
+      },
+      "complete_http_json": {
+        "count": 200,
+        "mean_ms": 220.77901007999998,
+        "p50_ms": 238.59426,
+        "p95_ms": 325.283612,
+        "p99_ms": 362.474274,
+        "max_ms": 410.206028,
+        "over_500ms": 0
+      },
+      "server_service_header": {
+        "count": 200,
+        "mean_ms": 213.62102516461164,
+        "p50_ms": 229.93205208331347,
+        "p95_ms": 321.24879118055105,
+        "p99_ms": 352.7784440666437,
+        "max_ms": 405.7752974331379,
+        "over_500ms": 0
+      },
+      "server_queue_header": {
+        "count": 200,
+        "mean_ms": 167.39937035832554,
+        "p50_ms": 192.44035426527262,
+        "p95_ms": 264.1147365793586,
+        "p99_ms": 278.73182762414217,
+        "max_ms": 321.3254790753126,
+        "over_500ms": 0
+      },
+      "upstream_header": {
+        "count": 0,
+        "mean_ms": null,
+        "p50_ms": null,
+        "p95_ms": null,
+        "p99_ms": null,
+        "max_ms": null,
+        "over_500ms": 0
+      },
+      "json_parse_outside_network": {
+        "count": 200,
+        "mean_ms": 0.8607164600000003,
+        "p50_ms": 0.718876,
+        "p95_ms": 1.659389,
+        "p99_ms": 2.068724,
+        "max_ms": 2.555315,
+        "over_500ms": 0
+      }
+    }
+  },
+  "full_source_validation": true
+}
