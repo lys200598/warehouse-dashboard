@@ -1,0 +1,415 @@
+{
+  "scope": "GUI engineering regression + small real HTTP samples; not million/business/source acceptance",
+  "tests": {
+    "total": 44,
+    "passed": 44,
+    "skipped": 0,
+    "sha256": "d3980e3dd24e010091d7f3e3fbb69b29a61e37ff86d507c9b10758c288ec862d"
+  },
+  "real_gui_samples": [
+    {
+      "id": "job-d3b6574ace207098cdcdc5dd08e55f8c",
+      "plan": {
+        "label": "连通性小检查（自定义）",
+        "clients": 1,
+        "requests": 6,
+        "duration": 30,
+        "mode": "closed",
+        "query_id": "mixed",
+        "processes": 1,
+        "interval": 5,
+        "rate": 20,
+        "timeout": 15,
+        "window_steps": 60,
+        "event_limit": 10000,
+        "history_limit": 3601,
+        "self_percent": 50,
+        "profile": "quick"
+      },
+      "state": "complete",
+      "summary": {
+        "version": "warehouse-pressure-summary-v1",
+        "status": "measured",
+        "scope": "HTTP catalog sample; not full graph/business acceptance",
+        "run_id": "wh-live-20261029T033858Z-fd02a766",
+        "seq": 1,
+        "profile": "quick",
+        "configured_clients": 1,
+        "plan": {
+          "label": "连通性小检查（自定义）",
+          "clients": 1,
+          "requests": 6,
+          "duration": 30,
+          "mode": "closed",
+          "query_id": "mixed",
+          "processes": 1,
+          "interval": 5,
+          "rate": 20,
+          "timeout": 15,
+          "window_steps": 60,
+          "event_limit": 10000,
+          "history_limit": 3601,
+          "self_percent": 50,
+          "profile": "quick"
+        },
+        "planned_arrivals": 6,
+        "outcomes": {
+          "ok": 6
+        },
+        "run_complete": true,
+        "groups": {
+          "global": {
+            "arrivals": 5,
+            "errors_or_drops": 0,
+            "network_all_observed": {
+              "count": 5,
+              "mean_ms": 106.555612,
+              "p50_ms": 104.797774,
+              "p95_ms": 114.524366,
+              "p99_ms": 114.524366,
+              "max_ms": 114.524366,
+              "over_500ms": 0
+            },
+            "network_success_only": {
+              "count": 5,
+              "mean_ms": 106.555612,
+              "p50_ms": 104.797774,
+              "p95_ms": 114.524366,
+              "p99_ms": 114.524366,
+              "max_ms": 114.524366,
+              "over_500ms": 0
+            },
+            "complete_http_json": {
+              "count": 5,
+              "mean_ms": 107.3526732,
+              "p50_ms": 105.511541,
+              "p95_ms": 114.994231,
+              "p99_ms": 114.994231,
+              "max_ms": 114.994231,
+              "over_500ms": 0
+            },
+            "server_service_header": {
+              "count": 5,
+              "mean_ms": 103.28671038150787,
+              "p50_ms": 101.89991258084774,
+              "p95_ms": 110.10458692908287,
+              "p99_ms": 110.10458692908287,
+              "max_ms": 110.10458692908287,
+              "over_500ms": 0
+            },
+            "server_queue_header": {
+              "count": 0,
+              "mean_ms": null,
+              "p50_ms": null,
+              "p95_ms": null,
+              "p99_ms": null,
+              "max_ms": null,
+              "over_500ms": 0
+            },
+            "upstream_header": {
+              "count": 0,
+              "mean_ms": null,
+              "p50_ms": null,
+              "p95_ms": null,
+              "p99_ms": null,
+              "max_ms": null,
+              "over_500ms": 0
+            },
+            "json_parse_outside_network": {
+              "count": 5,
+              "mean_ms": 0.7964052,
+              "p50_ms": 0.713232,
+              "p95_ms": 1.281066,
+              "p99_ms": 1.281066,
+              "max_ms": 1.281066,
+              "over_500ms": 0
+            }
+          },
+          "self": {
+            "arrivals": 1,
+            "errors_or_drops": 0,
+            "network_all_observed": {
+              "count": 1,
+              "mean_ms": 7.738744,
+              "p50_ms": 7.738744,
+              "p95_ms": 7.738744,
+              "p99_ms": 7.738744,
+              "max_ms": 7.738744,
+              "over_500ms": 0
+            },
+            "network_success_only": {
+              "count": 1,
+              "mean_ms": 7.738744,
+              "p50_ms": 7.738744,
+              "p95_ms": 7.738744,
+              "p99_ms": 7.738744,
+              "max_ms": 7.738744,
+              "over_500ms": 0
+            },
+            "complete_http_json": {
+              "count": 1,
+              "mean_ms": 7.833018,
+              "p50_ms": 7.833018,
+              "p95_ms": 7.833018,
+              "p99_ms": 7.833018,
+              "max_ms": 7.833018,
+              "over_500ms": 0
+            },
+            "server_service_header": {
+              "count": 1,
+              "mean_ms": 4.965408705174923,
+              "p50_ms": 4.965408705174923,
+              "p95_ms": 4.965408705174923,
+              "p99_ms": 4.965408705174923,
+              "max_ms": 4.965408705174923,
+              "over_500ms": 0
+            },
+            "server_queue_header": {
+              "count": 0,
+              "mean_ms": null,
+              "p50_ms": null,
+              "p95_ms": null,
+              "p99_ms": null,
+              "max_ms": null,
+              "over_500ms": 0
+            },
+            "upstream_header": {
+              "count": 0,
+              "mean_ms": null,
+              "p50_ms": null,
+              "p95_ms": null,
+              "p99_ms": null,
+              "max_ms": null,
+              "over_500ms": 0
+            },
+            "json_parse_outside_network": {
+              "count": 1,
+              "mean_ms": 0.093269,
+              "p50_ms": 0.093269,
+              "p95_ms": 0.093269,
+              "p99_ms": 0.093269,
+              "max_ms": 0.093269,
+              "over_500ms": 0
+            }
+          }
+        },
+        "structural_validation": {
+          "scope": "JSON object and optional run identity only; full domain oracle separate",
+          "validator": "ops.load_validation:validate_catalog",
+          "elapsed_ms": 3.469057,
+          "errors": []
+        },
+        "all_requests_under_500ms": true,
+        "client_observed_http_peak": 1,
+        "actual_server_api_peak": null,
+        "server_peak_qualified": false,
+        "server_probe_status": [],
+        "parse_errors": [],
+        "duplicate_ids": [],
+        "clients_without_requests": [],
+        "independent_source_verified": false,
+        "million_prefix_qualified": false,
+        "business_hundred_verified": false,
+        "continuous_writes_verified": false,
+        "cold_or_fully_warm_qualified": false,
+        "preflight_semantics": "one check per query kind before load; not cold/all-worker warm proof"
+      }
+    },
+    {
+      "id": "job-2227863081f5f0f03fe083ef926c8a8f",
+      "plan": {
+        "label": "连通性小检查",
+        "clients": 1,
+        "requests": 3,
+        "duration": 30,
+        "mode": "closed",
+        "query_id": "self",
+        "processes": 1,
+        "interval": 5,
+        "rate": 20,
+        "timeout": 15,
+        "window_steps": 60,
+        "event_limit": 10000,
+        "history_limit": 3601,
+        "self_percent": 80,
+        "profile": "quick"
+      },
+      "state": "complete",
+      "summary": {
+        "version": "warehouse-pressure-summary-v1",
+        "status": "measured",
+        "scope": "HTTP catalog sample; not full graph/business acceptance",
+        "run_id": "wh-live-20261029T033858Z-fd02a766",
+        "seq": 1,
+        "profile": "quick",
+        "configured_clients": 1,
+        "plan": {
+          "label": "连通性小检查",
+          "clients": 1,
+          "requests": 3,
+          "duration": 30,
+          "mode": "closed",
+          "query_id": "self",
+          "processes": 1,
+          "interval": 5,
+          "rate": 20,
+          "timeout": 15,
+          "window_steps": 60,
+          "event_limit": 10000,
+          "history_limit": 3601,
+          "self_percent": 80,
+          "profile": "quick"
+        },
+        "planned_arrivals": 3,
+        "outcomes": {
+          "ok": 3
+        },
+        "run_complete": true,
+        "groups": {
+          "self": {
+            "arrivals": 3,
+            "errors_or_drops": 0,
+            "network_all_observed": {
+              "count": 3,
+              "mean_ms": 7.262236000000001,
+              "p50_ms": 6.349973,
+              "p95_ms": 9.245684,
+              "p99_ms": 9.245684,
+              "max_ms": 9.245684,
+              "over_500ms": 0
+            },
+            "network_success_only": {
+              "count": 3,
+              "mean_ms": 7.262236000000001,
+              "p50_ms": 6.349973,
+              "p95_ms": 9.245684,
+              "p99_ms": 9.245684,
+              "max_ms": 9.245684,
+              "over_500ms": 0
+            },
+            "complete_http_json": {
+              "count": 3,
+              "mean_ms": 7.302217333333334,
+              "p50_ms": 6.388173,
+              "p95_ms": 9.289193,
+              "p99_ms": 9.289193,
+              "max_ms": 9.289193,
+              "over_500ms": 0
+            },
+            "server_service_header": {
+              "count": 3,
+              "mean_ms": 4.1454822445909185,
+              "p50_ms": 3.8789305835962296,
+              "p95_ms": 4.724979400634766,
+              "p99_ms": 4.724979400634766,
+              "max_ms": 4.724979400634766,
+              "over_500ms": 0
+            },
+            "server_queue_header": {
+              "count": 0,
+              "mean_ms": null,
+              "p50_ms": null,
+              "p95_ms": null,
+              "p99_ms": null,
+              "max_ms": null,
+              "over_500ms": 0
+            },
+            "upstream_header": {
+              "count": 0,
+              "mean_ms": null,
+              "p50_ms": null,
+              "p95_ms": null,
+              "p99_ms": null,
+              "max_ms": null,
+              "over_500ms": 0
+            },
+            "json_parse_outside_network": {
+              "count": 3,
+              "mean_ms": 0.039496,
+              "p50_ms": 0.037802,
+              "p95_ms": 0.042912,
+              "p99_ms": 0.042912,
+              "max_ms": 0.042912,
+              "over_500ms": 0
+            }
+          }
+        },
+        "structural_validation": {
+          "scope": "JSON object and optional run identity only; full domain oracle separate",
+          "validator": "ops.load_validation:validate_catalog",
+          "elapsed_ms": 1.007356,
+          "errors": []
+        },
+        "all_requests_under_500ms": true,
+        "client_observed_http_peak": 1,
+        "actual_server_api_peak": null,
+        "server_peak_qualified": false,
+        "server_probe_status": [],
+        "parse_errors": [],
+        "duplicate_ids": [],
+        "clients_without_requests": [],
+        "independent_source_verified": false,
+        "million_prefix_qualified": false,
+        "business_hundred_verified": false,
+        "continuous_writes_verified": false,
+        "cold_or_fully_warm_qualified": false,
+        "preflight_semantics": "one check per query kind before load; not cold/all-worker warm proof"
+      }
+    }
+  ],
+  "real_queries": 9,
+  "additional_preflights": 3,
+  "browser_acceptance": {
+    "connected": true,
+    "invalid_clients_101_rejected": true,
+    "mixed_query_executed": true,
+    "request_table_rendered": true,
+    "svg_charts": 4,
+    "history_comparison": true,
+    "csv_download": true,
+    "duplicate_ids": 0,
+    "final_console_errors": 0
+  },
+  "modern_js_syntax_check": {
+    "node": "25.8.1",
+    "platform": "Windows",
+    "passed": true
+  },
+  "initial_system_node_check": {
+    "passed": false,
+    "reason": "old checker could not parse modern JavaScript; original tests-v1.log and tool output retained; actual browser and modern Node passed"
+  },
+  "source_sha256": {
+    "pressure_test.py": "ad344a73fd42e1f877dcfbc3c41b4fe8ce1e300f0653cc70332b8e222f9eb787",
+    "pressure_test.sh": "535b4e7908c36af368c4ed815440a4cad32b5dfea6a1be64edf6d036f7b78164",
+    "ops/quick_load.py": "48dbd59e5cbfc04377ee2962fddc65aaedbedbe835e78f0aefa6ef5533a301a0",
+    "ops/pressure_gui.py": "f441f088c0588945df4536cc230275b36668e852cc3525dda0b18b611b905346",
+    "ops/pressure_plan.py": "dcee05c58c9013fee98747a3e278308b21abdb88b686832ab162deeaba385b5b",
+    "config/pressure-test.json": "4fe9173c2cd18a6fb77b56aba613845e49516fdd7d2b5e60decbdfc70221c586",
+    "tests/test_quick_load.py": "7313dadd56da239476d74fcbba3f7dbe91483dcf0a126e62309d461c4ebc6301",
+    "tests/test_pressure_gui.py": "170e4c3f3e209e736fb3878e3cd20cd483f062a164534307c0bbbbc8199afc7f",
+    "dist/pressure-lab/index.html": "0534ca0dbd46f0bfd5f8828a6ab2da395016df5102d4dc25e1c0c72a2c3df8e9",
+    "dist/pressure-lab/app.js": "f4e189077b8ef3d24e08ef285721ea5f293917506bbd466afe611edb85653a2d",
+    "dist/pressure-lab/style.css": "71ad1e1b9bac34ac146a0f62ff777a22497d55bc0f2356b9e774ebca88eaee41"
+  },
+  "runtime": {
+    "pid": 916081,
+    "argv": [
+      "/data/workspace/wz/warehouse-deploy/.venv/bin/python",
+      "/data/workspace/wz/warehouse-git-delivery-20261028/pressure_test.py",
+      "--gui",
+      "--port",
+      "14595",
+      "--data-root",
+      "/data/workspace/wz/warehouse-pressure-gui-20261029-v1/jobs"
+    ],
+    "purpose": "reviewed independent GUI; no commit/push"
+  },
+  "test_artifacts": "/data/workspace/wz/warehouse-pressure-gui-check-20261029-v1",
+  "history_root": "/data/workspace/wz/warehouse-pressure-gui-20261029-v1/jobs",
+  "base_git_head": "83c3263ded70d22c18f4d11dcdb13454a86c4cb7",
+  "commit_created": false,
+  "push_performed": false,
+  "push_requires_user_approval": true,
+  "original_harness_backend_frontend_unchanged": true
+}

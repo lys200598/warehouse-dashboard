@@ -1,0 +1,39 @@
+test_degraded_service_refused (tests.test_quick_load.QuickLoadTests) ... ok
+test_disabled_graph_saves_friendly_report (tests.test_quick_load.QuickLoadTests) ... ok
+test_disabled_or_missing_point (tests.test_quick_load.QuickLoadTests) ... ok
+test_existing_output_not_overwritten (tests.test_quick_load.QuickLoadTests) ... ok
+test_field_mapping_is_configurable (tests.test_quick_load.QuickLoadTests) ... ok
+test_hundred_process_preset_on_fixture (tests.test_quick_load.QuickLoadTests) ... ok
+test_interactive_menu_defaults_to_small_check (tests.test_quick_load.QuickLoadTests) ... ok
+test_interrupt_preserved_and_no_analysis (tests.test_quick_load.QuickLoadTests) ... ok
+test_invalid_config_version (tests.test_quick_load.QuickLoadTests) ... ok
+test_later_http_failures_retained_without_retry (tests.test_quick_load.QuickLoadTests) ... ok
+test_no_write_workload_or_new_post_bypass (tests.test_quick_load.QuickLoadTests) ... ok
+test_nonquick_requires_explicit_consent_before_network (tests.test_quick_load.QuickLoadTests) ... ok
+test_optimized_mode_does_not_disable_validation (tests.test_quick_load.QuickLoadTests) ... ok
+test_point_contract_and_boolean_seq_rejected (tests.test_quick_load.QuickLoadTests) ... ok
+test_real_interrupt_drains_owned_clients (tests.test_quick_load.QuickLoadTests) ... ok
+test_real_spawn_quick_keeps_qualification_false (tests.test_quick_load.QuickLoadTests) ... ok
+test_refuse_url_credentials (tests.test_quick_load.QuickLoadTests) ... ok
+test_renamed_post_path_reported_without_request (tests.test_quick_load.QuickLoadTests) ... ok
+test_windows_console_uses_utf8 (tests.test_quick_load.QuickLoadTests) ... ok
+test_wrong_shape_stops_before_load (tests.test_quick_load.QuickLoadTests) ... ok
+test_analyze_does_not_hide_failures (tests.test_load_harness.LoadTests) ... ok
+test_hundred_os_processes (tests.test_load_harness.LoadTests) ... {"output": "/tmp/tmpvualpkif/analysis.json", "outcomes": {"ok": 1, "transport_error": 1, "load_generator_busy": 1}, "actual_server_api_peak": null, "server_peak_qualified": false, "all_requests_under_500ms": false}
+ok
+test_identity_headers_not_logged (tests.test_load_harness.LoadTests) ... ok
+test_invalid_workload (tests.test_load_harness.LoadTests) ... ok
+test_metric_and_equal_interval_edges (tests.test_load_harness.LoadTests) ... ok
+test_probe_records_real_intervals (tests.test_load_harness.LoadTests) ... ok
+test_redacts_echoed_credentials (tests.test_load_harness.LoadTests) ... ok
+test_slow_periodic_records_missed_arrivals (tests.test_load_harness.LoadTests) ... {"output": "/tmp/tmpwpesah91/run", "complete": true, "processes": 100}
+ok
+test_spawn_processes_real_http (tests.test_load_harness.LoadTests) ... {"output": "/tmp/tmpyzm6a_da/run", "complete": true, "processes": 2}
+ok
+test_templates_and_redaction (tests.test_load_harness.LoadTests) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 11.258s
+
+OK
+{"output": "/tmp/tmp2mmryfx1/run", "complete": true, "processes": 3}

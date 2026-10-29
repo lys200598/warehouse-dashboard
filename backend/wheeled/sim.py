@@ -77,6 +77,8 @@ class WheeledMixin:
                 self.event('battery_swap_cancelled', owner, pack_id=token, reason='safe_plan_replaced')
 
     def schedule_charge(self, robot):
+        if not self.activation_available(robot):
+            return False
         if self.config.replenishment_policy == 'swap-first' and not robot['carrying']:
             self._sync_pack_reservations()
             if self._schedule_swap(robot):

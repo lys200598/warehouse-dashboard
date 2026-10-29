@@ -256,6 +256,8 @@ def main(argv=None):
                    help='new direct child of output-root; publish SHA-fenced points for native query routing')
     p.add_argument('--host',choices=('127.0.0.1','localhost','::1'),default='127.0.0.1')
     p.add_argument('--port',type=int,default=14185)
+    p.add_argument('--max-active-robots',type=int,default=None,
+                   help='optional 1..100 active execution slots; omitted keeps the dataset default (normally 100)')
     # Parse before selecting/importing a producer tree; importing backend here
     # would pin the wrong source when --source-root selects another release.
     p.add_argument('--mobility',choices=('legacy','wheeled'),default='legacy')
@@ -265,6 +267,8 @@ def main(argv=None):
     p.add_argument('--agent-timeout',type=float,default=30.)
     p.add_argument('--agent-startup-timeout',type=float,default=120.)
     args=p.parse_args(argv)
+    if args.max_active_robots is not None and not 1<=args.max_active_robots<=100:
+        p.error('--max-active-robots must be within 1..100')
     if not 1<=args.query_workers<=24:p.error('--query-workers must be within 1..24')
     if args.query_upstream:
         from ops.warehouse_query_proxy import validate_upstreams
@@ -290,7 +294,7 @@ def main(argv=None):
         wall_interval=1.,resume_run_id=args.resume_run_id,expected_neo4j_uri=args.expected_neo4j_uri,resource_graph=args.resource_graph,
         query_summary_root=(args.summary_root or args.output_root) if args.query_acceleration=='summary' else None,
         query_summary_cache=args.query_summary_cache if args.query_acceleration=='summary' else None,
-        query_point_path=args.query_point_file,mobility=args.mobility,
+        query_point_path=args.query_point_file,mobility=args.mobility,max_active_robots=args.max_active_robots,
         robot_agents=args.robot_agents,agent_options=dict(query_interval=args.agent_query_seconds,
             observation_interval=args.agent_observation_seconds,timeout=args.agent_timeout,
             startup_timeout=args.agent_startup_timeout))

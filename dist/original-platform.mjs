@@ -30,7 +30,8 @@ export function adaptPlatformFrame(value, scene, previous=null, trails=new Map()
       path:[],pathIndex:0,observedTrail:path,blocked:/fault|blocked/.test(r.stage),alert:attention,
       distanceTravelled:0,stageDistance:0};
   });
-  return {...f,continuousFrame:consecutive,scene:{...scene,name:'WAREHOUSE CONTROL / V5 · 真实数据',inboundLayout:'west-eight'},racks,robots,
+  const activationLabel=f.activation?` · 激活 ${f.activation.active} / ${f.activation.limit} 台`:'';
+  return {...f,continuousFrame:consecutive,scene:{...scene,name:'WAREHOUSE CONTROL / V5 · 真实数据'+activationLabel,inboundLayout:'west-eight'},racks,robots,
     completed:f.metrics?.completed??0,flowRate:0,
     metrics:{...f.metrics,assignedRobots:f.robots.filter(r=>r.task_id).length,freeSlots:scene.capacity-occupied.size,occupiedSlots:occupied.size},
     events:[...(f.events||[])].reverse().map(e=>({time:formatClock(e.sim_time),robot:e.robot_id?`HR-${String(e.robot_id).padStart(3,'0')}`:'SYSTEM',

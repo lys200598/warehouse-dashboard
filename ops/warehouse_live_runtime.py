@@ -113,7 +113,10 @@ class WarehouseLiveRuntime:
                  knowledge_backend='journal', wall_interval=1., disturbances_json=None,
                  resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False,
                  query_summary_root=None, query_summary_cache=None, query_point_path=None,
-                 mobility='legacy', robot_agents=False, agent_options=None):
+                 mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None):
+        if max_active_robots is not None and (type(max_active_robots) is not int or not 1<=max_active_robots<=100):
+            raise ValueError('max_active_robots must be an integer within 1..100, or None')
+        self.max_active_robots=max_active_robots
         if mobility not in ('legacy','wheeled') or type(robot_agents) is not bool:
             raise ValueError('explicit mobility and robot_agents options required')
         if robot_agents and knowledge_backend!='neo4j':
@@ -355,6 +358,11 @@ class WarehouseLiveRuntime:
             cfg.update(json.loads(Path(spec['config_json']).read_text(encoding='utf-8')))
         cfg.update(spec.get('config') or {})
         cfg.update(config or {})
+        # A launch-only override wins over dataset defaults for each new run.
+        # Its effective value is recorded in the run identity/checkpoint, never
+        # written back into the dataset configuration file.
+        if self.max_active_robots is not None:
+            cfg['max_active_robots']=self.max_active_robots
         if self.mobility=='legacy':
             simulation_class,config_class=self._core.sim.KnowledgeSimulation,self._core.writer.Config
         else:
@@ -644,6 +652,7 @@ class WarehouseLiveRuntime:
                         'knowledge_mode': self.knowledge_mode, 'knowledge_backend': self.knowledge_backend,
                         'output': str(self._output), 'motion_speed_mps': self._sim.config.speed,
                         'resource_graph':self.resource_graph_enabled,
+                        'max_active_robots':self._sim.config.max_active_robots,
                         'fleet_mode':getattr(self._sim.config,'fleet_mode','all-x3'),
                         'fleet_capabilities':self._sim.run_metadata.get('fleet_capabilities')})
         if self._sim.run_metadata.get('boundary_routing'):

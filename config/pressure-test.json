@@ -1,0 +1,11 @@
+{
+  "version": "warehouse-pressure-test-v1",
+  "base_url": "http://127.0.0.1:14192",
+  "health_path": "/api/health",
+  "catalog_path": "/api/knowledge/catalog",
+  "query_path": "/api/knowledge/query",
+  "run_id_path": ["run_id"],
+  "seq_path": ["knowledge", "mirrored_seq"],
+  "graph_enabled_path": ["graph_queries_enabled"],
+  "catalog_queries_path": ["queries"]
+}

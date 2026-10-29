@@ -1,0 +1,131 @@
+{
+  "scope": "beginner wizard verification; not full graph acceptance",
+  "user_requested_no_push": true,
+  "commit_created": false,
+  "push_performed": false,
+  "git_head": "83c3263ded70d22c18f4d11dcdb13454a86c4cb7",
+  "tests": {
+    "total": 30,
+    "passed": 30,
+    "skipped": 0,
+    "log_sha256": "86bd8f9c7b27105f0480865b72f6094fc60d6ec5f8d92611189e8568847e18f5",
+    "hundred_process_fixture_verified": true,
+    "real_posix_interrupt_cleanup_verified": true,
+    "optimized_mode_cannot_bypass_validation": true
+  },
+  "real_quick": {
+    "version": "warehouse-pressure-summary-v1",
+    "status": "measured",
+    "scope": "HTTP catalog sample; not full graph/business acceptance",
+    "run_id": "wh-live-20261029T033858Z-fd02a766",
+    "seq": 1,
+    "profile": "quick",
+    "configured_clients": 1,
+    "planned_arrivals": 3,
+    "outcomes": {
+      "ok": 3
+    },
+    "run_complete": true,
+    "groups": {
+      "light": {
+        "arrivals": 3,
+        "errors_or_drops": 0,
+        "network_all_observed": {
+          "count": 3,
+          "mean_ms": 8.158763666666667,
+          "p50_ms": 7.274437,
+          "p95_ms": 10.355035,
+          "p99_ms": 10.355035,
+          "max_ms": 10.355035,
+          "over_500ms": 0
+        },
+        "network_success_only": {
+          "count": 3,
+          "mean_ms": 8.158763666666667,
+          "p50_ms": 7.274437,
+          "p95_ms": 10.355035,
+          "p99_ms": 10.355035,
+          "max_ms": 10.355035,
+          "over_500ms": 0
+        },
+        "complete_http_json": {
+          "count": 3,
+          "mean_ms": 8.258488666666667,
+          "p50_ms": 7.379018,
+          "p95_ms": 10.412943,
+          "p99_ms": 10.412943,
+          "max_ms": 10.412943,
+          "over_500ms": 0
+        },
+        "server_service_header": {
+          "count": 3,
+          "mean_ms": 5.0295426820715265,
+          "p50_ms": 4.823729395866394,
+          "p95_ms": 5.81534206867218,
+          "p99_ms": 5.81534206867218,
+          "max_ms": 5.81534206867218,
+          "over_500ms": 0
+        },
+        "server_queue_header": {
+          "count": 0,
+          "mean_ms": null,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "over_500ms": 0
+        },
+        "upstream_header": {
+          "count": 0,
+          "mean_ms": null,
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "max_ms": null,
+          "over_500ms": 0
+        },
+        "json_parse_outside_network": {
+          "count": 3,
+          "mean_ms": 0.09861366666666667,
+          "p50_ms": 0.103421,
+          "p95_ms": 0.134991,
+          "p99_ms": 0.134991,
+          "max_ms": 0.134991,
+          "over_500ms": 0
+        }
+      }
+    },
+    "structural_validation": {
+      "scope": "JSON object and optional run identity only; full domain oracle separate",
+      "validator": "ops.load_validation:validate_catalog",
+      "elapsed_ms": 2.02464,
+      "errors": []
+    },
+    "all_requests_under_500ms": true,
+    "client_observed_http_peak": 1,
+    "actual_server_api_peak": null,
+    "server_peak_qualified": false,
+    "server_probe_status": [],
+    "parse_errors": [],
+    "duplicate_ids": [],
+    "clients_without_requests": [],
+    "independent_source_verified": false,
+    "million_prefix_qualified": false,
+    "business_hundred_verified": false,
+    "continuous_writes_verified": false,
+    "cold_or_fully_warm_qualified": false,
+    "preflight_semantics": "one check before load; not fully-cold or all-worker warm proof"
+  },
+  "real_check_requests": 3,
+  "additional_preflight_requests": 1,
+  "source_files_sha256": {
+    "pressure_test.py": "ad344a73fd42e1f877dcfbc3c41b4fe8ce1e300f0653cc70332b8e222f9eb787",
+    "pressure_test.sh": "535b4e7908c36af368c4ed815440a4cad32b5dfea6a1be64edf6d036f7b78164",
+    "ops/quick_load.py": "d627b6a4936c3955fed7faff06bced276fef5f3a74d79ea4f70dd873921ca1e4",
+    "config/pressure-test.json": "4fe9173c2cd18a6fb77b56aba613845e49516fdd7d2b5e60decbdfc70221c586",
+    "tests/test_quick_load.py": "7313dadd56da239476d74fcbba3f7dbe91483dcf0a126e62309d461c4ebc6301"
+  },
+  "server_artifacts": "/data/workspace/wz/warehouse-easy-load-check-20261029-v1",
+  "windows_scope": "local Python --help UTF-8 verified; full Windows HTTP/process run not claimed",
+  "original_harness_and_backend_unchanged": true
+}

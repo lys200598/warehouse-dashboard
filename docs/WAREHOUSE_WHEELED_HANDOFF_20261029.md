@@ -29,7 +29,7 @@
 |看仓库尺寸、机器人和充电位|本页第2、4节|
 |生成符合仓库的数据|本页第3节，再看[数据对接](LYS_DATASET_HANDOFF.md)|
 |安装并跑起来|本页第6节|
-|第一次使用压测工具|[压测操作手册：从零到真实实验](LOAD_TEST_COOKBOOK.md)|
+|第一次使用压测工具|[网页控制台](PRESSURE_GUI_GUIDE.md)：`python pressure_test.py --gui`；或[终端向导](PRESSURE_TEST_QUICKSTART.md)|
 |改了API，判断压测还能不能用|[兼容清单](LOAD_TEST_COOKBOOK.md#8-改代码以后哪些还能用)|
 |查看每个脚本的命令、依赖和结果|[脚本菜单](LOAD_TEST_COOKBOOK.md#1-先选择工具不要一次全跑)|
 |查某台机器人或某货架的信息|[标准查询说明](WAREHOUSE_QUERY_GUIDE.md)、[货架库存](RACK_RESOURCE_GRAPH_GUIDE.md)|
@@ -239,7 +239,7 @@ bash run_in_lade.sh python -m backend.warehouse live \
 
 **不需要为所有改动重写全部脚本。** 例如只更换数据集、保持输入与响应契约不变，通用发起器可复用；由WHRobot改成Robot，HTTP外形保持时仍可测请求时间，但图谱读取和来源验真必须一起适配。
 
-本页只给选择方法。每个工具的前置条件、真实路径命令、输出解释、退出码、故障处理与API兼容矩阵见[压测操作手册](LOAD_TEST_COOKBOOK.md)；低层字段定义见[原压测参考指南](LOAD_TEST_GUIDE.md)。
+日常检查先运行 `bash pressure_test.sh`，按[新手向导](PRESSURE_TEST_QUICKSTART.md)选择方案，工具自动找到run/seq、调用原发起器与分析器，保存中文报告。每个底层工具的前置条件、真实路径命令、输出解释、退出码、故障处理与API兼容矩阵见[压测操作手册](LOAD_TEST_COOKBOOK.md)；低层字段定义见[原压测参考指南](LOAD_TEST_GUIDE.md)。
 
 **仓库设计还需优化以配合查询优化**：主要是协调状态提交、事件与查询触发频率，避免100机器人重复读取相同全局信息。改变频率会改变负载，要用新实验标识记录，不能把减少请求后的结果算作原突发负载通过。
 

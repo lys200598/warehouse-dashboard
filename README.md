@@ -12,6 +12,8 @@
 
 ## 阅读路线
 
+- **网页压测控制台**：`python pressure_test.py --gui`，打开本机14595端口，按[使用说明](docs/PRESSURE_GUI_GUIDE.md)选择参数、看图表及历史；与原仓库网页独立。
+- **不想拼压测命令**：在项目目录执行 `bash pressure_test.sh`，按[新手向导](docs/PRESSURE_TEST_QUICKSTART.md)输入地址、选择方案，自动生成中文报告；已有Python环境可运行 `python pressure_test.py`。
 - **第一次接触本项目**：[从仓库设计到实际运行](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)、[压测一步一步操作与API改动兼容表](docs/LOAD_TEST_COOKBOOK.md)
 - **整体实现与运行**：[平台指南](docs/WAREHOUSE_PLATFORM_GUIDE.md)
 - **开始使用实时界面**：[实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md)

@@ -5,6 +5,12 @@ import {adaptPlatformFrame,platformControl} from '../dist/original-platform.mjs'
 const scene=JSON.parse(readFileSync(new URL('../data/layouts/warehouse100-wide-v2.json',import.meta.url)));
 const robot={robot_id:1,robot_type_key:'X3',x:2.25,y:2.4,battery:50,carrying:false,stage:'idle',task_id:null,cargo_id:null};
 const frame=(tick=0,changes={})=>({runId:'real-run',runtimeInstanceId:'instance',tick,elapsed:tick,robots:[{...robot}],metrics:{completed:3},occupiedSlots:['R01-L1-C1-F1'],events:[],...changes});
+
+test('activation cap and actual job count are visible without replacing the online fleet',()=>{
+  const f=adaptPlatformFrame(frame(0,{activation:{active:49,limit:50}}),scene);
+  assert.match(f.scene.name,/激活 49 \/ 50 台/);
+  assert.equal(f.activation.limit,50);
+});
 test('original renderer receives real 36 racks, 1728 slots and exactly source occupancy',()=>{
   const f=adaptPlatformFrame(frame(),scene);
   assert.equal(f.racks.length,36);assert.equal(f.racks.flatMap(r=>r.slots).length,1728);
