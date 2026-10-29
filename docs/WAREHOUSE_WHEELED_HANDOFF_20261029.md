@@ -1,31 +1,75 @@
-# 仓库与数据同学对接：扩大布局、轮式运输、换电和独立机器人读写
+# 轮式仓库交付与协作指南（新同学从这里开始）
 
-## 1. 本轮负责的内容
+这份文档面向第一次接触项目的计算机专业学生。读完应能回答：仓库长什么样、数据怎样交给仿真、机器人怎样工作、知识图谱保存什么、怎样启动、怎样测试，以及修改代码后要检查哪里。
 
-这轮把仓库仿真作为共享知识实验的载体继续完善：扩大可工作的库区，采用轮式移动操作机器人的运输能力，增加有限换电模型，让每台机器人以独立进程写入自身观测并查询知识，同时提供独立压测与来源验真工具。李姚舜负责新数据集及知识图谱设计；双方通过地图、七字段任务、资源编号和运行接口对接。
+## 1. 先用一分钟了解这个项目
 
-## 2. 仓库怎么选
+我们在电脑里模拟一个仓库：货物到入库口，机器人把它送到货架；收到出库任务后，机器人从货架取货送到出库口。机器人会耗电、充电或换电，也可能把任务和货物交给其他机器人。
 
-推荐继续采用中型布局 `data/layouts/expansion-candidates/medium/layout.json`：
+**输入**是仓库地图、任务CSV、初始库存CSV和机器人配置；**输出**是运行结果、可回放画面，以及写入Neo4j的历史状态和事件。Neo4j是一种图数据库，用“节点＋关系”表示机器人、货物、任务及它们的联系。
 
-|内容|原100台宽松图|上轮balanced|本轮medium|
+```text
+地图＋任务＋初始库存＋机器人配置
+                 ↓
+中央仿真/调度进程：分任务、规划路线、避免碰撞、确认货物归属
+                 ↓
+100台仿真机器人工作 → 各机器人进程上报观测、查询自己的上下文
+                 ↓
+共享知识服务 → Neo4j保存历史 → 按需查询 → 调度参考或历史授权
+                 ↓
+原实时网页显示当前运行；已保存画面可另做回放
+```
+
+本轮主要交付仓库、运输与补能模型、机器人读写接口、压测及验真工具。李姚舜继续负责新数据集和双方知识图谱设计的整合。LLM不属于这次需要实现的内容。
+
+### 按你要做的事找入口
+
+|你想做什么|先看哪里|
+|---|---|
+|看仓库尺寸、机器人和充电位|本页第2、4节|
+|生成符合仓库的数据|本页第3节，再看[数据对接](LYS_DATASET_HANDOFF.md)|
+|安装并跑起来|本页第6节|
+|第一次使用压测工具|[压测操作手册：从零到真实实验](LOAD_TEST_COOKBOOK.md)|
+|改了API，判断压测还能不能用|[兼容清单](LOAD_TEST_COOKBOOK.md#8-改代码以后哪些还能用)|
+|查看每个脚本的命令、依赖和结果|[脚本菜单](LOAD_TEST_COOKBOOK.md#1-先选择工具不要一次全跑)|
+|查某台机器人或某货架的信息|[标准查询说明](WAREHOUSE_QUERY_GUIDE.md)、[货架库存](RACK_RESOURCE_GRAPH_GUIDE.md)|
+|核查已经测过的结果|本页第8节，详细原始记录在链接的回归报告里|
+
+## 2. 仓库长什么样，为什么推荐这一版
+
+推荐地图是 [`data/layouts/expansion-candidates/medium/layout.json`](../data/layouts/expansion-candidates/medium/layout.json)。medium只是这版地图的目录名，表示“中型候选”。
+
+|内容|早期100台地图|中间balanced版本|本轮推荐medium|
 |---|---:|---:|---:|
-|长×宽|90×76m|100×90m|120×90m|
-|面积|6,840m²|9,000m²|10,800m²|
-|货架|36|40|48|
-|货位|1,728|1,920|2,304|
+|长×宽|90×76米|100×90米|120×90米|
+|面积|6,840平方米|9,000平方米|10,800平方米|
+|货架数|36|40|48|
+|货位数|1,728|1,920|2,304|
 
-每架3层、2面、每面8列，共48格。普通巷道5m、主通道8m。西侧8个入库工位、东侧8个出库工位，南北两侧共100个充电兼待命泊位；P和C编号指向同一实体位置。机器人机体、安全半径、货架碰撞和停车占用规则保留。静止机器人有实体，空泊位硬件可通过。
+- 每架3层、2面、每面8列，共48个货位。机器人能否取某层，受型号和手臂能力限制。
+- 普通巷道宽5米，主通道宽8米。机器人机体、货架和停靠机器人参与碰撞检查。
+- 西侧8个入库工位，东侧8个出库工位。
+- 南北两侧共100个充电兼待命泊位，即可以停车的位置。P和C编号是同一物理位置的两种引用，不是200个位置。
+- 空泊位允许通行；有机器人停靠时，需要避开机器人。
 
-medium相对balanced面积与货位都增加20%，原36架及其货位编号保留，坐标改变。扩大到150×100m、60架的版本在同任务、同期限对照中出现明显晚点，保留为负面结果，不作为推荐。
+地图保留原36架的货架/货位编号，增加12架；旧编号对应的坐标发生了变化。数据文件需要声明自己配对的地图版本，不能仅靠“编号还存在”判断兼容。
 
-同一小时1,728任务覆盖所有48架，1.2m/s换电组全部完成、0晚点，平均流转419.1秒、结束4212模拟秒；1.5m/s换电组全部完成、0晚点，平均408.6秒、结束4152秒，最小期限余量112秒。它们使用相同的任务时间，货位映射单独记录，均保持原截止时间。上轮balanced0.8m/s本轮对照平均379.5秒、0晚点：扩仓增加了运输距离，提速和补能帮助控制了损失。该结论覆盖已测高峰，不给任意未来到货强度作零晚点保证。
+我们也测试过150×100米、60架版本：同一任务期限下出现明显晚点，所以本轮推荐120×90米。扩大地图会增加运输距离，需要和速度、补能、到货强度一起评估。
 
-审计细节与负结果见 [容量审计](WHEELED_CAPACITY_AUDIT_20261029.md)。业务全部完成时个别机器人仍可能在补能/返回，完成任务和全车停妥分别统计。10秒轨迹采样检查与运行器逐秒安全检查分别记录，采样不冒充独立连续轨迹证明。
+同一小时1,728任务、覆盖48架的测试中，1.5米/秒换电组全部完成、0晚点，平均任务流转408.6秒。这里“流转”指从任务释放到完成；“0晚点”指完成时没有超过任务原截止时间。这个结果适用于该测试输入，其他负载需要另测。详见[容量审计](WHEELED_CAPACITY_AUDIT_20261029.md)。
 
-## 3. 数据集怎样接入自由口
+## 3. 李姚舜的数据怎样交给仿真
 
-任务仍采用七字段：
+### 一个数据目录包含什么
+
+```text
+我的数据集/
+├── tasks.csv               # 每行一个入库或出库任务
+├── initial_inventory.csv   # 开始时有哪些货、各在哪个货位
+└── manifest.json           # 地图版本、文件校验值等身份信息
+```
+
+`manifest`可以理解为数据的说明和校验清单；SHA-256是文件内容的“指纹”，用于检查拿到的是不是同一份文件。任务文件继续采用七字段：
 
 ```csv
 task_id,task_type,goods_id,release_time,due_time,source_id,target_id
@@ -33,100 +77,201 @@ T-IN-1,INBOUND,G-1,2026-10-29T08:00:00+08:00,2026-10-29T08:30:00+08:00,INBOUND,R
 T-OUT-1,OUTBOUND,G-1,2026-10-29T10:00:00+08:00,2026-10-29T10:30:00+08:00,R01-L1-C1-F1,OUTBOUND
 ```
 
-`INBOUND`与`OUTBOUND`是仓库边界的逻辑角色。数据同学可以专注什么时候有多少货进来、出去以及目标货位。仿真在受理/释放时根据可用资源选择现有8个实际工位并固定该次选择，保留可追溯记录。已指定的具体IN/OUT编号仍受支持；使用自由口时配置 `port_selection_policy=balanced`。
+两行的意思是：8点货物G-1到仓，要求8点半前放入指定货位；10点把同一件货从该货位送到出库区，要求10点半前完成。`+08:00`表示北京时间的时区。
 
-真实工位数量、每口6件入库暂存、货位预留、箱货唯一性仍限制执行；逻辑口没有增加无限入口或解除仓容。详见 [自由口指南](FREE_BOUNDARIES_GUIDE_20261029.md)。
+### 自由口如何使用
 
-给李姚舜的对接清单：
+`INBOUND`、`OUTBOUND`代表入库/出库区域，数据生成者不用先选IN-1或OUT-3。仿真根据可用资源选择具体工位，并记录此次选择。已写明具体工位的旧数据继续支持。
 
-1. 新数据manifest填写medium地图SHA和对应版本，使用它的位置表 `task-locations.csv`。
-2. 明确全2,304格中哪些参与初始库存、哪些参与任务；按空间热点生成时使用新坐标。
-3. 使用逻辑INBOUND/OUTBOUND端点，沿用任务与货物身份、完整时区时间，按容量和先入后出依赖生成。
-4. 需要依据距离产生期限时注明参考速度与裕量，新生成的数据期限应在运行前确定。
-5. 旧七天全量参考数据已提交到 `data/examples/seven-patterns-20261028/`，共50,112任务，详见 [七类波动设计](MULTIDAY_DATASET.md)。它配对旧36架地图与具体工位，保留作为对照；新数据由你按新地图生成即可。
+这改变了入口选择方式，仓容与工位限制保留：8个入库口、8个出库口，每入库口6件暂存额度，货位和货物仍需要预留并保持唯一归属。启用自由口的配置为 `port_selection_policy=balanced`，推荐轮式配置已设置。细节见[自由口说明](FREE_BOUNDARIES_GUIDE_20261029.md)。
 
-货位数量、进出分布与期限属于场景输入；机器人电量、换电、故障和协作策略由运行配置控制。数据集可以持续多天，默认七天是参考样例。
+### 新数据对接检查表
 
-## 4. 轮式速度与换电
+1. 使用medium目录下的 `layout.json` 和 `task-locations.csv`，更新manifest中的地图版本与SHA。
+2. 明确2,304格里哪些有初始货物、哪些参与任务。热点按新坐标生成。
+3. 使用七字段CSV和带时区时间，保持货物ID唯一、先入后出依赖及仓容约束。
+4. 若按运输距离设置截止时间，在生成时写明参考速度和时间裕量。
+5. 机器人电量、型号、换电和故障放运行配置，不要求任务CSV为每台车预先安排充电。
 
-- `config/wheeled-medium-100.json`：1.5m/s轮式速度、100台混合能力机器人、自由口、12处换电站。
-- `config/wheeled-swap-100.json`：1.2m/s对照候选，旧0.8m/s及普通充电配置继续可用。
-- 每站4块备用电池、4条离线充电通道：合计48备电池、48离线通道；100块装车电池加48备电池身份总数守恒。
-- 换电180秒，进站、服务和离站占用真实避碰资源。无满电库存或无安全路径时回退普通充电。电池按本站有限队列补能，站间不瞬移电池。
-- 能耗沿用轮式transport假设，未按实机Wh标定。1.5m/s参考了[欣奕华SIBOT12官方满载速度](https://www.sineva.com/product/detail/?cid=123&id=4851)，不表示当前仿真对应整台SIBOT12硬件。
+已提交的[七类波动参考数据](../data/examples/seven-patterns-20261028/README.md)共50,112任务、约5.62MB，包含不同日期的典型到货波动。它配对旧36架地图和具体工位，适合参考生成方法或做旧对照；迁移到新图要重新校验坐标、容量和期限。固定数据集时长没有七天上限；默认七天只是样例。见[多日生成说明](MULTIDAY_DATASET.md)。
 
-24小时均匀日窗口已验证，详见 [补能窗口与停车占口归因](WHEELED_DAY1_WINDOW_20261029.md)：6912释放、6902完成、0晚点，10在途未过期。模型中换电点复用充电/待命泊位，低负载时会被停车机器人占住；这次25次换电完成、178次普通充电开始，回退时满电备用仍充足。当前普通充电兜底有效，换电服务位与停车位分离是下一项布局优化；没有把它写成已经解决。
+## 4. 机器人怎样移动和补能
 
-模型与恢复方法见 [轮式换电指南](WHEELED_ENERGY_SWAP_GUIDE.md)。48离线通道的选择另做了 [12小时及稳态供给敏感性](BATTERY_SUPPLY_SENSITIVITY_20261029.md)，该工具只分析电池供给，不含业务交通。电池柜物理服务空间仍是独立布局假设，后续落地应提供尺寸与障碍几何；本轮保留空间与能量假设标记。
+配置文件是 [`config/wheeled-medium-100.json`](../config/wheeled-medium-100.json)：
 
-## 5. 每个机器人进程怎样写、怎样查
+- 100台混合型号机器人，轮式移动速度1.5米/秒；型号能力约束继续保留。
+- 12个换电站，每站4块备用电池、4条离线充电通道，共48备用电池、48离线通道。
+- 全系统电池为100块装车电池＋48块备用电池，每块有独立身份，交换前后数量守恒。
+- 换电服务时间180秒，进站和离站也要走真实路径并避碰。
+- 没有可换的满电电池或没有安全进站路径时，回退到普通充电。
 
-```text
-中央物理/调度进程 → 发布已提交的真实机器人快照
-                         ↓ 各自的身份绑定连接
-100个独立机器人进程 → 自己的观测/事件 → 共享知识服务 → 批量图谱事务
-100个独立机器人进程 ← 自己历史、机器人/任务上下文 ← 共享知识服务
-中央调度器          ← 既有历史知识授权、资源和协作查询 ← 图谱
-```
+1.5米/秒参考了[欣奕华SIBOT12公开满载速度](https://www.sineva.com/product/detail/?cid=123&id=4851)，这里使用的是轮式运输能力假设；移动能耗尚未按某台实机的电池容量与功率标定。能量模型见[换电指南](WHEELED_ENERGY_SWAP_GUIDE.md)。
 
-中央进程继续掌握任务分配、避碰预留和权威货权事务。每个机器人进程持自己的token，独立发HTTP请求提交观测，收到图谱提交ACK后再查自己的上下文；没有Neo4j密码。新增 `WHAgentObservation`、`WHAgentRuntimeEvent` 追加事实，关联既有run和robot，不各自争写全局head或改写别人的货物。
+24小时均匀日测试中，25次换电完成、178次回退普通充电。主要现象是部分换电位置也被用作待命停车位，即使还有满电备用电池，机器人也可能进不去。普通充电兜底已起作用，换电服务位与停车位分离仍是后续布局优化项。备电数量的分析见[电池供给敏感性](BATTERY_SUPPLY_SENSITIVITY_20261029.md)，实际电池柜面积与障碍几何仍需单独补齐。
 
-共享服务做有界批写、幂等序号、持久journal、查询并发预算和失败闭锁。仿真按变化/周期触发查询，低电、状态或任务变化立即触发，周期请求按机器人错相。观测查询返回可用建议；中央原有required模式继续用历史事实授权实际低电接力。这两条调用链都保留证据，各自明确用途。当前100进程是独立OS进程，运动规划仍由中央协调。
+## 5. 图谱和每个机器人进程如何分工
 
-详见 [机器人读写接口与完整证据](ROBOT_AGENT_IO_GUIDE.md)。
+一个“进程”是操作系统独立运行的一份程序。本轮有100个机器人I/O进程：各自提交观测、等待写入成功确认，再查询自己的历史和任务。I/O在这里指读写通信；路线与运动仍由中央进程协调。
 
-与李姚舜合并时注意：当前适配器匹配既有 `WHRun/WHRobot/WHAgentState`，新增观察/事件关联这些权威节点。若合并分支采用 `Run/Robot/AgentState` 等另一套标签与key，需要在 `backend/agent_runtime/service.py` 的 `Neo4jBackend.write/query` 以及上下文provider中显式映射，并重跑源验真；不要把两个标签体系当成已自动互通。HTTP协议和进程部分可以保留。
+|谁|负责什么|
+|---|---|
+|中央仿真/调度|任务分配、交通预约、运动、货物唯一归属、实际交接|
+|机器人进程|上报自己的状态变化，查询已提交的自身与任务上下文|
+|共享知识服务|身份校验、合并写入、控制排队、调用Neo4j|
+|Neo4j|保存机器人、任务、货物、货架及它们随时间变化的事实|
 
-完整高峰的联合验证见 [1728任务与100独立进程回归](ROBOT_AGENT_PEAK_REGRESSION_20261029.md)：100台都完成任务、实际业务活跃峰100；16,193次自身查询均小于500ms，完整读写源验真通过。进程数、业务峰和API在途峰分别观测：混合读写API峰100主要发生于初始化，纯查询峰67；静态百万重查询的实际纯查询峰100由另一批独立压测证明。
+每台机器人有专属身份凭证，只有共享服务持有数据库密码。机器人能写自己的观测，不能自行宣布“别人的货已转给我”。新观察节点为 `WHAgentObservation`，本地事件为 `WHAgentRuntimeEvent`。
 
-## 6. 统一运行入口
+两个名词后面查结果时会用到：
 
-新run与新输出目录：
+- **run_id**：某次独立运行的编号。例如同一数据跑两次，使用两个run_id，历史不会混起来。
+- **seq**：这次运行第几批已经保存的知识。查seq=100，表示读取第100批所能看到的事实；不保证等于第100秒。`mirrored_seq`表示Neo4j实际已写到第几批。
+
+机器人新接口返回的上下文目前作为可用建议。原中央required模式会在低电接力规划、交接前读取历史事实并授权实际动作。统一目录还有其他知识包可按需调用，不能仅凭“接口存在”认为每台机器人已经自动使用全套查询。详见[机器人接口与证据](ROBOT_AGENT_IO_GUIDE.md)。
+
+### 与李姚舜的图谱如何合并
+
+货架资源模块采用 `Warehouse → Rack → Location`（仓库→货架→货位）和 `Dataset → WarehouseTask → Goods`（数据集→任务→货物），关联原有实际状态。查询 `rack_inventory` 可得到指定货架在指定seq的货物占用。
+
+机器人读写适配器当前使用 `WHRun / WHRobot / WHAgentState` 标签。若合并分支改成 `Run / Robot / AgentState`，需要修改 `backend/agent_runtime/service.py` 的 `Neo4jBackend.write/query` 和上下文读取器中的标签、主键与字段映射，并重跑来源验真。仅改名称无法自动兼容；关系映射见[货架资源说明](RACK_RESOURCE_GRAPH_GUIDE.md)。
+
+## 6. 第一次运行：先跑小样例，再接数据库
+
+### 6.1 准备环境
+
+以下命令在 **Linux服务器或WSL的Bash** 中执行，工作目录是仓库根目录，即能看到 `backend/`、`ops/`、`config/` 的目录。Windows PowerShell用户先SSH到服务器再执行，不把Bash的 `export` 和换行符直接粘到PowerShell。
+
+若已经有本项目环境，不必重新安装。新机器可这样建立自己的环境（Python 3.10以上）：
 
 ```bash
+# 仅在还没有项目副本时执行这两行；已有副本直接进入其根目录。
+git clone --branch wz/warehouse-design https://github.com/lys200598/warehouse-dashboard.git
+cd warehouse-dashboard
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-platform.txt fastapi 'uvicorn[standard]'
+export LADE_ENV_DIR="$PWD/.venv"
+bash run_in_lade.sh python -m backend.warehouse status
+```
+
+`run_in_lade.sh`负责选择Python环境；`LADE_ENV_DIR`指定刚建的环境。它不安装或启动Neo4j。当前中央仿真及HTTP压测不要求GPU，也不要求启动旧Ray控制台。
+
+### 6.2 无数据库的小样例
+
+```bash
+CASE="student-smoke-$(date +%Y%m%d-%H%M%S)-$$"
+SCENE=data/layouts/expansion-candidates/medium/layout.json
+DATA=data/examples/wheeled-medium-sample19
+bash run_in_lade.sh python -m backend.warehouse validate --scene "$SCENE" --dataset "$DATA"
+bash run_in_lade.sh python -m backend.warehouse run \
+  --scene "$SCENE" --dataset "$DATA" --config-json config/wheeled-medium-100.json \
+  --output "data/local-runs/$CASE" --run-id "$CASE" \
+  --mode rules --knowledge-backend journal --mobility wheeled --frames
+```
+
+这是19任务的小样例。rules表示规则调度，journal表示只保存本地运行记录；本命令不启动100个独立I/O进程，也不验证图谱。完成后查看输出目录的 `results.json`：`status`、完成数、迟到数。`checkpoint.json`是恢复执行的状态，`journal.sqlite`是逐批记录，`frames.sqlite`是保存的画面。`--frames`只影响回放记录，大规模长时测试可省略以节省空间。
+
+输出目录用新名字，避免覆盖已有实验。展示回放：
+
+```bash
+bash run_in_lade.sh python -m backend.warehouse serve --output "data/local-runs/$CASE" --port 14582
+```
+
+若在自己电脑运行，浏览器打开 `http://127.0.0.1:14582/`。若在Pro6000运行，在本机另一个终端建立 `ssh -N -p 28941 -L 14582:127.0.0.1:14582 wz@58.48.54.157`，保持它运行再打开同一地址。这里的端口仅供个人新测试使用，占用时换一个空闲端口；不要关闭别人的服务。
+
+### 6.3 接Neo4j与100机器人进程
+
+先准备有访问权限的Neo4j测试库。下面交互输入密码，不把密码写进命令或提交到Git；将地址和库名换成分配给自己的实际值：
+
+```bash
+export NEO4J_URI=bolt://127.0.0.1:7687
+export NEO4J_USER=neo4j
+export NEO4J_DATABASE=neo4j
+read -rsp 'Neo4j password: ' NEO4J_PASSWORD; echo
+export NEO4J_PASSWORD
+CASE="student-agents-$(date +%Y%m%d-%H%M%S)-$$"
 bash run_in_lade.sh python -m backend.warehouse run \
   --scene data/layouts/expansion-candidates/medium/layout.json \
-  --dataset data/examples/wheeled-medium-peak \
+  --dataset data/examples/wheeled-medium-sample19 \
   --config-json config/wheeled-medium-100.json \
-  --output data/local-runs/medium-agents-new --run-id medium-agents-new \
+  --output "data/local-runs/$CASE" --run-id "$CASE" \
   --mobility wheeled --robot-agents --resource-graph \
   --mode required --knowledge-backend neo4j --commit-seconds 5 \
   --agent-query-seconds 60 --agent-observation-seconds 30 --frames
 ```
 
-Neo4j凭证放环境变量，不放Git。原 `run` 默认仍为legacy运动与中央写入；新能力由显式开关选择。实时入口 `python -m backend.warehouse live --help` 使用同样的transport/agent开关，加载原来的 `dist/index.html`，相机交互保留。新版本使用新输出和新run，原冻结检查点配对原源码恢复。
+`--robot-agents`启动独立机器人读写；`--resource-graph`写入货架资源投影，需从新run第一批启用；required要求历史知识授权链可用。每5模拟秒提交权威状态；机器人周期查询60秒、观测30秒，任务/阶段变化等仍会提前触发。
 
-分支同时附上已测medium高峰和19任务原输入，克隆即可选用。实时页可这样启动（端口与输出自行选择未占用的新值）：
+若要测一小时1,728高峰任务，把dataset换为 `data/examples/wheeled-medium-peak`，同时使用新的CASE，并增加 `--max-wall-seconds 7200` 给实际执行预留两小时上限。模拟一小时不等于电脑运行一小时：快慢取决于查询、写入和机器负载。验真命令见[操作手册第5节](LOAD_TEST_COOKBOOK.md#5-机器人读写审计audit_robot_agent_iopy)。
+
+### 6.4 实时网页
+
+沿用6.3的数据库环境，在新目录启动：
 
 ```bash
+CASE="student-live-$(date +%Y%m%d-%H%M%S)-$$"
 bash run_in_lade.sh python -m backend.warehouse live \
-  --registry config/live-wheeled-datasets.json \
-  --output-root data/local-runs/medium-live-new \
+  --registry config/live-wheeled-datasets.json --dataset-id medium19 \
+  --output-root "data/local-runs/$CASE" \
   --mode required --knowledge-backend neo4j --resource-graph \
   --mobility wheeled --robot-agents --commit-seconds 5 \
   --agent-query-seconds 60 --agent-observation-seconds 30 \
-  --query-acceleration summary --port 14192
+  --query-acceleration summary --port 14583
 ```
 
-## 7. 压测怎么用
+该命令使用原 `dist/index.html` 页面。registry是“网页可选择哪些数据集”的清单；medium19是19任务样例，medium1728是高峰样例。网页开始时为ready，使用开始/暂停/单步控制；切换数据会换run。summary表示启用按提交点维护的任务统计，以降低重复查询成本。
 
-见 [成熟压测入口](LOAD_TEST_GUIDE.md)：
+在本机建立 `ssh -N -p 28941 -L 14583:127.0.0.1:14583 wz@58.48.54.157` 后打开 `http://127.0.0.1:14583/`。此前交付的14192等地址属于已有部署，端口本身不标识代码版本；不要为照抄本例重启它们。
 
-- `ops/load_harness.py`：100个真实OS客户端，闭环同步、周期错峰、固定到达率三种模型，完整请求/响应保留。
-- `ops/load_probe.py`：服务端真实API区间，区分客户端数量与实际API峰值。
-- `ops/run_query_ab.py`：同一真实百万前缀的可复现A/B，冷、重突发、轻突发、正常混合负载分别统计。
-- `ops/audit_robot_agent_io.py`：结束后对机器人完整JSON、原journal和图谱事实验真；验真不在请求热路径运行。
-- `ops/audit_wheeled_capacity.py`：箱货、能量、覆盖、最终状态和轨迹采样审计。
-- `ops/audit_wheeled_day_window.py`：长时窗口的已释放/未到期/未来任务分层、箱货与电池事件链审计；该独立工具额外2项专项测试通过并完成24h实际审计，未把它冒称冻结929项测试时已有的字节。
+## 7. 压测到底依赖什么，改接口后怎么办
 
-完整HTTP到JSON解析时间、服务端排队、后端查询、离线验真分别报告。失败、超时、冷请求和>500ms样本保留。百万规模、100真实并发、持续写入、控制链覆盖及500ms尾延迟分别给资格，任何一个结论都不能替代另一个。
+压测包含两类事：**测快不快**和**检查答案对不对**。通用HTTP发起器主要依赖接口地址和JSON请求；完整验真另外依赖当前响应结构、原运行记录与图谱模型。
 
-**仓库设计还需优化以配合查询优化**：后续主要协调观测发布周期、任务阶段事件和查询触发频率，让机器人按需取上下文、让中央资源查询复用同一提交点。当前保留5秒权威提交、30秒机器人观测和60秒周期查询的错相参考配置；状态/任务变化仍即时触发。改变这些频率要声明新的负载，不能把减少请求后的结果当作原100重查询同步突发通过。
+|工具|直接依赖|你改什么会影响它|
+|---|---|---|
+|`ops/load_harness.py`|HTTP GET/POST、完整JSON对象、负载JSON|URL/参数/认证改变需适配负载；新POST路径还有安全白名单限制|
+|`ops/load_probe.py`|ASGI服务、被观察的路径、请求ID头|换路径需改paths；改成非ASGI要重写观测适配|
+|`ops/load_validation.py`|本项目catalog响应字段及hash规则|改返回字段、嵌套结构或编码规则需改校验器|
+|`ops/run_query_ab.py`|本项目查询服务、封存百万run、journal、oracle、Neo4j、Nginx、冻结源码清单|改图谱模型/查询构造/服务健康路径后需审查编排与真值读取|
+|`ops/audit_robot_agent_io.py`|Agent日志、源journal、已结束run；默认还读Neo4j|改Agent协议、日志、图谱标签或恢复记录要改审计|
+|`ops/audit_wheeled_capacity.py`|原容量矩阵plan、checkpoint、journal、画面、对应源码和输入|改这些格式或机器人数量/能量边界要改审计|
+|`ops/audit_wheeled_day_window.py`|上述记录＋24小时窗口＋当前medium电池配置|改窗口长度、换电模型或固定配置需改专用断言|
 
-## 8. 通知李姚舜时可以直接发
+**不需要为所有改动重写全部脚本。** 例如只更换数据集、保持输入与响应契约不变，通用发起器可复用；由WHRobot改成Robot，HTTP外形保持时仍可测请求时间，但图谱读取和来源验真必须一起适配。
 
-> 我把完整七类波动参考数据推到了 `wz/warehouse-design` 的 `data/examples/seven-patterns-20261028/`。仓库侧推荐120×90米、48架2304货位、100机器人，七字段CSV支持逻辑INBOUND/OUTBOUND，具体工位由仿真选，容量约束继续保留。你先看 `docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md`、`docs/FREE_BOUNDARIES_GUIDE_20261029.md` 和 `docs/MULTIDAY_DATASET.md`，新数据用medium地图与位置表、更新manifest哈希。机器人速度/补能与独立进程读写由仿真配置控制，你不需要在任务CSV中安排。图谱的货架/货物设计由你主导，我们这边新增的机器人观测节点与权威货权分开，可按接口关联。
+本页只给选择方法。每个工具的前置条件、真实路径命令、输出解释、退出码、故障处理与API兼容矩阵见[压测操作手册](LOAD_TEST_COOKBOOK.md)；低层字段定义见[原压测参考指南](LOAD_TEST_GUIDE.md)。
 
-## 9. 原件与Git中的SHA
+**仓库设计还需优化以配合查询优化**：主要是协调状态提交、事件与查询触发频率，避免100机器人重复读取相同全局信息。改变频率会改变负载，要用新实验标识记录，不能把减少请求后的结果算作原突发负载通过。
 
-运行代码、CSV、JSON及压缩原件按字节验证。部分说明Markdown由Git按现有属性做CRLF→LF转换，制作时的文档SHA与Git blob SHA可能不同，发布时单独记录这类换行归一化；它不改变实验输入、生产源码或审计JSON。原始证据、旧失败、原源码树都保留，原Git提交可用于回看冻结版本。
+## 8. 已测到了哪里，哪些还要继续验收
+
+以下是2026-10-29已经保存的回归结果，不是对未来所有输入的保证。
+
+|实验|结果|适用范围|
+|---|---|---|
+|48架高峰＋100独立机器人I/O进程|1,728任务全完成、0晚点；16,193次查询均低于500ms|该run为244,666节点，纯查询在途峰67；不是同run百万压力验收|
+|静态同run百万查询|1,652,135节点；重查询明确热态100峰时最大410.21ms|首次重突发仍47条超500ms，静态读不等于持续写查|
+|24小时均匀日窗口|6,912释放、6,902完成、0晚点，10在途且未到期|只跑到一天边界，未来43,200任务未执行；主要检验长期补能|
+
+高峰写请求28,023条，其中67条超过500ms。查询P99表示99%样本不超过的耗时，最大值是本次最慢样本；二者都不能保证未来绝对最坏耗时。
+
+详细证据：[机器人高峰回归](ROBOT_AGENT_PEAK_REGRESSION_20261029.md)、[静态百万A/B](QUERY_AB_REGRESSION_20261029.md)、[24小时窗口](WHEELED_DAY1_WINDOW_20261029.md)。待继续：同run百万持续写查联合验收、冷重查询和慢写长尾、换电服务位与停车位分离。真实设备能耗和长期跨机故障恢复也需单列验证。
+
+## 9. 和原仓库相比，修改集中在哪里
+
+|目录/文件|你要找的内容|
+|---|---|
+|`backend/warehouse/__main__.py`、`composition.py`|统一命令入口，组装可选的轮式/资源/Agent功能|
+|`backend/wheeled/`|轮式运动、充电与有限电池换电|
+|`backend/agent_runtime/`|机器人独立进程和共享读写接口|
+|`backend/resource_graph/`、`resource_graph_mirror.py`|静态仓库资源与实际货权状态关联|
+|`backend/query_catalog/`、`query_views/`、`query_v2/`|查询包、统计加速、历史上下文读取|
+|`ops/warehouse_live.py`、`warehouse_live_runtime.py`|实时HTTP网页服务及唯一仿真运行者|
+|`ops/load_*.py`、`run_query_ab.py`、`audit_*.py`|压测、测量和离线验真|
+|`config/`、`data/layouts/`、`data/examples/`|运行配置、地图和可直接使用的样例输入|
+
+旧入口和默认legacy运动方式保留。新功能通过明确参数启用，避免改变旧实验含义。恢复某次运行时必须使用匹配的源码、配置和数据；源码“冻结清单”就是记录该次实际文件SHA的清单。Git提交版本便于找回源码，原日志与结果继续保留。
+
+## 10. 可以直接转发给李姚舜
+
+> 我更新了 `wz/warehouse-design` 的交付说明。你先看 `docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md` 第2—5节：推荐120×90米、48架2304格，任务七字段用逻辑INBOUND/OUTBOUND，仿真选具体工位，仓容约束保留。新数据用medium地图和位置表更新manifest；旧七类波动样例在 `data/examples/seven-patterns-20261028/`。图谱模型要和机器人接口做标签/主键映射。压测从 `docs/LOAD_TEST_COOKBOOK.md` 开始，里面有各脚本依赖、可复制命令和改API后的兼容清单，不需要先弄懂整套工程才能开始。

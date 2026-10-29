@@ -12,6 +12,7 @@
 
 ## 阅读路线
 
+- **第一次接触本项目**：[从仓库设计到实际运行](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)、[压测一步一步操作与API改动兼容表](docs/LOAD_TEST_COOKBOOK.md)
 - **整体实现与运行**：[平台指南](docs/WAREHOUSE_PLATFORM_GUIDE.md)
 - **开始使用实时界面**：[实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md)
 - **数据生成同学 lys**：[对接说明](docs/LYS_DATASET_HANDOFF.md)、[地图与输入契约](docs/dataset-contract/README.md)

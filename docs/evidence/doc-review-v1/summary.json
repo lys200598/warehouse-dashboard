@@ -1,0 +1,351 @@
+{
+  "scope": "documentation examples; NOT new million/production acceptance",
+  "server_output": "/data/workspace/wz/warehouse-doc-review-20261029-v1",
+  "raw_results_sha256": "49bdd16ef3bf7154ec417351f591eb35039c095d0c443fbd8fcb9b6aad3bfab3",
+  "steps": 50,
+  "demo_cases": [
+    {
+      "name": "closed4-metrics",
+      "outcomes": {
+        "ok": 8
+      },
+      "peak": 4,
+      "groups": {
+        "demo": {
+          "arrivals": 8,
+          "errors_or_drops": 0,
+          "network_all_observed": {
+            "count": 8,
+            "mean_ms": 8.092926375,
+            "p50_ms": 6.546744,
+            "p95_ms": 10.268349,
+            "p99_ms": 10.268349,
+            "max_ms": 10.268349,
+            "over_500ms": 0
+          },
+          "network_success_only": {
+            "count": 8,
+            "mean_ms": 8.092926375,
+            "p50_ms": 6.546744,
+            "p95_ms": 10.268349,
+            "p99_ms": 10.268349,
+            "max_ms": 10.268349,
+            "over_500ms": 0
+          },
+          "complete_http_json": {
+            "count": 8,
+            "mean_ms": 8.142678250000001,
+            "p50_ms": 6.585572,
+            "p95_ms": 10.318506,
+            "p99_ms": 10.318506,
+            "max_ms": 10.318506,
+            "over_500ms": 0
+          },
+          "server_service_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "server_queue_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "upstream_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "json_parse_outside_network": {
+            "count": 8,
+            "mean_ms": 0.049074125,
+            "p50_ms": 0.038142,
+            "p95_ms": 0.081079,
+            "p99_ms": 0.081079,
+            "max_ms": 0.081079,
+            "over_500ms": 0
+          }
+        }
+      },
+      "all_requests_under_500ms": true
+    },
+    {
+      "name": "closed100-metrics",
+      "outcomes": {
+        "ok": 200
+      },
+      "peak": 22,
+      "groups": {
+        "demo": {
+          "arrivals": 200,
+          "errors_or_drops": 0,
+          "network_all_observed": {
+            "count": 200,
+            "mean_ms": 29.14868119,
+            "p50_ms": 9.399293,
+            "p95_ms": 83.333253,
+            "p99_ms": 90.048118,
+            "max_ms": 90.561857,
+            "over_500ms": 0
+          },
+          "network_success_only": {
+            "count": 200,
+            "mean_ms": 29.14868119,
+            "p50_ms": 9.399293,
+            "p95_ms": 83.333253,
+            "p99_ms": 90.048118,
+            "max_ms": 90.561857,
+            "over_500ms": 0
+          },
+          "complete_http_json": {
+            "count": 200,
+            "mean_ms": 29.197339000000003,
+            "p50_ms": 9.475656,
+            "p95_ms": 83.385541,
+            "p99_ms": 90.100188,
+            "max_ms": 90.618009,
+            "over_500ms": 0
+          },
+          "server_service_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "server_queue_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "upstream_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "json_parse_outside_network": {
+            "count": 200,
+            "mean_ms": 0.048098595,
+            "p50_ms": 0.046858,
+            "p95_ms": 0.066023,
+            "p99_ms": 0.089853,
+            "max_ms": 0.099043,
+            "over_500ms": 0
+          }
+        }
+      },
+      "all_requests_under_500ms": true
+    },
+    {
+      "name": "periodic4-metrics",
+      "outcomes": {
+        "ok": 40
+      },
+      "peak": 1,
+      "groups": {
+        "demo": {
+          "arrivals": 40,
+          "errors_or_drops": 0,
+          "network_all_observed": {
+            "count": 40,
+            "mean_ms": 7.275536150000001,
+            "p50_ms": 7.074579,
+            "p95_ms": 9.466821,
+            "p99_ms": 10.271154,
+            "max_ms": 10.271154,
+            "over_500ms": 0
+          },
+          "network_success_only": {
+            "count": 40,
+            "mean_ms": 7.275536150000001,
+            "p50_ms": 7.074579,
+            "p95_ms": 9.466821,
+            "p99_ms": 10.271154,
+            "max_ms": 10.271154,
+            "over_500ms": 0
+          },
+          "complete_http_json": {
+            "count": 40,
+            "mean_ms": 7.331527675000001,
+            "p50_ms": 7.130715,
+            "p95_ms": 9.513421,
+            "p99_ms": 10.320139,
+            "max_ms": 10.320139,
+            "over_500ms": 0
+          },
+          "server_service_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "server_queue_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "upstream_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "json_parse_outside_network": {
+            "count": 40,
+            "mean_ms": 0.055131500000000014,
+            "p50_ms": 0.051372,
+            "p95_ms": 0.077365,
+            "p99_ms": 0.156395,
+            "max_ms": 0.156395,
+            "over_500ms": 0
+          }
+        }
+      },
+      "all_requests_under_500ms": true
+    },
+    {
+      "name": "open4-metrics",
+      "outcomes": {
+        "ok": 20
+      },
+      "peak": 1,
+      "groups": {
+        "demo": {
+          "arrivals": 20,
+          "errors_or_drops": 0,
+          "network_all_observed": {
+            "count": 20,
+            "mean_ms": 7.5919075,
+            "p50_ms": 7.132143,
+            "p95_ms": 9.367839,
+            "p99_ms": 11.602399,
+            "max_ms": 11.602399,
+            "over_500ms": 0
+          },
+          "network_success_only": {
+            "count": 20,
+            "mean_ms": 7.5919075,
+            "p50_ms": 7.132143,
+            "p95_ms": 9.367839,
+            "p99_ms": 11.602399,
+            "max_ms": 11.602399,
+            "over_500ms": 0
+          },
+          "complete_http_json": {
+            "count": 20,
+            "mean_ms": 7.64101345,
+            "p50_ms": 7.19033,
+            "p95_ms": 9.414283,
+            "p99_ms": 11.657576,
+            "max_ms": 11.657576,
+            "over_500ms": 0
+          },
+          "server_service_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "server_queue_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "upstream_header": {
+            "count": 0,
+            "mean_ms": null,
+            "p50_ms": null,
+            "p95_ms": null,
+            "p99_ms": null,
+            "max_ms": null,
+            "over_500ms": 0
+          },
+          "json_parse_outside_network": {
+            "count": 20,
+            "mean_ms": 0.048192,
+            "p50_ms": 0.048706,
+            "p95_ms": 0.058359,
+            "p99_ms": 0.069264,
+            "max_ms": 0.069264,
+            "over_500ms": 0
+          }
+        }
+      },
+      "all_requests_under_500ms": true
+    }
+  ],
+  "cli_help_checks": [
+    "harness-run",
+    "harness-analyze",
+    "query-ab",
+    "agent-audit",
+    "capacity-audit",
+    "day-audit",
+    "catalog-verifier",
+    "live"
+  ],
+  "bash_blocks_checked": 22,
+  "real_catalog_structure": {
+    "scope": "JSON object and optional run identity only; full domain oracle separate",
+    "validator": "ops.load_validation:validate_catalog",
+    "elapsed_ms": 1.254639,
+    "errors": []
+  },
+  "real_source_verification": {
+    "passed": true,
+    "request_count": 1,
+    "error_count": 0,
+    "source_run_id": "wh-live-20261029T033858Z-fd02a766",
+    "source_journal_head": 1,
+    "source_and_packets_unchanged": true
+  },
+  "offline19": {
+    "status": "complete",
+    "tasks": 19,
+    "completed": 19,
+    "late": 0
+  },
+  "million_ab_repeated": false,
+  "full_agent_audit_repeated": false,
+  "day_window_audit_repeated": false,
+  "old_services_restarted": false
+}

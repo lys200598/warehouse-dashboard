@@ -1,0 +1,11 @@
+{
+  "version": "warehouse-load-v1",
+  "description": "Teaching endpoint only; no graph, physics or warehouse facts.",
+  "cases": [{
+    "name": "demo-self",
+    "query_class": "demo",
+    "kind": "read",
+    "path": "/api/knowledge/query",
+    "body": {"run_id": "{{run_id}}", "robot_id": "{{client_id}}"}
+  }]
+}
