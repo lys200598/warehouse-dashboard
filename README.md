@@ -1,6 +1,16 @@
 # 100机器人仓库与共享时序知识实验平台
 
-本分支提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口为 **`python -m backend.warehouse`**，中央V5协调器推进100个真实仿真机器人，保留能量、交通、库存和恢复门禁。
+## 先看这里：当前推荐版本与历史版本
+
+| | 当前推荐（新实验、新数据都用它） | 历史对照（保留，不要用来生成新数据） |
+|---|---|---|
+| 地图 | 120×90米、48架、2304货位：`data/layouts/expansion-candidates/medium/layout.json` | 90×76米、36架、1728货位：`data/layouts/warehouse100-wide-v2.json` |
+| 运行方式 | `python -m backend.warehouse live ... --mobility wheeled --robot-agents` | 不加这两个参数时的默认 legacy 入口 |
+| 说明文档 | [轮式扩仓对接总览](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md) | [旧版对接说明](docs/LYS_DATASET_HANDOFF.md)、[旧实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md) |
+
+与李姚舜分支的合并：使用 `wz/integration-on-lys` 分支，接口边界见[对接约定草案](docs/INTEGRATION_CONTRACT_DRAFT.md)；Ray 执行层现状见 [Ray 差异说明](docs/RAY_EXECUTION_GAP_20261029.md)。
+
+旧版说明：本分支最初提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口 **`python -m backend.warehouse`** 仍是这一版，由中央V5协调器推进100个仿真机器人，保留能量、交通、库存和恢复门禁。
 
 ## 会议后增量
 
@@ -16,7 +26,8 @@
 - **不想拼压测命令**：在项目目录执行 `bash pressure_test.sh`，按[新手向导](docs/PRESSURE_TEST_QUICKSTART.md)输入地址、选择方案，自动生成中文报告；已有Python环境可运行 `python pressure_test.py`。
 - **第一次接触本项目**：[从仓库设计到实际运行](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)、[压测一步一步操作与API改动兼容表](docs/LOAD_TEST_COOKBOOK.md)
 - **整体实现与运行**：[平台指南](docs/WAREHOUSE_PLATFORM_GUIDE.md)
-- **开始使用实时界面**：[实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md)
+- **开始使用实时界面**：当前版本见[轮式扩仓对接总览](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)；[实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md)描述的是旧版14186页面
+- **联合验收压测**：`python -m ops.joint_acceptance --url http://127.0.0.1:14192`，固定3轮×100客户端，每轮记录节点数和写入水位；满足资格后才按平均<500ms判定，详见脚本说明
 - **数据生成同学 lys**：[对接说明](docs/LYS_DATASET_HANDOFF.md)、[地图与输入契约](docs/dataset-contract/README.md)
 - **布局与调度**：[仓库设计指南](docs/WAREHOUSE_DESIGN_GUIDE.md)
 - **仓库查询与KG对应**：[查询指南](docs/WAREHOUSE_QUERY_GUIDE.md)

@@ -63,6 +63,10 @@ class JournalBackend:
         self.rows = {}
         self.lock = threading.Lock()
 
+    def source_times(self, rows):
+        # Protocol tests only: there is no authoritative committed state here.
+        return None
+
     def write(self, rows):
         with self.lock:
             for row in rows:
@@ -114,6 +118,17 @@ class Neo4jBackend:
             return cls(driver, os.environ.get('NEO4J_DATABASE', 'neo4j'))
         except Exception:
             driver.close(); raise
+
+    def source_times(self, rows):
+        """Authoritative sim_time of each cited committed robot state."""
+        keys = sorted({f"{r['run_id']}:{r['committed_seq']}:{r['robot_id']}" for r in rows})
+        if not keys:
+            return {}
+        with self.driver.session(database=self.database) as session:
+            found = session.run(self.Query('UNWIND $keys AS k MATCH (s:WHAgentState {key:k}) '
+                                           'RETURN k AS key, s.sim_time AS sim_time', timeout=self.timeout),
+                                keys=keys).data()
+        return {row['key']: row['sim_time'] for row in found}
 
     def write(self, rows):
         if not rows:
@@ -296,8 +311,31 @@ class AgentKnowledgeService:
                                 [(row['robot_id'], row['seq']) for row in rows])
             self.db.commit()
 
+    def _reject_wrong_source_times(self, items):
+        """Drop observations whose sim_time differs from their committed state.
+
+        Checked before the local journal insert, so a wrong time never becomes a
+        head that later correct observations could not move past. Only the
+        offending request fails; other robots in the same batch continue.
+        """
+        times = self.backend.source_times([row for row, _ in items])
+        if times is None:
+            return items
+        kept = []
+        for row, future in items:
+            key = f"{row['run_id']}:{row['committed_seq']}:{row['robot_id']}"
+            if key in times and times[key] != row['sim_time']:
+                self.metrics['source_time_rejections'] = self.metrics.get('source_time_rejections', 0) + 1
+                future.set_exception(ValueError('observation sim_time differs from the authoritative committed state'))
+            else:
+                kept.append((row, future))
+        return kept
+
     def _commit(self, items):
         rows = []
+        items = self._reject_wrong_source_times(items)
+        if not items:
+            return
         with self.lock:
             try:
                 for row, future in items:
@@ -358,7 +396,8 @@ class AgentKnowledgeService:
                 # closes the admission gate with pending journal rows retained.
                 if not isinstance(exc, ValueError): self.error = type(exc).__name__
                 for _, future in items:
-                    future.set_exception(exc)
+                    if not future.done():
+                        future.set_exception(exc)
             finally:
                 for _ in items: self.queue.task_done()
 
