@@ -28,6 +28,7 @@ from ops.live_motion_view import LiveMotionView
 
 
 VERSION = 'warehouse-owned-live-runtime-v1'
+MAX_CATCH_UP_SECONDS = 3.0
 QUERY_POINT_VERSION = 'warehouse-live-query-point-v1'
 
 
@@ -285,6 +286,8 @@ class WarehouseLiveRuntime:
             return
         next_step = time.monotonic()
         while not self._stopping:
+            if self._state != 'running':
+                next_step = time.monotonic()
             wait = max(0., next_step - time.monotonic()) if self._state == 'running' else .5
             try:
                 action, value, expected, future = self._commands.get(timeout=wait)
@@ -295,7 +298,12 @@ class WarehouseLiveRuntime:
                         self._advance_one()
                     except Exception as exc:
                         self._fail(exc)
-                    next_step = max(time.monotonic(), begin + self.wall_interval / self._speed)
+                    # Keep the requested wall-clock speed on average: after a
+                    # slow tick (save or dispatch round) the next ticks run
+                    # back-to-back until the schedule is met. Debt is capped so
+                    # an overloaded run slows down instead of spiralling.
+                    next_step = max(next_step + self.wall_interval / self._speed,
+                                    time.monotonic() - MAX_CATCH_UP_SECONDS)
                 continue
             if not future.set_running_or_notify_cancel():
                 continue
@@ -530,18 +538,36 @@ class WarehouseLiveRuntime:
     def _persist(self):
         sim, store = self._sim, self._store
         start_ns = time.time_ns()
+        # Observation only: per-phase wall time of this synchronous save, written
+        # to persist_timing.jsonl. Order and semantics of the save are unchanged.
+        phases, mark = {}, [time.perf_counter_ns()]
+
+        def lap(name):
+            now = time.perf_counter_ns()
+            phases[name] = round((now - mark[0]) / 1e6, 3)
+            mark[0] = now
+        journal_before = getattr(store, 'timings', {}).get('journal_seconds', 0.)
+        events_count = len(sim.pending_events)
         sim.knowledge_seq += 1
         checkpoint = sim.checkpoint()
         checkpoint['experiment'] = {'disturbance_sha256': digest(self._disturbances), 'applied': deepcopy(self._applied)}
+        lap('checkpoint_build_ms')
         store.append(checkpoint, sim.pending_events)
+        lap('store_append_ms')
+        journal_ms = round((getattr(store, 'timings', {}).get('journal_seconds', 0.) - journal_before) * 1e3, 3)
+        phases['of_which_journal_ms'] = journal_ms
+        phases['of_which_graph_mirror_ms'] = round(phases['store_append_ms'] - journal_ms, 3)
         self._events.extend(deepcopy(sim.pending_events))
         sim.pending_events = []
         self._core.persistence.write_checkpoint(self._output / 'checkpoint.json', checkpoint)
+        lap('checkpoint_file_ms')
         self._last_commit = sim.elapsed
         status = store.status(sim.run_id)
+        lap('store_status_ms')
         with (self._output / 'writer.jsonl').open('a', encoding='utf-8') as stream:
             stream.write(canonical({'run_id': sim.run_id, 'seq': sim.knowledge_seq, 'sim_time': sim.elapsed,
                 'started_ns': start_ns, 'observed_at_ns': time.time_ns(), **status}) + '\n')
+        lap('writer_log_ms')
         if store.mirror and store.last_error:
             raise RuntimeError('graph mirror failed; durable boundary preserved: ' + str(store.last_error))
         if getattr(self,'_query_summary',None) is not None:
@@ -549,6 +575,26 @@ class WarehouseLiveRuntime:
                 raise RuntimeError('query summary publisher requires its actual graph mirror')
             self._query_summary_status=self._query_summary.catch_up_from_graph(
                 store.mirror,sim.run_id,sim.knowledge_seq,timeout=15)
+        lap('query_summary_ms')
+        self._write_persist_timing(sim, phases, events_count, start_ns)
+
+    def _write_persist_timing(self, sim, phases, events_count, start_ns):
+        loop = getattr(self, '_loop_stats', None) or {}
+        row = {'run_id': sim.run_id, 'seq': sim.knowledge_seq, 'sim_time': sim.elapsed,
+               'events': events_count, 'total_ms': round((time.time_ns() - start_ns) / 1e6, 3),
+               **phases, 'since_last_save': loop}
+        with (self._output / 'persist_timing.jsonl').open('a', encoding='utf-8') as stream:
+            stream.write(canonical(row) + '\n')
+        self._loop_stats = {}
+
+    def _note_loop(self, name, began_ns):
+        stats = getattr(self, '_loop_stats', None)
+        if stats is None:
+            stats = self._loop_stats = {}
+        ms = (time.perf_counter_ns() - began_ns) / 1e6
+        stats[name + '_count'] = stats.get(name + '_count', 0) + 1
+        stats[name + '_sum_ms'] = round(stats.get(name + '_sum_ms', 0.) + ms, 3)
+        stats[name + '_max_ms'] = round(max(stats.get(name + '_max_ms', 0.), ms), 3)
 
     def _disturb(self):
         sim = self._sim
@@ -614,8 +660,16 @@ class WarehouseLiveRuntime:
         self._disturb()
         if sim.knowledge_boundary_due() and sim.elapsed != self._last_commit:
             self._persist()
+        began = time.perf_counter_ns()
         sim.step()
+        self._note_loop('sim_step', began)
         if force_persist or sim.elapsed - self._last_commit >= self.commit_seconds:
+            if not force_persist:
+                # Let the browser animate this frame while the save runs. The
+                # frame still reports the previous durable/mirrored seq, so
+                # query fences stay on fully committed knowledge; the publish
+                # after the save reports the new seq.
+                self._publish_timed()
             self._persist()
         complete = sim.elapsed >= sim.manifest['duration_seconds'] and sim.cursor == len(sim.tasks) and sim.metrics['completed'] == len(sim.tasks) and not sim.assists
         if complete:
@@ -628,7 +682,12 @@ class WarehouseLiveRuntime:
         elif force_persist:
             self._state = 'paused'
         self._rate_points.append((time.monotonic(), sim.elapsed))
+        self._publish_timed()
+
+    def _publish_timed(self):
+        began = time.perf_counter_ns()
         self._publish()
+        self._note_loop('publish', began)
 
     def _publish(self):
         snap = self._sim.frame()
