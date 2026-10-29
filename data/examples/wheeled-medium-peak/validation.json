@@ -1,0 +1,28 @@
+{
+  "valid": true,
+  "tasks": 1728,
+  "inbound": 864,
+  "outbound": 864,
+  "initial_inventory": 864,
+  "initial": 864,
+  "duration_seconds": 3600,
+  "capacity": 2304,
+  "start": "2026-10-27T00:00:00+08:00",
+  "timezone_offset_seconds": 28800,
+  "planned_min_inventory": 822,
+  "planned_max_inventory": 874,
+  "planned_final_inventory": 864,
+  "hourly_tasks": [
+    1728
+  ],
+  "daily_tasks": [
+    1728
+  ],
+  "reference_order": [
+    "release_second",
+    "task_id"
+  ],
+  "hashes_verified": true,
+  "runtime_feasibility_claim": false,
+  "note": "Reference release-order inventory/dependency replay only; does not prove runtime timely completion, traffic safety or actual admission capacity."
+}

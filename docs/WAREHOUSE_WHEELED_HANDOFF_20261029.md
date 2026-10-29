@@ -55,6 +55,8 @@ T-OUT-1,OUTBOUND,G-1,2026-10-29T10:00:00+08:00,2026-10-29T10:30:00+08:00,R01-L1-
 - 换电180秒，进站、服务和离站占用真实避碰资源。无满电库存或无安全路径时回退普通充电。电池按本站有限队列补能，站间不瞬移电池。
 - 能耗沿用轮式transport假设，未按实机Wh标定。1.5m/s参考了[欣奕华SIBOT12官方满载速度](https://www.sineva.com/product/detail/?cid=123&id=4851)，不表示当前仿真对应整台SIBOT12硬件。
 
+24小时均匀日窗口已验证，详见 [补能窗口与停车占口归因](WHEELED_DAY1_WINDOW_20261029.md)：6912释放、6902完成、0晚点，10在途未过期。模型中换电点复用充电/待命泊位，低负载时会被停车机器人占住；这次25次换电完成、178次普通充电开始，回退时满电备用仍充足。当前普通充电兜底有效，换电服务位与停车位分离是下一项布局优化；没有把它写成已经解决。
+
 模型与恢复方法见 [轮式换电指南](WHEELED_ENERGY_SWAP_GUIDE.md)。48离线通道的选择另做了 [12小时及稳态供给敏感性](BATTERY_SUPPLY_SENSITIVITY_20261029.md)，该工具只分析电池供给，不含业务交通。电池柜物理服务空间仍是独立布局假设，后续落地应提供尺寸与障碍几何；本轮保留空间与能量假设标记。
 
 ## 5. 每个机器人进程怎样写、怎样查
@@ -73,6 +75,10 @@ T-OUT-1,OUTBOUND,G-1,2026-10-29T10:00:00+08:00,2026-10-29T10:30:00+08:00,R01-L1-
 
 详见 [机器人读写接口与完整证据](ROBOT_AGENT_IO_GUIDE.md)。
 
+与李姚舜合并时注意：当前适配器匹配既有 `WHRun/WHRobot/WHAgentState`，新增观察/事件关联这些权威节点。若合并分支采用 `Run/Robot/AgentState` 等另一套标签与key，需要在 `backend/agent_runtime/service.py` 的 `Neo4jBackend.write/query` 以及上下文provider中显式映射，并重跑源验真；不要把两个标签体系当成已自动互通。HTTP协议和进程部分可以保留。
+
+完整高峰的联合验证见 [1728任务与100独立进程回归](ROBOT_AGENT_PEAK_REGRESSION_20261029.md)：100台都完成任务、实际业务活跃峰100；16,193次自身查询均小于500ms，完整读写源验真通过。进程数、业务峰和API在途峰分别观测：混合读写API峰100主要发生于初始化，纯查询峰67；静态百万重查询的实际纯查询峰100由另一批独立压测证明。
+
 ## 6. 统一运行入口
 
 新run与新输出目录：
@@ -80,7 +86,7 @@ T-OUT-1,OUTBOUND,G-1,2026-10-29T10:00:00+08:00,2026-10-29T10:30:00+08:00,R01-L1-
 ```bash
 bash run_in_lade.sh python -m backend.warehouse run \
   --scene data/layouts/expansion-candidates/medium/layout.json \
-  --dataset YOUR_LOGICAL_MEDIUM_DATASET \
+  --dataset data/examples/wheeled-medium-peak \
   --config-json config/wheeled-medium-100.json \
   --output data/local-runs/medium-agents-new --run-id medium-agents-new \
   --mobility wheeled --robot-agents --resource-graph \
@@ -89,6 +95,18 @@ bash run_in_lade.sh python -m backend.warehouse run \
 ```
 
 Neo4j凭证放环境变量，不放Git。原 `run` 默认仍为legacy运动与中央写入；新能力由显式开关选择。实时入口 `python -m backend.warehouse live --help` 使用同样的transport/agent开关，加载原来的 `dist/index.html`，相机交互保留。新版本使用新输出和新run，原冻结检查点配对原源码恢复。
+
+分支同时附上已测medium高峰和19任务原输入，克隆即可选用。实时页可这样启动（端口与输出自行选择未占用的新值）：
+
+```bash
+bash run_in_lade.sh python -m backend.warehouse live \
+  --registry config/live-wheeled-datasets.json \
+  --output-root data/local-runs/medium-live-new \
+  --mode required --knowledge-backend neo4j --resource-graph \
+  --mobility wheeled --robot-agents --commit-seconds 5 \
+  --agent-query-seconds 60 --agent-observation-seconds 30 \
+  --query-acceleration summary --port 14192
+```
 
 ## 7. 压测怎么用
 
@@ -99,6 +117,7 @@ Neo4j凭证放环境变量，不放Git。原 `run` 默认仍为legacy运动与�
 - `ops/run_query_ab.py`：同一真实百万前缀的可复现A/B，冷、重突发、轻突发、正常混合负载分别统计。
 - `ops/audit_robot_agent_io.py`：结束后对机器人完整JSON、原journal和图谱事实验真；验真不在请求热路径运行。
 - `ops/audit_wheeled_capacity.py`：箱货、能量、覆盖、最终状态和轨迹采样审计。
+- `ops/audit_wheeled_day_window.py`：长时窗口的已释放/未到期/未来任务分层、箱货与电池事件链审计；该独立工具额外2项专项测试通过并完成24h实际审计，未把它冒称冻结929项测试时已有的字节。
 
 完整HTTP到JSON解析时间、服务端排队、后端查询、离线验真分别报告。失败、超时、冷请求和>500ms样本保留。百万规模、100真实并发、持续写入、控制链覆盖及500ms尾延迟分别给资格，任何一个结论都不能替代另一个。
 
@@ -107,3 +126,7 @@ Neo4j凭证放环境变量，不放Git。原 `run` 默认仍为legacy运动与�
 ## 8. 通知李姚舜时可以直接发
 
 > 我把完整七类波动参考数据推到了 `wz/warehouse-design` 的 `data/examples/seven-patterns-20261028/`。仓库侧推荐120×90米、48架2304货位、100机器人，七字段CSV支持逻辑INBOUND/OUTBOUND，具体工位由仿真选，容量约束继续保留。你先看 `docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md`、`docs/FREE_BOUNDARIES_GUIDE_20261029.md` 和 `docs/MULTIDAY_DATASET.md`，新数据用medium地图与位置表、更新manifest哈希。机器人速度/补能与独立进程读写由仿真配置控制，你不需要在任务CSV中安排。图谱的货架/货物设计由你主导，我们这边新增的机器人观测节点与权威货权分开，可按接口关联。
+
+## 9. 原件与Git中的SHA
+
+运行代码、CSV、JSON及压缩原件按字节验证。部分说明Markdown由Git按现有属性做CRLF→LF转换，制作时的文档SHA与Git blob SHA可能不同，发布时单独记录这类换行归一化；它不改变实验输入、生产源码或审计JSON。原始证据、旧失败、原源码树都保留，原Git提交可用于回看冻结版本。

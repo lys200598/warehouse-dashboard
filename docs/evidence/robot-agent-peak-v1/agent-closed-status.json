@@ -1,0 +1,21 @@
+{
+  "agents": 100,
+  "live_processes": 0,
+  "unique_pids": 100,
+  "backend": "neo4j",
+  "failed": false,
+  "contexts_available": 100,
+  "advisory_only": true,
+  "metrics": {
+    "accepted": 28023,
+    "duplicates": 0,
+    "queries": 16193,
+    "query_queue_rejected": 0,
+    "write_batches": 1840,
+    "max_batch": 48
+  },
+  "http_service_alive": false,
+  "writer_alive": false,
+  "all_owned_processes_stopped": true,
+  "closed": true
+}

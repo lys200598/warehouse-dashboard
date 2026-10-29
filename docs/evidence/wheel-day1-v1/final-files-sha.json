@@ -1,0 +1,12 @@
+{
+  "docs/WHEELED_DAY1_WINDOW_20261029.md": "879716e627ad55fdfb61d4884e4ecaf66c30a760bff8d86c6a3d7be3bf3e76d7",
+  "docs/evidence/wheel-day1-v1/fallback-attribution-v1.json": "8dcffc28f7f375878afbd24a50c02bf54170a2d364141a1d7fcf5b422abeaddc",
+  "docs/WHEELED_ENERGY_SWAP_GUIDE.md": "67e4c1bdbf7bc4ec3bd0e886571e83a78fad140a9b85221a0ef2d28e13d0a9f4",
+  "docs/codex_notes/10/29-轮式仓库24小时窗口审计.md": "879716e627ad55fdfb61d4884e4ecaf66c30a760bff8d86c6a3d7be3bf3e76d7",
+  "ops/audit_wheeled_day_window.py": "32af43df5b3927ae73dbdf87857d43f7b2656f7dbd96644f077ce2f1202f8914",
+  "docs/codex_notes/10/29-轮式速度与有限换电实现.md": "67e4c1bdbf7bc4ec3bd0e886571e83a78fad140a9b85221a0ef2d28e13d0a9f4",
+  "docs/WHEELED_CAPACITY_AUDIT_20261029.md": "d1d429b526ab02888ce4b0ae5fe3e7783684832d276d6524e6abe1d67df16674",
+  "docs/codex_notes/10/29-扩容轮式容量只读审计.md": "d1d429b526ab02888ce4b0ae5fe3e7783684832d276d6524e6abe1d67df16674",
+  "docs/evidence/wheel-day1-v1/window-audit-final-v2.json": "b4bf651d59680025783cb39bb2f46509ff6793c01cef5ee26fd069f93676f0d8",
+  "tests/test_audit_wheeled_day_window.py": "2a6e66d051b1e19339598b518ecc4eaf5698a4a64648e20914e38796ce34a499"
+}

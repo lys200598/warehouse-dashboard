@@ -1,0 +1,43 @@
+{
+  "run_id": "wh-wheel-agents-peak-v1-20261029",
+  "all_original": {
+    "requests": 44216,
+    "api_peak": 100,
+    "query_api_peak": 67,
+    "write_api_peak": 94
+  },
+  "exclude_initial_source_commit": {
+    "requests": 44016,
+    "api_peak": 46,
+    "query_api_peak": 31,
+    "write_api_peak": 46
+  },
+  "source_snapshot_100_nonnull_task_id": {
+    "source_seqs": 186,
+    "requests": 10382,
+    "api_peak": 44,
+    "query_api_peak": 26,
+    "write_api_peak": 42
+  },
+  "source_snapshot_100_business_stages": {
+    "source_seqs": 2,
+    "requests": 107,
+    "api_peak": 33,
+    "query_api_peak": 21,
+    "write_api_peak": 31
+  },
+  "snapshot_max_nonnull_task_id": 100,
+  "snapshot_max_business_stages": 100,
+  "definitions": {
+    "business_stages": [
+      "to_source",
+      "to_target",
+      "picking",
+      "placing",
+      "to_handoff",
+      "handoff_receive"
+    ],
+    "source_points": "SHA-verified canonical oracle sampled commits; request source from independently audited durable agent_seq ledger",
+    "subset_scope": "each subset retains original HTTP intervals; main all-original denominator unchanged; source snapshot activity is an observation fence, not a claim of all robots physically moving at that wall-clock instant"
+  }
+}

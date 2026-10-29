@@ -1,0 +1,236 @@
+{
+  "scope": "24-hour window; future tasks remain scheduled; not drain-all or 7day acceptance",
+  "status": "complete",
+  "elapsed": 86400,
+  "input_tasks_total": 50112,
+  "counts": {
+    "released": 6912,
+    "completed": 6902,
+    "completed_late": 0,
+    "unfinished": 10,
+    "unfinished_overdue": 0,
+    "unfinished_not_yet_due": 10,
+    "unfinished_due_at_boundary": 0,
+    "future_or_boundary_release": 43200
+  },
+  "config": {
+    "active_soc_per_second": 0.004166666666666667,
+    "assignment_cost": "roadmap",
+    "assistance_soc": 25.0,
+    "batch_tasks": 32,
+    "capability_spare_cost_seconds": 15.0,
+    "charge_queue_margin": 300,
+    "charge_request_soc": 35,
+    "charge_soc_per_second": 0.016666666666666666,
+    "charge_target_soc": 80,
+    "chargers": 100,
+    "charging_policy": "critical-only",
+    "desired_working": 70,
+    "dispatch_seconds": 10,
+    "emergency_reserve_soc": 10,
+    "energy_profile": "transport",
+    "fault_guard_seconds": 10800,
+    "fleet_counts": {
+      "A1": 15,
+      "R2": 15,
+      "X3": 70
+    },
+    "fleet_mode": "mixed",
+    "flow_rate": 0,
+    "handoff_seconds": 10,
+    "idle_soc_per_second": 0.0005555555555555556,
+    "inbound_admission_policy": "fifo",
+    "matching_rounds": 3,
+    "max_batch": 1,
+    "max_charge_wait": 7200,
+    "max_departure_wait": 900,
+    "max_payload_kg": 5,
+    "opportunity_charge_soc": 55,
+    "pair_retry_seconds": 30,
+    "pick_seconds": 10,
+    "place_seconds": 12,
+    "port_relief_policy": "off",
+    "port_selection_policy": "balanced",
+    "progress_warning_seconds": 600,
+    "replenishment_policy": "swap-first",
+    "robot_count": 100,
+    "route_expansions": 12000,
+    "route_horizon": 900,
+    "seed": 20261027,
+    "speed": 1.5,
+    "standard_box_kg": 2,
+    "standby_headroom": 10,
+    "swap_offline_chargers_per_station": 4,
+    "swap_seconds": 180,
+    "swap_spares_per_station": 4,
+    "swap_stations": 12,
+    "task_chaining": true,
+    "task_reserve_soc": 20
+  },
+  "config_file_sha256": "9bc5e59d90050e641fe7ecbf79b3fdfcd8476f5d879a20d0a3f5e04d6659a1ea",
+  "knowledge_runtime": {
+    "mode": "rules",
+    "source": "b4b4e8b30ade8cd8f97875471df2c270430989ad8d4fb6337684d08b1a0b154a",
+    "version": "warehouse-knowledge-runtime-v1"
+  },
+  "released_task_statuses": {
+    "completed": 6902,
+    "carrying": 6,
+    "assigned": 4
+  },
+  "final_inventory": {
+    "inside": 875,
+    "stored": 866,
+    "carried": 6,
+    "at_inbound": 3,
+    "shipped": 3448,
+    "received": 3459,
+    "completed": 6902
+  },
+  "final_spatial": {
+    "min_pair_separation_m": 1.5,
+    "minimum_soc": 34.97555555555798,
+    "maximum_soc": 99.05805555556024
+  },
+  "released_task_rack_coverage": {
+    "referenced_racks": 36,
+    "warehouse_racks": 48
+  },
+  "battery_inventory": {
+    "physical_ids": 148,
+    "installed": 100,
+    "spares": 48,
+    "status_counts": {
+      "ready": 46,
+      "charging": 2
+    },
+    "offline_channels": 48,
+    "exchange_history_identity_passed": true,
+    "offline_pack_soc_minimum": 49.70638888895989,
+    "station_status_counts": {
+      "C-A01": {
+        "ready": 4
+      },
+      "C-A09": {
+        "ready": 4
+      },
+      "C-A17": {
+        "ready": 4
+      },
+      "C-A26": {
+        "ready": 4
+      },
+      "C-A34": {
+        "ready": 4
+      },
+      "C-A42": {
+        "ready": 4
+      },
+      "C-B01": {
+        "ready": 4
+      },
+      "C-B09": {
+        "charging": 1,
+        "ready": 3
+      },
+      "C-B17": {
+        "ready": 4
+      },
+      "C-B26": {
+        "charging": 1,
+        "ready": 3
+      },
+      "C-B34": {
+        "ready": 4
+      },
+      "C-B42": {
+        "ready": 4
+      }
+    }
+  },
+  "replenishment": {
+    "swap_reserved": 25,
+    "swap_completed": 25,
+    "swap_cancelled": 0,
+    "swap_fallbacks": 178,
+    "max_swapping": 1,
+    "charge_sessions": 178,
+    "max_charging": 11,
+    "min_soc": 33.37611111110652
+  },
+  "ending_jobs": {
+    "total": 17,
+    "stages": {
+      "idle": 83,
+      "charging": 4,
+      "picking": 2,
+      "to_target": 5,
+      "placing": 1,
+      "returning": 3,
+      "to_source": 2
+    },
+    "pending_swap_jobs": 0,
+    "all_robots_parked_replenished_claim": false
+  },
+  "event_counts": {
+    "initial_stock": 864,
+    "task_released": 6912,
+    "boundary_port_bound": 6912,
+    "received": 3459,
+    "task_assigned": 6912,
+    "picked": 6908,
+    "placed": 3454,
+    "shipped": 3448,
+    "charge_reserved": 178,
+    "charge_started": 178,
+    "battery_swap_reserved": 25,
+    "battery_swap_started": 25,
+    "battery_swap_completed": 25,
+    "charge_complete": 174
+  },
+  "journal_commits": 290,
+  "committed_inventory_histories_passed": true,
+  "frames": {
+    "count": 8641,
+    "first_second": 0,
+    "last_second": 86400,
+    "maximum_gap": 10,
+    "minimum_sampled_separation_m": 1.1085649839910903,
+    "sampled_positions_passed": true,
+    "independent_continuous_trajectory_audit": false
+  },
+  "input_sha256": {
+    "scene_sha256": "3848c2c391a27bc4499b68b90ea79bd0c26f160489b1d7b47fc6552e61ffcd4e",
+    "tasks_sha256": "3b785ee7e76ed49e6af4e8a1c766d7a7c996f6f83c53e0be25e71d7029289767",
+    "initial_inventory_sha256": "5341a77ad9f4b02aba99a4e30012ea9346739da625b4744737d0d0d1ab85d8e2",
+    "manifest_sha256": "84d27776054a7d3a05ac8b0fd58fec6b481dc6d71b8f760c38d26e0bbf0fb2aa"
+  },
+  "backend_source_sha256": "49a143a83d61927273d97978c78e2be32b8a994c97d57d68e35cd51d18ded808",
+  "raw_sha256": {
+    "results.json": "a6fe9268e34049c03773982fc4425ec1cdd62e8e7ab21b736feff701ba1e76c3",
+    "checkpoint.json": "4146fea8aaf278a2b457e6bdfe9f0d2180fd08359a5743f390060052c6736efa",
+    "journal.sqlite": "547b7001c99b0ad706375ec18dfd7c68e597c573a5cc3d1e39e9d3ce4027b206",
+    "frames.sqlite": "01b1d64c5ce151b6d0bb052040a81f7d2ea2f93952b078a80fa528b11add49fd"
+  },
+  "runtime_reported_safety_metrics": {
+    "min_soc": 33.37611111110652,
+    "min_inside": 813,
+    "max_inside": 889,
+    "motion_audit_pairs": 5374361,
+    "min_separation_m": 1.0999999999999943,
+    "progress_warnings": 0,
+    "recovery_rejections": 0,
+    "max_active_business": 15
+  },
+  "audited_source": "/data/workspace/wz/warehouse-wheel-agents-20261029/source-integrated-v4",
+  "exit_file_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "helpers_sha256": {
+    "ops/audit_wheeled_capacity.py": "35a8fdc2cc2b2438a38f481fd14ec5bdb03a088ba29620e4b4570467c6769af3",
+    "backend/wheeled/batteries.py": "e37a5a3d1a59a34c2c9e88b0af98a389ffc4dcba5d4010234ebc08fa374bfc15",
+    "backend/wheeled/sim.py": "c1e32f4c89cafb5d41b120cbc02083b7a365df0e90202f4be4d49338ff883694",
+    "backend/scheduling_v5/invariants.py": "95e3eefd270413eed481bcc65c1d0eb06fa0fbe89b673ac834bd38d507de8435"
+  },
+  "hardware_calibrated": false,
+  "knowledge_graph_acceptance": false,
+  "audit_tool_sha256": "32af43df5b3927ae73dbdf87857d43f7b2656f7dbd96644f077ce2f1202f8914"
+}

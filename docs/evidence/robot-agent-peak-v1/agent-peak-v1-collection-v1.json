@@ -1,0 +1,212 @@
+{
+  "run_id": "wh-wheel-agents-peak-v1-20261029",
+  "scope": "completed production peak1728 plus100 independent robot I/O; source-integrated-v4 unchanged",
+  "run_exit": 0,
+  "same_run_id_nodes": 244666,
+  "run_id_node_label_groups": [
+    {
+      "labels": [
+        "WHAgentObservation"
+      ],
+      "nodes": 28023
+    },
+    {
+      "labels": [
+        "WHAgentRuntimeEvent"
+      ],
+      "nodes": 11397
+    },
+    {
+      "labels": [
+        "WHAgentState",
+        "WHRealState"
+      ],
+      "nodes": 83200
+    },
+    {
+      "labels": [
+        "WHCargo"
+      ],
+      "nodes": 1728
+    },
+    {
+      "labels": [
+        "WHChargerState"
+      ],
+      "nodes": 83200
+    },
+    {
+      "labels": [
+        "WHEvent"
+      ],
+      "nodes": 10829
+    },
+    {
+      "labels": [
+        "WHGoodsState"
+      ],
+      "nodes": 5184
+    },
+    {
+      "labels": [
+        "WHLocation"
+      ],
+      "nodes": 2423
+    },
+    {
+      "labels": [
+        "WHLocation",
+        "WHCharger",
+        "WHPhysicalBay"
+      ],
+      "nodes": 100
+    },
+    {
+      "labels": [
+        "WHLocation",
+        "WHLocationAlias"
+      ],
+      "nodes": 100
+    },
+    {
+      "labels": [
+        "WHRack"
+      ],
+      "nodes": 48
+    },
+    {
+      "labels": [
+        "WHRobot"
+      ],
+      "nodes": 100
+    },
+    {
+      "labels": [
+        "WHRun"
+      ],
+      "nodes": 1
+    },
+    {
+      "labels": [
+        "WHSlot"
+      ],
+      "nodes": 2304
+    },
+    {
+      "labels": [
+        "WHSlotState"
+      ],
+      "nodes": 5760
+    },
+    {
+      "labels": [
+        "WHStep"
+      ],
+      "nodes": 832
+    },
+    {
+      "labels": [
+        "WHTask"
+      ],
+      "nodes": 1728
+    },
+    {
+      "labels": [
+        "WHTaskState"
+      ],
+      "nodes": 7705
+    },
+    {
+      "labels": [
+        "WHZone"
+      ],
+      "nodes": 4
+    }
+  ],
+  "relationships_from_run_owned_nodes": 530573,
+  "million_prefix_qualified": false,
+  "source_scene_spec": {
+    "approachDepth": 4.4,
+    "bayDepth": 1.8,
+    "bayWidth": 1.5,
+    "baysPerFace": 8,
+    "chargerCount": 100,
+    "depth": 90.0,
+    "faces": 2,
+    "gridStep": 0.2,
+    "inboundBuffer": 48,
+    "levels": 3,
+    "mainAisleWidth": 8.0,
+    "ordinaryAisleWidth": 5.0,
+    "outboundBuffer": 48,
+    "rackDepth": 1.2,
+    "rackHeight": 1.8,
+    "rackWidth": 9.6,
+    "robotBodyDepth": 0.7,
+    "robotBodyWidth": 0.7,
+    "robotCount": 100,
+    "robotRadius": 0.55,
+    "slotPitch": 1.2,
+    "slotsPerRack": 48,
+    "unit": "m",
+    "version": "warehouse100-expanded-medium-v1",
+    "width": 120.0
+  },
+  "source_racks": 48,
+  "source_metadata_sha256": "eab832f6d06767acaec2496f94c5204ad51ca06edb121e5a4079909ea7a4a9f8",
+  "source_audit_passed": true,
+  "actual_server_api_peak": 100,
+  "max_active_business": 100,
+  "registered_robots": 100,
+  "robots_completed_tasks": 100,
+  "artifacts": {
+    "agent-peak-v1/results.json": {
+      "sha256": "f497de38e5b7b76162118b5b0cfc2fe7a21a6ebca4068577de3a5a0788bfd73f",
+      "bytes": 61147
+    },
+    "agent-peak-v1/journal.sqlite": {
+      "sha256": "081fe1892566680ba546c579850edc32567bf1cfed3926c567576449dbe99774",
+      "bytes": 16633856
+    },
+    "agent-peak-v1/agents/agent-journal.sqlite": {
+      "sha256": "19fcb9039eb543c1364d88907d27c2a46bb43d349b84b7ca35954d4fa99b4ee8",
+      "bytes": 19173376
+    },
+    "agent-peak-v1/agents/agent-processes.json": {
+      "sha256": "913e58a5a21ab0eec1ba868e4425c870f20ac25dc8a60b21684bb3ad093d6625",
+      "bytes": 5751
+    },
+    "agent-peak-v1/agents/agent-final-status.json": {
+      "sha256": "b578d0f0482fc81f7a747a148f3b2386f1843f8da169722291c5dd017f6a168b",
+      "bytes": 325
+    },
+    "agent-peak-v1/agents/agent-closed-status.json": {
+      "sha256": "f8367fab4be10925126256f704f7f825ca9fd16b8f0624b62bb1cba40cf5b351",
+      "bytes": 436
+    },
+    "agent-peak-v1/agents/agent-http.jsonl.status.json": {
+      "sha256": "d7d52cab5fed7d9d84325b234745dc3b306d7cb42ab0479b99427ed1a76afdf9",
+      "bytes": 100
+    },
+    "agent-peak-v1-source-audit-v2.json": {
+      "sha256": "87cd4c6d032002b2be2d883d8317acc065f26c0ec89775c84f11dbdc254fe1da",
+      "bytes": 40497
+    },
+    "source-integrated-v4/source-manifest.json": {
+      "sha256": "2cb20d7d6d0b4ef78c016333b3673d7a27a81d52ebc1df4deea4453c3bcc07ec",
+      "bytes": 33542
+    },
+    "source-integrated-v4/ops/audit_robot_agent_io.py": {
+      "sha256": "47342f9db2aa69538a78ce360111aa3579e0820627ae93a62b1c5c4bb2d9de3d",
+      "bytes": 23830
+    },
+    "logs/agents-peak-v1.exit": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    }
+  },
+  "raw_evidence_location": "/data/workspace/wz/warehouse-wheel-agents-20261029/agent-peak-v1",
+  "raw_agent_gzip_bytes": 50678451,
+  "raw_client_gzs_and_journals_copied_local": false,
+  "audit_invocation_note": "foreground SSH disconnected; original auditor PID60491 remained alive and naturally completed; no rerun or sampling changes; final report passed and process exited"
+}

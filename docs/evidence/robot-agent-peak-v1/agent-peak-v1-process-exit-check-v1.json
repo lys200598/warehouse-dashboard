@@ -1,0 +1,7 @@
+{
+  "run_id": "wh-wheel-agents-peak-v1-20261029",
+  "checked_owned_agent_pids": 100,
+  "still_existing_owned_pids": [],
+  "audit_process_still_exists": false,
+  "check": "read-only /proc existence after close; does not signal or stop anything"
+}
