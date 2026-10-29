@@ -12,7 +12,9 @@ from typing import Any
 VERSION = 'canonical-single-encode-atomic-v1'
 
 
-def write_checkpoint(path: str | Path, payload: dict[str, Any]) -> None:
+def write_checkpoint(path: str | Path, payload: dict[str, Any], *, durable: bool = True) -> None:
+    """Atomically replace ``path``. ``durable=False`` skips fsync: only for viewing
+    copies such as the live latest.json, never for recovery state."""
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     # Exactly the old reader's canonical payload and SHA contract. Encoding the
@@ -28,9 +30,10 @@ def write_checkpoint(path: str | Path, payload: dict[str, Any]) -> None:
         with os.fdopen(descriptor, 'wb') as stream:
             stream.write(envelope)
             stream.flush()
-            os.fsync(stream.fileno())
+            if durable:
+                os.fsync(stream.fileno())
         os.replace(temporary_name, destination)
-        if os.name != 'nt':
+        if durable and os.name != 'nt':
             directory = os.open(destination.parent, os.O_RDONLY)
             try:
                 os.fsync(directory)

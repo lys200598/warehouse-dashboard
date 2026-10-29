@@ -690,12 +690,15 @@ class WarehouseLiveRuntime:
         self._note_loop('publish', began)
 
     def _publish(self):
+        lap = time.perf_counter_ns()
         snap = self._sim.frame()
+        self._note_loop('pub_frame', lap); lap = time.perf_counter_ns()
         if 'robots' in snap and hasattr(self._sim, 'jobs'):
             if not hasattr(self, '_motion_view'):
                 self._motion_view = LiveMotionView()
             self._motion_view.annotate(snap['robots'], self._sim.jobs, self._sim.elapsed,
                 tasks=getattr(self._sim, 'tasks', {}), slots=getattr(self._sim, 'slots', {}))
+        self._note_loop('pub_motion', lap); lap = time.perf_counter_ns()
         stamp = int(time.time() * 1000)
         knowledge = self._store.status(self._sim.run_id)
         knowledge.update(committed_sim_time=self._last_commit, physical_sim_time=self._sim.elapsed)
@@ -703,6 +706,7 @@ class WarehouseLiveRuntime:
             knowledge['query_summary']=deepcopy(self._query_summary_status)
             published=(self._query_summary_status or {}).get('published_seq',0)
             knowledge['query_summary_lag']=max(0,knowledge.get('mirrored_seq',0)-published)
+        self._note_loop('pub_knowledge', lap); lap = time.perf_counter_ns()
         first, last = self._rate_points[0], self._rate_points[-1]
         rate = (last[1] - first[1]) / max(1e-9, last[0] - first[0]) if len(self._rate_points) > 1 else 0.
         snap.update(status=self._state, speed=self._speed, generatedAtMs=stamp, capturedAtMs=stamp,
@@ -743,7 +747,11 @@ class WarehouseLiveRuntime:
                 raise RuntimeError('live query point requires matching successful source, graph and summary commits')
             point = {'version': QUERY_POINT_VERSION, 'run_id': self._sim.run_id, 'seq': seq,
                      'runtime_instance_id': self.runtime_instance_id, 'source_sha256': self._source_sha}
-        self._core.persistence.write_checkpoint(self._output / 'latest.json', snap)
+        # latest.json is a viewing copy written every tick; recovery uses checkpoint.json
+        # and the journal, so it is replaced atomically without a per-tick fsync.
+        self._note_loop('pub_assemble', lap); lap = time.perf_counter_ns()
+        self._core.persistence.write_checkpoint(self._output / 'latest.json', snap, durable=False)
+        self._note_loop('pub_latest_file', lap)
         if point is not None and getattr(self, '_last_query_point', None) != (point['run_id'], point['seq']):
             self._core.persistence.write_checkpoint(self.query_point_path, point)
             self._last_query_point = (point['run_id'], point['seq'])

@@ -47,7 +47,7 @@ class PublishedPointTests(unittest.TestCase):
         owner._store = SimpleNamespace(status=lambda run: dict(owner._status), mirror=object(),
             last_error=None, append=lambda cp, events: None)
         owner._writes = []
-        def write(path, value):
+        def write(path, value, **options):  # durable=False for latest.json
             owner._writes.append((Path(path), value))
             write_checkpoint(path, value)
         owner._core = SimpleNamespace(persistence=SimpleNamespace(write_checkpoint=write))
@@ -142,7 +142,7 @@ class PublishedPointTests(unittest.TestCase):
                 owner._sim.knowledge_seq = 4
                 owner._status.update(durable_seq=4, mirrored_seq=4)
                 owner._query_summary_status = {'published_seq': 4}
-                def failed_write(path, value):
+                def failed_write(path, value, **options):
                     if Path(path).name == fail_target: raise OSError('unit filesystem failure')
                     write_checkpoint(path, value)
                 owner._core.persistence.write_checkpoint = failed_write
