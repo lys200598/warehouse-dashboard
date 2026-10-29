@@ -154,16 +154,19 @@ class AgentFleet:
             raise ValueError('positive integer agent cadences required')
         self.output = Path(output_dir); self.output.mkdir(parents=True, exist_ok=True)
         self.robot_ids = tuple(robot_ids)
-        self.service = AgentKnowledgeService(run_id=run_id, robot_ids=self.robot_ids, backend=backend,
-            journal_path=self.output/'agent-journal.sqlite', queue_size=queue_size, batch_size=batch_size,
-            request_timeout=timeout, query_slots=query_slots, query_wait_timeout=query_wait_timeout)
-        self.http = AgentHttpServer(self.service, port=port, telemetry_path=self.output/'agent-http.jsonl')
+        self.service = self.http = None
         self.timeout = float(timeout)
         self.connections, self.processes, self.pids = {}, {}, {}
         self.failed, self.closed = False, False
         self.latest_contexts = {}
         context = mp.get_context('spawn')
+        # From the first acquired resource on (writer thread, SQLite journal,
+        # HTTP socket, trace file, child processes) a failure closes what exists.
         try:
+            self.service = AgentKnowledgeService(run_id=run_id, robot_ids=self.robot_ids, backend=backend,
+                journal_path=self.output/'agent-journal.sqlite', queue_size=queue_size, batch_size=batch_size,
+                request_timeout=timeout, query_slots=query_slots, query_wait_timeout=query_wait_timeout)
+            self.http = AgentHttpServer(self.service, port=port, telemetry_path=self.output/'agent-http.jsonl')
             for robot in self.robot_ids:
                 parent, child = context.Pipe()
                 process = context.Process(target=_agent_worker, kwargs={
@@ -264,16 +267,19 @@ class AgentFleet:
         for process in self.processes.values():
             if process.is_alive(): process.terminate(); process.join(timeout=5)
         for pipe in self.connections.values(): pipe.close()
+        if self.service is None:
+            return  # nothing beyond child processes was acquired
         try:
             try:
-                self.http.close()
+                if self.http is not None:
+                    self.http.close()
             finally:
                 self.service.close()
         finally:
             active_error = sys.exc_info()[1]
             try:
                 self._write('agent-closed-status.json', {**self.status(),
-                    'http_service_alive': self.http.thread.is_alive(),
+                    'http_service_alive': self.http is not None and self.http.thread.is_alive(),
                     'writer_alive': self.service.writer.is_alive(),
                     'all_owned_processes_stopped': not any(p.is_alive() for p in self.processes.values()),
                     'closed': True})

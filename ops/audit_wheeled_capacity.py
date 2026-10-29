@@ -213,6 +213,8 @@ def main(argv=None):
     p.add_argument('--source', type=Path, required=True)
     p.add_argument('--plan-json', help='explicit audit-only case definitions when no original plan artifact exists')
     p.add_argument('--output', type=Path)
+    p.add_argument('--allow-pending', action='store_true',
+                   help='report-only mode: exit 0 even if some cases have no final results (audit errors still exit 1)')
     args = p.parse_args(argv)
     sys.path.insert(0, str(args.source.resolve()))
     plan = json.loads(args.plan_json) if args.plan_json else read_json(args.matrix/'plan.json')
@@ -234,7 +236,12 @@ def main(argv=None):
         with args.output.open('x', encoding='utf-8') as out:
             out.write(raw)
     print(raw)
-    return int(any(r['status'] == 'audit-failed' for r in reports))
+    # Exit codes: 1 = an audit failed; 2 = some case is incomplete/pending or the
+    # plan is empty; 0 = every case passed. --allow-pending only relaxes code 2.
+    if any(r['status'] == 'audit-failed' for r in reports):
+        return 1
+    incomplete = not reports or any(r.get('accepted_final_state_audit') is not True for r in reports)
+    return 2 if incomplete and not args.allow_pending else 0
 
 
 if __name__ == '__main__':

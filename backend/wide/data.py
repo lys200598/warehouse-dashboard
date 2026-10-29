@@ -69,6 +69,13 @@ def load_scene(path):
     if spec["faces"] != 2 or spec["robotCount"] != 100 or spec["chargerCount"] != 100:
         raise ValueError("wide pilot requires two rack faces and 100 robots/canonical bays")
     radius = spec["robotRadius"]
+    from ..scheduling_v2.motion import RADIUS_SUM
+    if abs(2 * radius - RADIUS_SUM) > 1e-9:
+        # Continuous robot-robot checks, parking blockage and the independent
+        # trajectory audit all use a fixed centre spacing. Reject other radii
+        # instead of silently under-checking larger robots.
+        raise ValueError(f"robotRadius {radius} m is not supported: dynamic collision checks use a fixed "
+                         f"{RADIUS_SUM} m centre spacing (robotRadius {RADIUS_SUM / 2} m)")
     for key in ("robotBodyWidth", "robotBodyDepth"):
         _number(spec.get(key), key, positive=True)
     if radius + 1e-7 < math.hypot(spec["robotBodyWidth"]/2, spec["robotBodyDepth"]/2):
