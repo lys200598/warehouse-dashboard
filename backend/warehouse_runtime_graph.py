@@ -64,6 +64,7 @@ def v5_runtime_snapshot(sim: Any, events: Iterable[dict[str, Any]]) -> dict[str,
         "backend": str(sim.run_metadata.get("backend", "warehouse-v5")),
         "tick": int(sim.tick),
         "generatedAtMs": int(time.time() * 1000),
+        "robotCount": len(robots),
         "maxActiveRobots": len(robots),
         "robots": robots,
         "events": mapped_events,
@@ -92,6 +93,24 @@ class Neo4jRuntimeGraphWriter:
             self.driver.close()
             self.driver = None
 
+    def ensure_schema(self) -> None:
+        """Create runtime indexes once, without writing any run data.
+
+        A server may perform this control-plane bootstrap before it fans out
+        100 robot writers.  It only manages Neo4j schema metadata; robot
+        actors remain the sole owners of runtime nodes and relationships.
+        """
+        if not self.configured:
+            raise RuntimeGraphUnavailable("WAREHOUSE_NEO4J_PASSWORD is not configured")
+        driver = self._get_driver()
+        try:
+            with driver.session(database=self.database) as session:
+                for query in RUNTIME_SCHEMA:
+                    session.run(query).consume()
+            self.schema_ready = True
+        except Exception as exc:
+            raise RuntimeGraphUnavailable(f"Neo4j runtime graph schema setup failed: {exc}") from exc
+
     def record_snapshot(self, snapshot: dict[str, Any]) -> None:
         """Synchronously persist one snapshot; intended for a background worker."""
         if not self.configured:
@@ -103,6 +122,7 @@ class Neo4jRuntimeGraphWriter:
         try:
             with driver.session(database=self.database) as session:
                 if not self.schema_ready:
+                    # Direct actor use retains a safe lazy fallback.
                     for query in RUNTIME_SCHEMA:
                         session.run(query).consume()
                     self.schema_ready = True
@@ -166,7 +186,9 @@ class Neo4jRuntimeGraphWriter:
         return self.driver
 
     def _run_row(self, snapshot: dict[str, Any]) -> dict[str, Any]:
-        return {"id": str(snapshot["runId"]), "backend": snapshot["backend"], "started_at_ms": snapshot["generatedAtMs"], "robot_count": len(snapshot["robots"]), "max_active_robots": snapshot["maxActiveRobots"], "dataset_id": self.dataset_id}
+        # One Ray actor only sees its own robot.  ``robotCount`` carries the
+        # fleet-wide total so actor-owned Run metadata does not collapse to 1.
+        return {"id": str(snapshot["runId"]), "backend": snapshot["backend"], "started_at_ms": snapshot["generatedAtMs"], "robot_count": int(snapshot.get("robotCount", len(snapshot["robots"]))), "max_active_robots": snapshot["maxActiveRobots"], "dataset_id": self.dataset_id}
 
     @staticmethod
     def _robot_rows(snapshot: dict[str, Any], run_id: str) -> list[dict[str, Any]]:
@@ -174,7 +196,7 @@ class Neo4jRuntimeGraphWriter:
 
     @staticmethod
     def _state_rows(robots: list[dict[str, Any]], tick: int) -> list[dict[str, Any]]:
-        return [{"id": f"{row['id']}:state:{tick}", "run_id": row["run_id"], "robot_node_id": row["id"], "tick": tick, "stage": row["stage"], "battery": row["battery"], "x": row["x"], "y": row["y"], "task_id": row["task_id"], "cargo_id": row["cargo_id"]} for row in robots]
+        return [{"id": f"{row['id']}:state:{tick}", "run_id": row["run_id"], "robot_node_id": row["id"], "robot_id": int(row["robot_id"]), "tick": tick, "stage": row["stage"], "battery": row["battery"], "x": row["x"], "y": row["y"], "task_id": row["task_id"], "cargo_id": row["cargo_id"]} for row in robots]
 
     def _event_rows(self, snapshot: dict[str, Any], run_id: str) -> list[dict[str, Any]]:
         rows = []

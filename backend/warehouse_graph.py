@@ -105,6 +105,29 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _logical_boundaries(manifest: dict[str, Any]) -> dict[str, str]:
+    """Return declared logical endpoints without treating them as physical ports.
+
+    The balanced-layout simulator may receive an inbound demand at ``INBOUND``
+    or an outbound demand at ``OUTBOUND``.  A physical station is selected only
+    by a particular run.  Static graph import therefore persists these two
+    plan endpoints as explicit non-physical Location nodes instead of forcing
+    a guessed IN-n/OUT-n edge into the shared Dataset graph.
+    """
+    routing = manifest.get("boundary_routing")
+    if routing is None:
+        return {}
+    if not isinstance(routing, dict) or routing.get("version") != "warehouse-logical-boundaries-v1":
+        raise ValueError("unsupported boundary_routing declaration")
+    values = {
+        "INBOUND": routing.get("logical_inbound"),
+        "OUTBOUND": routing.get("logical_outbound"),
+    }
+    if values != {"INBOUND": "INBOUND", "OUTBOUND": "OUTBOUND"}:
+        raise ValueError("invalid logical boundary declaration")
+    return {value: "inbound" if value == "INBOUND" else "outbound" for value in values.values()}
+
+
 def _chunks(rows: list[dict[str, Any]], size: int) -> Iterable[list[dict[str, Any]]]:
     for start in range(0, len(rows), size):
         yield rows[start : start + size]
@@ -159,10 +182,19 @@ def load_graph_package(package_dir: Path, layout_path: Path, locations_path: Pat
     location_ids = {row["location_id"] for row in raw_locations}
     if len(location_ids) != len(raw_locations):
         raise ValueError("task-locations.csv contains duplicate location_id")
+    logical_boundaries = _logical_boundaries(manifest)
     if any(row["location_id"] not in location_ids for row in raw_inventory):
         raise ValueError("initial_inventory.csv refers to an unknown location")
-    if any(row["source_id"] not in location_ids or row["target_id"] not in location_ids for row in raw_tasks):
-        raise ValueError("tasks.csv refers to an unknown location")
+    for row in raw_tasks:
+        source, target = row["source_id"], row["target_id"]
+        source_ok = source in location_ids or (row["task_type"] == "INBOUND" and source in logical_boundaries)
+        target_ok = target in location_ids or (row["task_type"] == "OUTBOUND" and target in logical_boundaries)
+        if not source_ok or not target_ok:
+            raise ValueError("tasks.csv refers to an unknown location")
+        if source in logical_boundaries and source != "INBOUND":
+            raise ValueError("logical outbound boundary cannot be an inbound source")
+        if target in logical_boundaries and target != "OUTBOUND":
+            raise ValueError("logical inbound boundary cannot be an outbound target")
     slots = {row["location_id"] for row in raw_locations if row["kind"] == "slot"}
     if len(slots) != int(layout["spec"]["slotsPerRack"]) * len(racks_by_id):
         raise ValueError("layout capacity does not match task-locations.csv")
@@ -191,6 +223,12 @@ def load_graph_package(package_dir: Path, layout_path: Path, locations_path: Pat
             "bay": int(row["bay"]) if row.get("bay") else None,
             "x": float(row["x"]), "y": float(row["y"]),
         })
+    for location_id, direction in logical_boundaries.items():
+        locations.append({
+            "id": f"{warehouse_id}:location:{location_id}", "warehouse_id": warehouse_id,
+            "location_id": location_id, "kind": "logical-boundary", "rack_id": None,
+            "rack_node_id": None, "direction": direction, "physical": False,
+        })
     # Neo4j node properties must be scalar values or lists, not nested maps.
     dataset = {
         "id": dataset_id,
@@ -207,6 +245,7 @@ def load_graph_package(package_dir: Path, layout_path: Path, locations_path: Pat
         "initial_inventory": manifest["initial_inventory"],
         "capacity": manifest["capacity"],
         "source": manifest["source"],
+        "boundary_routing_json": json.dumps(manifest.get("boundary_routing", {}), ensure_ascii=False, sort_keys=True),
         "assumptions_json": json.dumps(manifest.get("assumptions", {}), ensure_ascii=False, sort_keys=True),
         "files_json": json.dumps(manifest.get("files", {}), ensure_ascii=False, sort_keys=True),
     }

@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 from copy import deepcopy
 from datetime import datetime, timezone
 import random
+import re
 import time
 from typing import Any
 from uuid import uuid4
@@ -17,6 +18,7 @@ from .domain import (
     RobotAgent,
     pickup_point,
     inbound_queue_point,
+    outbound_point,
 )
 from .runtime import RobotRuntime
 from .traffic import TrafficManager
@@ -53,7 +55,7 @@ class SimulationCoordinator:
 
     CHECKPOINT_SCHEMA_VERSION = 1
 
-    def __init__(self, runtime: RobotRuntime, config: SimulationConfig | None = None, *, knowledge_store=None, initialize=True, run_id=None, metadata=None):
+    def __init__(self, runtime: RobotRuntime, config: SimulationConfig | None = None, *, knowledge_store=None, initialize=True, run_id=None, metadata=None, dataset_tasks: list[dict[str, Any]] | None = None, dataset_inventory: list[dict[str, str]] | None = None):
         self.runtime = runtime
         self.knowledge_store = knowledge_store
         self.requested_run_id = run_id
@@ -61,6 +63,9 @@ class SimulationCoordinator:
         self.config = config or SimulationConfig()
         self.config.validate()
         self.traffic = TrafficManager(self.config.traffic_cell_size)
+        self.worker_graph_errors: dict[int, str] = {}
+        self.dataset_records = deepcopy(dataset_tasks or [])
+        self.dataset_inventory = deepcopy(dataset_inventory or [])
         if initialize:
             self._initialize_new_run()
 
@@ -88,16 +93,24 @@ class SimulationCoordinator:
         self.task_credit = 0.0
         self.pending_priority = 0
         self.racks = self._create_racks()
+        self._apply_dataset_inventory()
         self.tasks: dict[str, dict[str, Any]] = {}
         self.events: list[dict[str, Any]] = []
         self.processed_event_ids: set[str] = set()
+        self.worker_graph_errors = {}
+        self.dataset_cursor = 0
+        self.dataset_ready: list[dict[str, Any]] = []
         robots = [
             RobotAgent.create(robot_id, self.config.seed).snapshot()
             for robot_id in range(1, self.config.robot_count + 1)
         ]
         self.runtime.replace(robots)
         self.robot_snapshots = self.runtime.snapshots()
-        self._seed_initial_backlog()
+        if self.dataset_records:
+            self._release_dataset_tasks()
+            self._assign_waiting_robots()
+        else:
+            self._seed_initial_backlog()
         self._record_system_event("仿真已启动，初始任务队列已创建")
         self.persist_knowledge()
 
@@ -191,6 +204,10 @@ class SimulationCoordinator:
         self.robot_snapshots = [result["robot"] for result in results]
 
         for result in results:
+            if result.get("graph_error"):
+                self.worker_graph_errors[int(result["robot"]["state"]["robot_id"])] = result["graph_error"]
+            else:
+                self.worker_graph_errors.pop(int(result["robot"]["state"]["robot_id"]), None)
             for event in result["events"]:
                 self._process_robot_event(event)
 
@@ -271,6 +288,18 @@ class SimulationCoordinator:
         )
         ready = ready[:capacity]
 
+        if self.dataset_records:
+            self._release_dataset_tasks()
+            while ready and self.dataset_ready:
+                payload = ready.pop(0)
+                robot_id = int(payload["state"]["robot_id"])
+                if not self._assign_dataset_task(robot_id):
+                    # The first released task may require a taller robot or a
+                    # source slot not yet available.  Try another idle robot;
+                    # retain the task for a later receipt/release cycle.
+                    continue
+            return
+
         while ready and self.pending_priority > 0:
             payload = ready.pop(0)
             if self._assign_task(int(payload["state"]["robot_id"]), priority="high"):
@@ -280,6 +309,89 @@ class SimulationCoordinator:
             payload = ready.pop(0)
             if self._assign_task(int(payload["state"]["robot_id"]), priority="normal"):
                 self.task_credit -= 1.0
+
+    def _release_dataset_tasks(self) -> None:
+        while (self.dataset_cursor < len(self.dataset_records)
+               and float(self.dataset_records[self.dataset_cursor].get("release_offset", 0.0)) <= self.elapsed):
+            self.dataset_ready.append(self.dataset_records[self.dataset_cursor])
+            self.dataset_cursor += 1
+
+    def _apply_dataset_inventory(self) -> None:
+        """Project package inventory into the compact realtime control map.
+
+        The 4173 motion world is intentionally compact while the data package
+        may contain 36/40 physical racks.  Locations are deterministically
+        projected to its control slots; their original IDs remain on tasks and
+        are the IDs persisted to Neo4j.
+        """
+        for item in self.dataset_inventory:
+            location = item.get("location_id", "")
+            mapped = self._mapped_slot(location)
+            if mapped is not None:
+                _, slot = mapped
+                slot["occupied"] = True
+                slot["cargo_id"] = item.get("goods_id")
+
+    def _mapped_slot(self, location_id: str) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        match = re.search(r"R(\d+)-L(\d+)-C(\d+)-(?:D|F)(\d+)", location_id)
+        if not match:
+            return None
+        rack_number, level, bay, depth = (int(value) for value in match.groups())
+        rack = self.racks[(rack_number - 1) % len(self.racks)]
+        slot = next((candidate for candidate in rack["slots"] if candidate["level"] == level
+                     and candidate["bay"] == bay - 1 and candidate["depth_row"] == depth - 1), None)
+        return (rack, slot) if slot is not None else None
+
+    def _assign_dataset_task(self, robot_id: int) -> bool:
+        current = self._robot_snapshot(robot_id)
+        if current is None:
+            return False
+        robot_type = ROBOT_TYPES[current["state"]["robot_type_key"]]
+        for index, record in enumerate(self.dataset_ready):
+            mapped = self._mapped_slot(str(record["slot_id"]))
+            if mapped is None or int(record.get("level", 1)) > robot_type["maxLevel"]:
+                continue
+            rack, slot = mapped
+            task_type = str(record.get("task_type", "INBOUND"))
+            if task_type == "INBOUND" and (slot["occupied"] or slot["reserved_by"] is not None):
+                continue
+            if task_type == "OUTBOUND" and (not slot["occupied"] or slot["reserved_by"] is not None):
+                continue
+            assignment = self._assignment_payload(
+                robot_id=robot_id, task_id=str(record["task_id"]), cargo_id=str(record["cargo_id"]),
+                priority=str(record.get("priority", "normal")), rack=rack, slot=slot,
+            )
+            assignment["slot_id"] = str(record["slot_id"])
+            assignment["task_type"] = task_type
+            assignment["source_id"] = record.get("source_id")
+            assignment["target_id"] = record.get("target_id")
+            if task_type == "OUTBOUND":
+                # Pick at the package source slot, then deliver to its assigned
+                # outbound station.  ``toRack`` is retained as a stable UI
+                # stage name while the agent uses outbound route geometry.
+                assignment["pickup"] = {"x": assignment["target_x"], "y": assignment["target_y"]}
+                delivery = outbound_point(robot_id)
+                assignment["target_x"], assignment["target_y"] = delivery["x"], delivery["y"]
+            slot["reserved_by"] = robot_id
+            result = self.runtime.assign(robot_id, {**assignment, "graph_tick": self.tick})
+            if not result["accepted"]:
+                slot["reserved_by"] = None
+                return False
+            self.dataset_ready.pop(index)
+            self.task_sequence += 1
+            self.tasks[assignment["task_id"]] = {
+                **assignment, "robot_id": robot_id, "status": "assigned", "created_at": self.elapsed,
+                "completed_at": None, "dataset_task": True, "simulator_slot_id": slot["slot_id"],
+            }
+            self._replace_robot_snapshot(result["robot"])
+            self._record_event({
+                "id": f"{self.tick}:{robot_id}:task_assigned:{assignment['task_id']}", "tick": self.tick,
+                "type": "task_assigned", "robot_id": robot_id, "task_id": assignment["task_id"],
+                "cargo_id": assignment["cargo_id"], "rack_id": rack["id"], "slot_id": assignment["slot_id"],
+                "text": f"派发数据集 {task_type} 任务 {assignment['task_id']}",
+            })
+            return True
+        return False
 
     def _assign_task(self, robot_id: int, priority: str) -> bool:
         current = self._robot_snapshot(robot_id)
@@ -316,7 +428,9 @@ class SimulationCoordinator:
             rack=rack,
             slot=slot,
         )
-        result = self.runtime.assign(robot_id, assignment)
+        # ``graph_tick`` is dispatch metadata for the actor only.  The
+        # coordinator remains authoritative for task records and receipts.
+        result = self.runtime.assign(robot_id, {**assignment, "graph_tick": self.tick})
         if not result["accepted"]:
             slot["reserved_by"] = None
             return False
@@ -329,6 +443,10 @@ class SimulationCoordinator:
             "completed_at": None,
         }
         self._replace_robot_snapshot(result["robot"])
+        if result.get("graph_error"):
+            self.worker_graph_errors[robot_id] = result["graph_error"]
+        else:
+            self.worker_graph_errors.pop(robot_id, None)
         self._record_event(
             {
                 "id": f"{self.tick}:{robot_id}:task_assigned:{task_id}",
@@ -385,11 +503,12 @@ class SimulationCoordinator:
         elif task and event_type == "task_completed" and task["status"] != "completed":
             task["status"] = "completed"
             task["completed_at"] = self.elapsed
-            slot = self._slot_by_id(task["slot_id"])
+            slot = self._slot_by_id(task.get("simulator_slot_id", task["slot_id"]))
             if slot is not None:
-                slot["occupied"] = True
+                inbound = task.get("task_type", "INBOUND") == "INBOUND"
+                slot["occupied"] = inbound
                 slot["reserved_by"] = None
-                slot["cargo_id"] = task["cargo_id"]
+                slot["cargo_id"] = task["cargo_id"] if inbound else None
                 slot["color_index"] = (int(task["robot_id"]) + self.task_sequence) % 4
                 slot["placed_at"] = self.elapsed
             self.completed += 1
@@ -498,6 +617,15 @@ class SimulationCoordinator:
             "runtime": {
                 "workerProcessCount": len(worker_pids),
                 "workerPids": worker_pids,
+                "taskSource": "csv-dataset" if self.dataset_records else "synthetic-demo",
+                "datasetTasksTotal": len(self.dataset_records),
+                "datasetTasksReleased": self.dataset_cursor,
+                "datasetTasksWaiting": len(self.dataset_ready),
+                "graphWriterErrors": len(self.worker_graph_errors),
+                "graphWriterErrorSamples": [
+                    {"robotId": robot_id, "error": error}
+                    for robot_id, error in sorted(self.worker_graph_errors.items())[:5]
+                ],
             },
             "knowledge": self.knowledge_status(),
         }
@@ -523,6 +651,8 @@ class SimulationCoordinator:
             "tasks": self.tasks,
             "events": self.events,
             "processed_event_ids": sorted(self.processed_event_ids),
+            "dataset_cursor": self.dataset_cursor,
+            "dataset_ready": self.dataset_ready,
             # These are the successful barrier results, including every accepted
             # assignment/reroute. Do not issue a third 100-Actor RPC barrier merely
             # to re-read the exact same committed state at each journal commit.
@@ -563,8 +693,31 @@ class SimulationCoordinator:
         self.tasks = payload["tasks"]
         self.events = payload.get("events", [])
         self.processed_event_ids = set(payload.get("processed_event_ids", []))
+        self.worker_graph_errors = {}
+        self.dataset_cursor = int(payload.get("dataset_cursor", 0))
+        self.dataset_ready = payload.get("dataset_ready", [])
         self.runtime.replace(payload["robots"])
         self.robot_snapshots = self.runtime.snapshots()
+
+    def configure_worker_graph(self, config: dict[str, Any]) -> list[dict[str, Any]]:
+        """Give each robot actor a private writer after actors exist.
+
+        This is intentionally not a coordinator write.  It is a control-plane
+        broadcast of connection settings; each actor owns subsequent Neo4j I/O.
+        """
+        config = {
+            **config,
+            "run_id": self.run_id,
+            "tick": self.tick,
+            "robot_count": self.config.robot_count,
+            "max_active_robots": min(self.config.max_active_robots, self.config.robot_count),
+        }
+        results = self.runtime.configure_graph_writer(config)
+        self.worker_graph_errors = {
+            int(item["robot_id"]): str(item["error"])
+            for item in results if item.get("error")
+        }
+        return results
 
     def close(self) -> None:
         self.runtime.close()

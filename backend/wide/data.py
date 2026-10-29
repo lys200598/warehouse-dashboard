@@ -116,6 +116,12 @@ def load_scene(path):
         home["gate"] = dict(dock["gate"])
         home["approachY"] = dock["gate"]["y"]
         home["staticCollision"] = False
+    # Capacity is a map contract, not a fixed experiment's 1728-slot constant.
+    # Check independent declarations and the physically enumerated slot count.
+    declared_capacity = _positive_int(scene.get("capacity"), "capacity")
+    expected_per_rack = spec["levels"] * spec["baysPerFace"] * spec["faces"]
+    if _positive_int(spec.get("slotsPerRack"), "slotsPerRack") != expected_per_rack:
+        raise ValueError("scene slotsPerRack disagrees with levels/bays/faces")
     slots, rack_ids = {}, set()
     for rack in scene.get("racks", []):
         ident = rack.get("id")
@@ -139,8 +145,8 @@ def load_scene(path):
                             "occupied":False, "cargo_id":None, "reservedBy":None}
                     _point(slot, key, spec)
                     slots[key] = slot
-    if len(slots) != scene.get("capacity") or len(slots) != 1728:
-        raise ValueError("wide scene must preserve all 1728 physical storage slots")
+    if not rack_ids or len(slots) != declared_capacity or declared_capacity != expected_per_rack * len(rack_ids):
+        raise ValueError("wide scene capacity disagrees with physical rack slots")
     station_ids = set()
     for station in scene.get("stations", []):
         ident = station.get("id")
@@ -186,9 +192,13 @@ def migrate_dataset(old_scene, new_scene, source, output, *, deadline_policy="pr
     manifest, tasks, initial = read_dataset(old_scene, source)
     ports = {p["id"]: p for p in scene["stations"]}
     for task in tasks:
-        if task["source_id"] not in slots and task["source_id"] not in ports or \
-                task["target_id"] not in slots and task["target_id"] not in ports:
+        logical_source = task['task_type'] == 'INBOUND' and task['source_id'] == 'INBOUND'
+        logical_target = task['task_type'] == 'OUTBOUND' and task['target_id'] == 'OUTBOUND'
+        if (task["source_id"] not in slots and task["source_id"] not in ports and not logical_source) or \
+                (task["target_id"] not in slots and task["target_id"] not in ports and not logical_target):
             raise ValueError("old task location is missing from new layout")
+        if deadline_policy == 'explicit-reference' and (logical_source or logical_target):
+            raise ValueError('logical boundary migration must preserve deadlines; no physical endpoint is predetermined')
     old_manifest_sha = sha(source/"manifest.json")
     source_files = dict(manifest["files"])
     changes = 0
@@ -391,6 +401,12 @@ def validate_dataset(scene_path, directory, *, max_tasks=None):
         stock[slot], where[goods] = goods, slot
         ever_seen.add(goods)
     ports = {station["id"]: station["kind"] for station in scene["stations"]}
+    routing = manifest.get('boundary_routing')
+    if routing is not None:
+        from .free_ports import DECLARATION
+        if not isinstance(routing, dict) or any(routing.get(key) != value for key, value in DECLARATION.items()):
+            raise ValueError('unsupported logical boundary routing declaration')
+        ports.update(INBOUND='inbound', OUTBOUND='outbound')
     low = high = len(stock)
     hourly, daily = Counter(), Counter()
     for task in sorted(tasks, key=lambda row: (row["release_second"], row["task_id"])):

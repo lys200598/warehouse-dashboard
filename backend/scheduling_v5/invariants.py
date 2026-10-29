@@ -6,6 +6,7 @@ may legitimately refer to an IN which has not arrived. A completed IN may have
 subsequently shipped. Empty helpers may already name the donor's task.
 """
 from collections import Counter
+from ..wide.free_ports import endpoints_valid
 
 
 def _require(condition, message):
@@ -37,9 +38,7 @@ def assert_warehouse_inventory(sim):
                  f'{task_id} has unknown status')
         _require(kind in {'INBOUND', 'OUTBOUND'}, f'{task_id} has unknown type')
         _require(task.get('cargo_id', cargo) == cargo, f'{task_id} cargo identity mismatch')
-        _require((task.get('source_id') in inbound_ports and task.get('target_id') in slots)
-                 if kind == 'INBOUND' else
-                 (task.get('source_id') in slots and task.get('target_id') in outbound_ports),
+        _require(endpoints_valid(task, inbound_ports, outbound_ports, slots),
                  f'{task_id} endpoints disagree with warehouse boundary roles')
         if kind == 'INBOUND' and status not in {'scheduled', 'waiting'}:
             received += 1

@@ -1,7 +1,9 @@
 from pathlib import Path
+import tempfile
 import unittest
 
 from backend.warehouse_graph import LINK_LOCATION_SLOTS, SCHEMA_QUERIES, WRITE_LOCATIONS, load_graph_package, validation_report
+from ops.convert_logical_boundaries import convert
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +42,27 @@ class WarehouseGraphPackageTests(unittest.TestCase):
         self.assertTrue(report["valid"])
         self.assertEqual(report["tasks"], 19)
         self.assertGreater(report["estimated_nodes"], report["tasks"])
+
+    def test_declared_logical_boundaries_become_nonphysical_plan_locations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package_dir = Path(directory) / "logical"
+            convert(
+                ROOT / "data/layouts/warehouse100-wide-v2.json",
+                ROOT / "data/examples/warehouse-v5",
+                package_dir,
+            )
+            package = load_graph_package(
+                package_dir,
+                ROOT / "data/layouts/warehouse100-wide-v2.json",
+                ROOT / "docs/dataset-contract/layout/task-locations.csv",
+            )
+        logical = {row["location_id"]: row for row in package.locations if row["kind"] == "logical-boundary"}
+        self.assertEqual(set(logical), {"INBOUND", "OUTBOUND"})
+        self.assertTrue(all(row["physical"] is False for row in logical.values()))
+        task_sources = {row["source_id"] for row in package.tasks}
+        task_targets = {row["target_id"] for row in package.tasks}
+        self.assertIn("INBOUND", task_sources)
+        self.assertIn("OUTBOUND", task_targets)
 
 
 if __name__ == "__main__":

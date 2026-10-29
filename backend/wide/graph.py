@@ -6,6 +6,7 @@ Robot/Task/Step/Event writer is reused; day1's 12+12 charger selection is not.
 from ..knowledge import KnowledgeError
 from ..knowledge_graph import Neo4jMirror
 from ..scheduling_v3.graph import V3Mirror, _handoff_row, _robot_id, audit_helpers
+from ..boundary_contract import declared as boundary_declared, validate_task as boundary_task, location_registry
 
 
 RECOVERY_KINDS = {
@@ -43,7 +44,7 @@ def _registry(scene):
     return docks, homes
 
 
-def _locations(run, scene, slots):
+def _locations(run, scene, slots, metadata=None):
     docks, homes = _registry(scene)
     rows = [{'key':run+':'+slot['slot_id'], 'run_id':run, 'location_id':slot['slot_id'],
              'kind':'slot', 'x':slot['x'], 'y':slot['y']} for slot in slots]
@@ -59,6 +60,10 @@ def _locations(run, scene, slots):
     rows.extend({'key':run+f':ROBOT-{i}', 'run_id':run, 'location_id':f'ROBOT-{i}',
                  'kind':'robot-custody'} for i in range(1,101))
     rows.append({'key':run+':SHIPPED', 'run_id':run, 'location_id':'SHIPPED', 'kind':'warehouse-boundary'})
+    if metadata is not None and boundary_declared(metadata):
+        rows.extend({'key':run+':'+name, 'run_id':run, 'location_id':name,
+            'kind':'logical-boundary', 'physical':False}
+            for name in ('INBOUND', 'OUTBOUND'))
     return rows
 
 
@@ -75,6 +80,13 @@ class WideMirror(V3Mirror):
                 'warehouse-inbound-outbound-day1', 'warehouse-wide-inbound-outbound'}:
                 raise ValueError('wrong wide warehouse graph domain')
             _registry(batch['metadata']['scene'])
+            if boundary_declared(batch['metadata']):
+                registry = location_registry(batch['metadata']['scene'])
+                for task in batch['tasks']:
+                    boundary_task(task, batch['metadata'], cutoff=batch['sim_time'],registry=registry)
+                for event in batch['events']:
+                    if 'goods_id' in event and event.get('location_id') in ('INBOUND', 'OUTBOUND'):
+                        raise ValueError('logical boundary cannot hold actual cargo')
             count = batch['config']['chargers']
             if isinstance(count,bool) or not isinstance(count,int) or not 1 <= count <= 100:
                 raise ValueError('invalid configured wide charger count')
@@ -100,7 +112,7 @@ class WideMirror(V3Mirror):
         scene = forward[0]['metadata']['scene']
         docks, homes = _registry(scene)
         if forward[0]['seq'] == 1:
-            locations = _locations(run,scene,forward[0]['slots'])
+            locations = _locations(run,scene,forward[0]['slots'],forward[0]['metadata'])
             tx.run('''UNWIND $rows AS p MATCH (r:WHRun {run_id:$run})
                 MERGE (l:WHLocation {key:p.key}) SET l+=p MERGE (l)-[:IN_RUN]->(r)''',
                 rows=locations,run=run).consume()
@@ -119,10 +131,19 @@ class WideMirror(V3Mirror):
                 MERGE (s)-[:AT_LOCATION]->(l)''',rows=[{'key':run+':'+s['slot_id']} for s in forward[0]['slots']]).consume()
 
         tasks, goods, charger_states, handoffs, recoveries = [], [], [], [], []
+        execution_sources, execution_targets, binding_events = [], [], []
         for batch in forward:
+            registry = location_registry(batch['metadata']['scene']) if boundary_declared(batch['metadata']) else None
             for task in batch['tasks']:
+                planned = boundary_task(task, batch['metadata'], cutoff=batch['sim_time'],registry=registry)
                 tasks.append({'key':run+':'+task['task_id'], 'goods':run+':'+task['goods_id'],
-                    'goods_id':task['goods_id'], 'source':run+':'+task['source_id'], 'target':run+':'+task['target_id']})
+                    'goods_id':task['goods_id'], 'source':run+':'+planned[0], 'target':run+':'+planned[1]})
+                if boundary_declared(batch['metadata']):
+                    for side, dest in (('source', execution_sources), ('target', execution_targets)):
+                        actual = task[side+'_id']
+                        if actual not in ('INBOUND', 'OUTBOUND'):
+                            dest.append({'state_key':run+':'+str(batch['seq'])+':'+task['task_id'],
+                                'location_key':run+':'+actual})
             for event in batch['events']:
                 if 'goods_id' in event and 'location_id' in event:
                     goods.append({'key':event['event_id']+':custody', 'run_id':run, 'goods_id':event['goods_id'],
@@ -135,6 +156,17 @@ class WideMirror(V3Mirror):
                 if event['kind'] in RECOVERY_KINDS:
                     recoveries.append({'event_key':event['event_id'],'kind':event['kind'],
                         'reason':event.get('reason'),'affected_robot_ids':_affected(event)})
+                if event['kind'] == 'boundary_port_bound':
+                    if not boundary_declared(batch['metadata']) or 'goods_id' in event or 'location_id' in event:
+                        raise ValueError('boundary choice event must be declared and non-custodial')
+                    side = event.get('endpoint'); actual = event.get('actual_location_id')
+                    plans = [t for t in batch['tasks'] if t['task_id'] == event.get('task_id')]
+                    if (side not in ('source', 'target') or len(plans) != 1
+                            or actual != plans[0][side+'_id']
+                            or event.get('planned_location_id') != plans[0]['plan_'+side+'_id']):
+                        raise ValueError('boundary binding event disagrees with published task')
+                    binding_events.append({'event_key':event['event_id'], 'location_key':run+':'+actual,
+                        'endpoint':side})
             for dock in docks[:batch['config']['chargers']]:
                 center = dock['point']
                 occupants = [r for r in batch['robots'] if
@@ -157,6 +189,17 @@ class WideMirror(V3Mirror):
             MERGE (g:WHCargo {key:p.goods}) SET g.run_id=$run,g.cargo_id=p.goods_id
             MERGE (t)-[:MOVES]->(g) MERGE (t)-[:FROM_LOCATION]->(a) MERGE (t)-[:TO_LOCATION]->(b)''',
             rows=tasks,run=run).consume()
+        # Root WHTask FROM/TO remain immutable plan edges. Actual endpoints are
+        # attached to the cutoff-scoped task version, so a later bind cannot
+        # add misleading current/old endpoint alternatives to a past query.
+        for rows, relationship in ((execution_sources, 'EXECUTION_SOURCE'), (execution_targets, 'EXECUTION_TARGET')):
+            if rows:
+                tx.run('''UNWIND $rows AS p MATCH (s:WHTaskState {key:p.state_key}),
+                    (l:WHLocation {key:p.location_key}) MERGE (s)-[:''' + relationship + ''']->(l)''',rows=rows).consume()
+        if binding_events:
+            tx.run('''UNWIND $rows AS p MATCH (e:WHEvent {key:p.event_key}),
+                (l:WHLocation {key:p.location_key})
+                MERGE (e)-[:BINDS_BOUNDARY]->(l)''',rows=binding_events).consume()
         tx.run('''UNWIND $rows AS p WITH p ORDER BY p.event_seq
             MATCH (l:WHLocation {key:p.location_key}), (e:WHEvent {key:p.event_key}), (s:WHStep {key:p.step_key})
             MERGE (g:WHCargo {key:p.cargo_key}) SET g.run_id=p.run_id,g.cargo_id=p.goods_id,g.current_location_id=p.location_id

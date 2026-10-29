@@ -1,4 +1,5 @@
 import ast
+import os
 from copy import deepcopy
 from pathlib import Path
 import tempfile
@@ -18,7 +19,20 @@ from backend.wide.scenarios import generate_scenario
 from tests.test_scheduler_v4 import physical
 
 
-ROOT = Path(__file__).resolve().parents[1]
+CODE_ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get('WAREHOUSE_FIXTURE_ROOT', CODE_ROOT))
+
+
+_PORT_RELIEF_OVERRIDE = ast.parse("""if self.config.port_relief_policy == 'deadline':
+    pool = self._port_relief_pool(ready)
+""").body[0]
+
+
+def _is_exact_port_relief_override(node):
+    # Compare the WHOLE subtree: condition, single assignment/call and no else.
+    # Extra logic, a changed RHS/condition, or any safety statements remain visible.
+    return isinstance(node, ast.If) and ast.dump(node, include_attributes=False) == ast.dump(
+        _PORT_RELIEF_OVERRIDE, include_attributes=False)
 
 
 class PolicyContractTests(unittest.TestCase):
@@ -29,6 +43,15 @@ class PolicyContractTests(unittest.TestCase):
             return next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == 'release_and_dispatch')
 
         class Normalize(ast.NodeTransformer):
+            def __init__(self):
+                self.port_relief_overrides = 0
+
+            def visit_If(self, node):
+                if _is_exact_port_relief_override(node):
+                    self.port_relief_overrides += 1
+                    return None
+                return self.generic_visit(node)
+
             def visit_Assign(self, node):
                 if len(node.targets) == 1 and isinstance(node.targets[0], ast.Tuple):
                     names = [v.id for v in node.targets[0].elts]
@@ -49,12 +72,29 @@ class PolicyContractTests(unittest.TestCase):
                     node.args = node.args[:1]
                 return self.generic_visit(node)
 
-        old = method(ROOT/'backend/scheduling_v3/sim.py', 'Simulation')
-        new = Normalize().visit(method(ROOT/'backend/scheduling_v5/sim.py', 'CandidateSimulation'))
+        old = method(CODE_ROOT/'backend/scheduling_v3/sim.py', 'Simulation')
+        normalizer = Normalize()
+        new = normalizer.visit(method(CODE_ROOT/'backend/scheduling_v5/sim.py', 'CandidateSimulation'))
+        self.assertEqual(normalizer.port_relief_overrides, 1)
         self.assertEqual(ast.dump(old, include_attributes=False), ast.dump(new, include_attributes=False))
 
+    def test_port_relief_ast_exception_matches_only_the_exact_documented_override(self):
+        source = "if self.config.port_relief_policy == 'deadline':\n    pool = self._port_relief_pool(ready)\n"
+        self.assertTrue(_is_exact_port_relief_override(ast.parse(source).body[0]))
+        mutations = [
+            source.replace("== 'deadline'", "!= 'deadline'"),
+            source.replace('ready)', 'all_tasks)'),
+            source.replace('pool =', 'costs ='),
+            source.replace('_port_relief_pool', '_unsafe_pool'),
+            source + 'else:\n    self.schedule_charge(robot)\n',
+            source + '    self.assert_inventory()\n',
+        ]
+        for changed in mutations:
+            with self.subTest(changed=changed):
+                self.assertFalse(_is_exact_port_relief_override(ast.parse(changed).body[0]))
+
     def select(self, policy, rows, times, elapsed=300, parameters=None):
-        context = SimpleNamespace(policy=policy, policy_parameters=resolve_parameters(policy, parameters),
+        context = SimpleNamespace(config=Config(), policy=policy, policy_parameters=resolve_parameters(policy, parameters),
             elapsed=elapsed, metrics={'v5_matching_calls': 0, 'v5_guard_rows': 0,
                 'v5_guard_rows_selected': 0, 'v5_rewarded_rows': 0})
         costs = [[value, 1e8, 1e8] for value in rows]
@@ -154,6 +194,19 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(physical(control), physical(candidate))
         self.assertEqual(control.metrics['completed'], candidate.metrics['completed'])
         self.assertEqual(control.metrics['planning_calls'], candidate.metrics['planning_calls'])
+
+    def test_explicit_off_fifo_matches_default_physics(self):
+        default = self.make('port-guard', 'off-control', planner='original-sipp')
+        explicit = CandidateSimulation(self.scene, self.dataset, 'off-control',
+            Config(inbound_admission_policy='fifo', port_relief_policy='off'),
+            policy='port-guard', planner='original-sipp')
+        for _ in range(120):
+            default.step()
+            explicit.step()
+        self.assertEqual(physical(default), physical(explicit))
+        self.assertEqual(default.metrics['planning_calls'], explicit.metrics['planning_calls'])
+        self.assertEqual(default.config.inbound_admission_policy, 'fifo')
+        self.assertEqual(default.config.port_relief_policy, 'off')
 
     def test_guard_low_soc_handoff_restore_and_future_remain_exact(self):
         sim = self.make()

@@ -95,6 +95,7 @@ class RobotState:
     depth_row: int = 0
     task_id: str | None = None
     cargo_id: str | None = None
+    task_type: str = "INBOUND"
     priority: str = "normal"
     alert: str = ""
     path: list[dict[str, float]] = field(default_factory=list)
@@ -233,6 +234,7 @@ class RobotAgent:
         state.task_round += 1
         state.task_id = assignment["task_id"]
         state.cargo_id = assignment["cargo_id"]
+        state.task_type = assignment.get("task_type", "INBOUND")
         state.priority = assignment.get("priority", "normal")
         station = assignment.get('pickup') or pickup_point(state.robot_id)
         state.pickup_x,state.pickup_y = station['x'],station['y']
@@ -343,12 +345,14 @@ class RobotAgent:
                     state.stage = "picking"
                     state.action_duration = 2.1 + self.rng.random()
                     state.action_timer = 0.0
-                    events.append(self._event(tick_id, "pickup_started", "抵达入库台，开始识别货物"))
+                    text = "抵达入库台，开始识别货物" if state.task_type == "INBOUND" else "抵达货位，开始拣取货物"
+                    events.append(self._event(tick_id, "pickup_started", text))
                 elif state.stage == "toRack":
                     state.stage = "placing"
                     state.action_duration = 4.4
                     state.action_timer = 0.0
-                    events.append(self._event(tick_id, "placement_started", "抵达目标货架，开始伸臂上架"))
+                    text = "抵达目标货架，开始伸臂上架" if state.task_type == "INBOUND" else "抵达出库台，开始交接货物"
+                    events.append(self._event(tick_id, "placement_started", text))
                 else:
                     state.stage = "charging" if state.battery < 28.0 else "idle"
                     state.idle_timer = 0.0 if state.stage == "charging" else 1.5 + self.rng.random() * 5.0
@@ -370,7 +374,11 @@ class RobotAgent:
                         self._event(
                             tick_id,
                             "task_completed",
-                            f"已完成 {state.zone}-{state.rack_id:02d} / C{state.bay} / L{state.level} 上架",
+                            (
+                                f"已完成 {state.zone}-{state.rack_id:02d} / C{state.bay} / L{state.level} 上架"
+                                if state.task_type == "INBOUND"
+                                else f"已完成货物 {state.cargo_id} 出库交接"
+                            ),
                         )
                     )
                     self._set_moving_stage("returning")
@@ -409,7 +417,7 @@ class RobotAgent:
             kind = "pickup"
         elif stage_name == "toRack":
             destination = {"x": state.target_x, "y": state.target_y}
-            kind = "rack"
+            kind = "rack" if state.task_type == "INBOUND" else "outbound"
         else:
             destination = outbound_point(state.robot_id)
             kind = "outbound"

@@ -23,6 +23,9 @@ def parser():
     q=sub.add_parser('validate',help='validate warehouse fixed-file input without a calendar cap')
     q.add_argument('--scene',default=str(SCENE));q.add_argument('--dataset',required=True)
     q.add_argument('--max-tasks',type=int);q.add_argument('--output')
+    q=sub.add_parser('convert-boundaries',help='create a new logical INBOUND/OUTBOUND dataset; preserve goods, time and rack references')
+    q.add_argument('--scene',default=str(SCENE));q.add_argument('--dataset',required=True)
+    q.add_argument('--output',required=True);q.add_argument('--role',choices=['both','inbound','outbound'],default='both')
     q=sub.add_parser('generate',help='reproducible input; robot energy/faults stay outside CSV')
     q.add_argument('--kind',choices=['multiday','uniform','peak','hotspot','continuous'],default='multiday')
     q.add_argument('--scene',default=str(SCENE));q.add_argument('--output',required=True)
@@ -38,12 +41,16 @@ def parser():
     for action in q._actions:
         if action.dest=='scene':action.required=False
     q.add_argument('--mode',dest='knowledge_mode',choices=['required','rules'],default=argparse.SUPPRESS)
+    q.add_argument('--resource-graph',action='store_true',help='project racks/resources in the same Neo4j commit; new run only')
     q=sub.add_parser('query',help='versioned read-only warehouse query catalog')
     q.add_argument('--catalog',action='store_true');q.add_argument('--request-json')
     q.add_argument('--output');q.add_argument('--timeout',type=float,default=15)
+    q.add_argument('--summary-root',type=Path,help='source journal root for exact-cutoff derived summaries; baseline if omitted')
+    q.add_argument('--query-summary-cache',type=Path)
     q=sub.add_parser('serve',help='read-only saved frames, preserves existing camera controls')
     q.add_argument('--output',required=True);q.add_argument('--port',type=int,default=14183)
     q.add_argument('--dist',default=str(ROOT/'dist/v5'));q.add_argument('--neo4j',action='store_true')
+    sub.add_parser('live',help='owned live controls, dataset selection and graph queries',add_help=False)
     sub.add_parser('retrieval-eval',help='forward arguments to the independent retrieval evaluator',add_help=False)
     return p
 
@@ -53,6 +60,11 @@ def main(argv=None):
     if argv and argv[0]=='retrieval-eval':
         from ..retrieval_eval.__main__ import main as evaluate
         return evaluate(argv[1:])
+    if argv and argv[0]=='live':
+        # A fresh process lets an operator select an immutable producer tree
+        # without mixing already imported backends from different revisions.
+        import subprocess
+        return subprocess.call([sys.executable,str(ROOT/'ops/warehouse_live.py'),*argv[1:]])
     p=parser();args=p.parse_args(argv)
     if args.command=='status':
         from ..scheduling_v5.sim import execution_identity
@@ -62,8 +74,13 @@ def main(argv=None):
             'execution':'one central V5 coordinator with 100 actual simulated robots',
             'legacy_ray_entrypoint':'python -m backend.server --help',
             'playback':'serve consumes recorded --frames output; no synthetic frames',
-            'duration_cap':None,'subcommands':['validate','generate','run','query','serve','status','retrieval-eval']})
+            'duration_cap':None,'subcommands':['validate','convert-boundaries','generate','run','query','serve','live','status','retrieval-eval']})
         return 0
+    if args.command=='convert-boundaries':
+        from ops.convert_logical_boundaries import convert
+        manifest,report=convert(args.scene,args.dataset,args.output,
+            inbound=args.role!='outbound',outbound=args.role!='inbound')
+        emit({'manifest':manifest,'validation':report});return 0
     if args.command=='validate':
         from ..wide.data import validate_dataset
         emit(validate_dataset(args.scene,args.dataset,max_tasks=args.max_tasks),args.output);return 0
@@ -85,7 +102,14 @@ def main(argv=None):
         from ..knowledge_runtime.runner import run
         from ..knowledge_runtime.sim import KnowledgeSimulation
         from ..real_scale.writer import Config,RealMirror,audit_real
+        # The graph runtime adapter in this branch remains the authoritative
+        # writer for V5 state/event data.  Do not pass the optional resource
+        # projection flag into the older KnowledgeSimulation constructor when
+        # it is disabled; doing so makes an otherwise ordinary balanced-layout
+        # run fail before the first simulation step.
         factory=partial(KnowledgeSimulation,commit_seconds=args.commit_seconds,knowledge_mode=args.knowledge_mode)
+        if args.resource_graph:
+            p.error('--resource-graph is not part of the dev_261028 graph contract; use the default runtime graph writer')
         return run(args,simulation_class=factory,config_class=Config,mirror_class=RealMirror,graph_auditor=audit_real)
     if args.command=='query':
         from ..query_catalog import QueryCatalogService
@@ -94,7 +118,11 @@ def main(argv=None):
             emit(QueryCatalogService.describe(),args.output);return 0
         if not args.request_json:p.error('--request-json or --catalog required')
         request=json.loads(sys.stdin.read() if args.request_json=='-' else Path(args.request_json).read_text(encoding='utf-8'))
-        service=QueryCatalogService.from_env(timeout=args.timeout)
+        options=({'summary_root':args.summary_root,'summary_cache_root':args.query_summary_cache}
+                 if args.summary_root is not None else {})
+        if args.query_summary_cache is not None and args.summary_root is None:
+            p.error('--query-summary-cache requires --summary-root')
+        service=QueryCatalogService.from_env(timeout=args.timeout,**options)
         try:emit(service.execute(request),args.output)
         finally:service.close()
         return 0

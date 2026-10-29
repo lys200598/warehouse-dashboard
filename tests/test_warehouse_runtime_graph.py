@@ -93,6 +93,16 @@ class RuntimeGraphWriterTests(unittest.TestCase):
         self.assertIn("ABOUT_EXECUTION", execution_event_call[0])
         state_call = next(call for call in calls if "UNWIND $states" in call[0])
         self.assertEqual(state_call[1]["states"][0]["run_id"], "warehouse-run-1")
+        self.assertEqual(state_call[1]["states"][0]["robot_id"], 1)
+
+    def test_actor_snapshot_uses_fleet_total_for_run_robot_count(self):
+        driver = FakeDriver()
+        writer = Neo4jRuntimeGraphWriter(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        payload = snapshot()
+        payload["robotCount"] = 100
+        writer.record_snapshot(payload)
+        run_call = next(call for call in driver.session_instance.calls if call[0] == _WRITE_RUN_AND_ROBOTS)
+        self.assertEqual(run_call[1]["run"]["robot_count"], 100)
 
     def test_events_are_not_rewritten_when_the_same_snapshot_is_retried(self):
         driver = FakeDriver()

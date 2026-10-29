@@ -50,8 +50,10 @@ class Neo4jWarehouseGraph:
         return self._query("""MATCH (d:Dataset)-[:INCLUDES_TASK]->(t:WarehouseTask)
         WHERE $dataset_id IS NULL OR d.id = $dataset_id
         OPTIONAL MATCH (e:Execution {task_id:t.task_id, dataset_id:d.id})-[:ASSIGNED_TO]->(r:Robot)
+        WITH t, e, r ORDER BY coalesce(e.updated_tick,-1) DESC
+        WITH t, head(collect({status:e.status, robot_id:r.robot_id})) AS latest
         RETURN t.task_id AS task_id,t.task_type AS task_type,t.goods_id AS goods_id,t.source_id AS source_id,t.target_id AS target_id,
-        coalesce(e.status,'待执行') AS status,r.robot_id AS robot_id ORDER BY t.release_time LIMIT $limit""", dataset_id=dataset_id, limit=max(1,min(limit,30)))
+        coalesce(latest.status,'待执行') AS status,latest.robot_id AS robot_id ORDER BY t.release_time LIMIT $limit""", dataset_id=dataset_id, limit=max(1,min(limit,30)))
     def task_execution_trace(self, task_id: str, dataset_id: str | None = None) -> dict[str, Any]:
         dataset_id = self._resolve_dataset_id(dataset_id)
         graph = self.task_subgraph(task_id, dataset_id)
@@ -105,8 +107,10 @@ class Neo4jWarehouseGraph:
         latest_tick AS latest_tick""", run_id=run_id)
         return rows[0] if rows else {"run_id": run_id, "robots": 0, "executions": 0, "states": 0, "events": 0, "latest_tick": None}
     def replay_states(self, run_id: str, tick: int) -> list[dict[str, Any]]:
-        return [r["state"] for r in self._query("""MATCH (s:AgentState {run_id:$run_id, tick:$tick})-[:OF_ROBOT]->(r:Robot)
-        RETURN s { .robot_id,.stage,.battery,.x,.y,.task_id,.cargo_id } AS state ORDER BY state.robot_id""", run_id=run_id, tick=tick)]
+        rows = self._query("""MATCH (s:AgentState {run_id:$run_id, tick:$tick})-[:OF_ROBOT]->(r:Robot)
+        RETURN s { .stage,.battery,.x,.y,.task_id,.cargo_id } AS state,
+               coalesce(s.robot_id,r.robot_id) AS robot_id ORDER BY robot_id""", run_id=run_id, tick=tick)
+        return [{**row["state"], "robot_id": row.get("robot_id", row["state"].get("robot_id"))} for row in rows]
 
     def runtime_state_trace(self, run_id: str, tick: int | None = None, robot_id: int | None = None, limit: int = 100) -> dict[str, Any]:
         """Read a textual runtime snapshot at or before a requested tick."""
@@ -114,19 +118,25 @@ class Neo4jWarehouseGraph:
             raise ValueError("robot_id must be positive")
         limit = max(1, min(limit, 200))
         requested_tick = tick if tick is not None and tick >= 0 else 2_147_483_647
-        sampled = self._query("""MATCH (s:AgentState {run_id:$run_id})
-        WHERE s.tick <= $requested_tick AND ($robot_id IS NULL OR s.robot_id = $robot_id)
+        # Older states carry only ``robot_node_id``; newer writer batches also
+        # carry ``robot_id``.  Derive one from the other so both shapes filter
+        # and render consistently.
+        robot_id_expr = "coalesce(s.robot_id,toInteger(last(split(s.robot_node_id,':'))))"
+        sampled = self._query(f"""MATCH (s:AgentState {{run_id:$run_id}})
+        WHERE s.tick <= $requested_tick AND ($robot_id IS NULL OR {robot_id_expr} = $robot_id)
         RETURN max(s.tick) AS sampled_tick""", run_id=run_id, requested_tick=requested_tick, robot_id=robot_id)
         sampled_tick = sampled[0].get("sampled_tick") if sampled else None
         if sampled_tick is None:
             return {"runId": run_id, "requestedTick": None if requested_tick == 2_147_483_647 else requested_tick,
                     "sampledTick": None, "robotId": robot_id, "states": []}
-        rows = self._query("""MATCH (s:AgentState {run_id:$run_id, tick:$sampled_tick})
-        WHERE $robot_id IS NULL OR s.robot_id = $robot_id
-        RETURN s { .robot_id,.stage,.battery,.x,.y,.task_id,.cargo_id } AS state
-        ORDER BY state.robot_id LIMIT $limit""", run_id=run_id, sampled_tick=sampled_tick, robot_id=robot_id, limit=limit)
+        rows = self._query(f"""MATCH (s:AgentState {{run_id:$run_id, tick:$sampled_tick}})
+        WHERE $robot_id IS NULL OR {robot_id_expr} = $robot_id
+        RETURN s {{ .stage,.battery,.x,.y,.task_id,.cargo_id }} AS state,
+               {robot_id_expr} AS robot_id
+        ORDER BY robot_id LIMIT $limit""", run_id=run_id, sampled_tick=sampled_tick, robot_id=robot_id, limit=limit)
+        states = [{**row["state"], "robot_id": row.get("robot_id", row["state"].get("robot_id"))} for row in rows]
         return {"runId": run_id, "requestedTick": None if requested_tick == 2_147_483_647 else requested_tick,
-                "sampledTick": sampled_tick, "robotId": robot_id, "states": [row["state"] for row in rows]}
+                "sampledTick": sampled_tick, "robotId": robot_id, "states": states}
     def robot_timeline(self, run_id: str, robot_id: int, start_tick: int = 0, end_tick: int = 10_000, limit: int = 200) -> dict[str, Any]:
         limit = max(1, min(limit, 1000))
         node_id = f"{run_id}:robot:{robot_id}"

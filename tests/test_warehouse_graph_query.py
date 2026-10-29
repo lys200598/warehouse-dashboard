@@ -94,6 +94,24 @@ class WarehouseGraphQueryTests(unittest.TestCase):
         graph.task_list()
         self.assertEqual(driver.session_instance.queries[0][1]["dataset_id"], "dataset:day1")
 
+    def test_task_list_deduplicates_executions_per_task(self):
+        driver = FakeDriver([[]])
+        graph = Neo4jWarehouseGraph(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        graph.task_list()
+        query = driver.session_instance.queries[0][0]
+        self.assertIn("head(collect(", query)
+        self.assertIn("ORDER BY coalesce(e.updated_tick,-1) DESC", query)
+
+    def test_runtime_state_trace_derives_robot_id_from_node_id_for_old_states(self):
+        driver = FakeDriver([
+            [{"sampled_tick": 16}],
+            [{"state": {"stage": "idle"}, "robot_id": 1}],
+        ])
+        graph = Neo4jWarehouseGraph(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        result = graph.runtime_state_trace("run-a", tick=17)
+        self.assertEqual(result["states"][0]["robot_id"], 1)
+        self.assertIn("toInteger(last(split(s.robot_node_id", driver.session_instance.queries[0][0])
+
     def test_robot_trace_returns_state_trajectory_execution_and_events(self):
         driver = FakeDriver([
             [{"state": {"tick": 8, "stage": "carrying", "x": 3, "y": 4, "task_id": "T-1"}}],

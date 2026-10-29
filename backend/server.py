@@ -20,10 +20,12 @@ from .knowledge import build_knowledge_store, KnowledgeError, source_fingerprint
 from .knowledge_queries import WarehouseQueries, CATALOG, CATALOG_VERSION
 from .warehouse_graph_query import Neo4jWarehouseGraph, WarehouseGraphUnavailable
 from .warehouse_runtime_graph import Neo4jRuntimeGraphWriter, RuntimeGraphUnavailable
+from .dataset import load_initial_inventory, load_warehouse_tasks
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "data" / "checkpoints" / "warehouse-latest.json"
+DEFAULT_DASHBOARD_LAYOUT = PROJECT_ROOT / "data" / "layouts" / "expansion-candidates" / "balanced" / "layout.json"
 
 
 def dataset_id_for_package(path: Path | None) -> str | None:
@@ -60,6 +62,7 @@ class ServerSettings:
     ray_address: str | None = None
     ray_num_cpus: float | None = None
     ray_actor_cpus: float = 0.1
+    ray_node_ip_address: str | None = "127.0.0.1"
     checkpoint_path: Path = DEFAULT_CHECKPOINT
     checkpoint_every_ticks: int = 20
     resume: bool = False
@@ -78,7 +81,9 @@ class ServerSettings:
     warehouse_neo4j_database: str = "neo4j"
     warehouse_neo4j_dataset_id: str | None = None
     warehouse_neo4j_package_dir: Path | None = None
+    simulation_dataset_dir: Path | None = None
     warehouse_neo4j_write_enabled: bool = False
+    warehouse_neo4j_write_mode: str = "robot-actors"
     warehouse_neo4j_state_interval_ticks: int = 4
 
 
@@ -86,12 +91,28 @@ class SimulationService:
     def __init__(self, settings: ServerSettings):
         self.settings = settings
         self.knowledge = build_knowledge_store(settings.knowledge_backend, settings.journal_path)
-        self.dataset_id = settings.warehouse_neo4j_dataset_id or dataset_id_for_package(settings.warehouse_neo4j_package_dir)
+        package_dir = settings.simulation_dataset_dir or settings.warehouse_neo4j_package_dir
+        self.dataset_id = settings.warehouse_neo4j_dataset_id or dataset_id_for_package(package_dir)
+        dataset_tasks: list[dict[str, Any]] = []
+        dataset_inventory: list[dict[str, str]] = []
+        dataset_metadata: dict[str, Any] = {}
+        if settings.simulation_dataset_dir is not None:
+            task_file = settings.simulation_dataset_dir / "tasks.csv"
+            if not task_file.is_file():
+                raise ValueError(f"simulation dataset needs tasks.csv: {settings.simulation_dataset_dir}")
+            dataset_tasks = load_warehouse_tasks(task_file)
+            dataset_inventory = load_initial_inventory(task_file)
+            dataset_metadata = {
+                "dataset_origin": "csv-package",
+                "dataset_package": str(settings.simulation_dataset_dir),
+                "dataset_task_count": len(dataset_tasks),
+            }
         runtime = build_runtime(
             settings.backend,
             ray_address=settings.ray_address,
             ray_num_cpus=settings.ray_num_cpus,
             ray_actor_cpus=settings.ray_actor_cpus,
+            ray_node_ip_address=settings.ray_node_ip_address,
         )
         self.coordinator = SimulationCoordinator(
             runtime,
@@ -107,6 +128,9 @@ class SimulationService:
             ),
             knowledge_store=self.knowledge,
             initialize=not settings.resume,
+            metadata=dataset_metadata,
+            dataset_tasks=dataset_tasks,
+            dataset_inventory=dataset_inventory,
         )
         if settings.resume:
             self.coordinator.restore_checkpoint(self._recovery_payload())
@@ -120,6 +144,12 @@ class SimulationService:
                     self.coordinator.persist_knowledge()
         elif settings.start_paused:
             self.coordinator.control('pause')
+        if settings.warehouse_neo4j_write_mode not in {"robot-actors", "central"}:
+            raise ValueError("warehouse_neo4j_write_mode must be robot-actors or central")
+        if (settings.warehouse_neo4j_write_enabled
+                and settings.warehouse_neo4j_write_mode == "robot-actors"
+                and settings.backend != "ray"):
+            raise ValueError("robot-actors Neo4j writing requires --backend ray")
         self.lock = asyncio.Lock()
         self.subscribers: set[asyncio.Queue[dict[str, Any]]] = set()
         self.runner: asyncio.Task[None] | None = None
@@ -130,10 +160,14 @@ class SimulationService:
             password=settings.warehouse_neo4j_password, database=settings.warehouse_neo4j_database,
             dataset_id=self.dataset_id,
         )
-        self.runtime_graph = Neo4jRuntimeGraphWriter(
-            uri=settings.warehouse_neo4j_uri, user=settings.warehouse_neo4j_user,
-            password=settings.warehouse_neo4j_password, database=settings.warehouse_neo4j_database,
-            dataset_id=self.dataset_id, state_interval_ticks=settings.warehouse_neo4j_state_interval_ticks,
+        # Legacy centralized writer remains opt-in for compatibility.  The
+        # realtime 4173 default is one writer per Ray robot Actor.
+        self.runtime_graph = (
+            Neo4jRuntimeGraphWriter(
+                uri=settings.warehouse_neo4j_uri, user=settings.warehouse_neo4j_user,
+                password=settings.warehouse_neo4j_password, database=settings.warehouse_neo4j_database,
+                dataset_id=self.dataset_id, state_interval_ticks=settings.warehouse_neo4j_state_interval_ticks,
+            ) if settings.warehouse_neo4j_write_mode == "central" else None
         )
         self.runtime_graph_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=1)
         self.runtime_graph_runner: asyncio.Task[None] | None = None
@@ -145,6 +179,32 @@ class SimulationService:
         # Accept 100 concurrent HTTP clients without 100 native threads competing
         # for the Python GIL. Executor queueing is INCLUDED in HTTP latency tests.
         self.query_executor = ThreadPoolExecutor(max_workers=16,thread_name_prefix='warehouse-query')
+        if settings.warehouse_neo4j_write_enabled and settings.warehouse_neo4j_write_mode == "robot-actors":
+            self._configure_robot_graph_writers()
+
+    def _configure_robot_graph_writers(self) -> None:
+        if not self.settings.warehouse_neo4j_password:
+            raise ValueError("WAREHOUSE_NEO4J_PASSWORD is required when graph writing is enabled")
+        # This is schema-only bootstrap, not runtime graph persistence.  It
+        # avoids 100 actors racing to create the same constraints at startup.
+        schema_writer = Neo4jRuntimeGraphWriter(
+            uri=self.settings.warehouse_neo4j_uri, user=self.settings.warehouse_neo4j_user,
+            password=self.settings.warehouse_neo4j_password,
+            database=self.settings.warehouse_neo4j_database,
+        )
+        try:
+            schema_writer.ensure_schema()
+        finally:
+            schema_writer.close()
+        self.coordinator.configure_worker_graph({
+            "uri": self.settings.warehouse_neo4j_uri,
+            "user": self.settings.warehouse_neo4j_user,
+            "password": self.settings.warehouse_neo4j_password,
+            "database": self.settings.warehouse_neo4j_database,
+            "dataset_id": self.dataset_id,
+            "state_interval_ticks": self.settings.warehouse_neo4j_state_interval_ticks,
+            "schema_ready": True,
+        })
 
     async def _blocking(self, function, *args):
         future = asyncio.get_running_loop().run_in_executor(self.simulation_executor,function,*args)
@@ -160,7 +220,8 @@ class SimulationService:
         await self._blocking(self._save_checkpoint_locked)
         self.stopping = False
         self.runner = asyncio.create_task(self._run_loop(), name="warehouse-simulation-loop")
-        if self.settings.warehouse_neo4j_write_enabled:
+        if (self.settings.warehouse_neo4j_write_enabled
+                and self.settings.warehouse_neo4j_write_mode == "central"):
             self.runtime_graph_runner = asyncio.create_task(self._runtime_graph_loop(), name="warehouse-neo4j-writer")
             self._queue_runtime_graph_snapshot(self.latest_snapshot)
 
@@ -184,7 +245,8 @@ class SimulationService:
             if self.knowledge:
                 await self._blocking(self.knowledge.close)
             self.warehouse_graph.close()
-            self.runtime_graph.close()
+            if self.runtime_graph is not None:
+                self.runtime_graph.close()
         self.simulation_executor.shutdown(wait=True)
         self.query_executor.shutdown(wait=True)
 
@@ -194,6 +256,9 @@ class SimulationService:
             self.latest_snapshot = snapshot
             if action == "reset":
                 await self._blocking(self._save_checkpoint_locked)
+                if (self.settings.warehouse_neo4j_write_enabled
+                        and self.settings.warehouse_neo4j_write_mode == "robot-actors"):
+                    await self._blocking(self._configure_robot_graph_writers)
         await self.publish(snapshot)
         self._queue_runtime_graph_snapshot(snapshot)
         return snapshot
@@ -244,7 +309,8 @@ class SimulationService:
                 pass
 
     def _queue_runtime_graph_snapshot(self, snapshot: dict[str, Any]) -> None:
-        if not self.settings.warehouse_neo4j_write_enabled:
+        if (not self.settings.warehouse_neo4j_write_enabled
+                or self.settings.warehouse_neo4j_write_mode != "central"):
             return
         if self.runtime_graph_queue.full():
             try:
@@ -260,6 +326,8 @@ class SimulationService:
         while not self.stopping:
             snapshot = await self.runtime_graph_queue.get()
             try:
+                if self.runtime_graph is None:
+                    return
                 await asyncio.to_thread(self.runtime_graph.record_snapshot, snapshot)
                 self.runtime_graph_last_error = None
             except RuntimeGraphUnavailable as exc:
@@ -306,6 +374,9 @@ class SimulationService:
             async with self.lock:
                 payload = self._recovery_payload()
                 self.coordinator.restore_checkpoint(payload)
+                if (self.settings.warehouse_neo4j_write_enabled
+                        and self.settings.warehouse_neo4j_write_mode == "robot-actors"):
+                    self._configure_robot_graph_writers()
                 self.coordinator.record_system_event(
                     f"Ray Actor 异常，已从 tick {self.coordinator.tick} checkpoint 恢复"
                 )
@@ -359,6 +430,7 @@ def create_app(settings: ServerSettings | None = None) -> Any:
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
         snapshot = service.latest_snapshot
+        worker_errors = snapshot.get("runtime", {}).get("graphWriterErrorSamples", [])
         return {
             "status": "degraded" if service.last_error or snapshot["knowledge"].get("last_error") else "ok",
             "runId": snapshot["runId"],
@@ -370,8 +442,13 @@ def create_app(settings: ServerSettings | None = None) -> Any:
             "knowledge": snapshot["knowledge"],
             "runtimeGraph": {
                 "enabled": service.settings.warehouse_neo4j_write_enabled,
+                "writeMode": service.settings.warehouse_neo4j_write_mode,
+                "writerOwner": (
+                    "ray-robot-actors" if service.settings.warehouse_neo4j_write_mode == "robot-actors"
+                    else "server-background-worker"
+                ),
                 "stateIntervalTicks": service.settings.warehouse_neo4j_state_interval_ticks,
-                "lastError": service.runtime_graph_last_error,
+                "lastError": service.runtime_graph_last_error or (worker_errors[0]["error"] if worker_errors else None),
             },
             **snapshot["runtime"],
         }
@@ -379,6 +456,25 @@ def create_app(settings: ServerSettings | None = None) -> Any:
     @app.get("/api/snapshot")
     async def snapshot() -> dict[str, Any]:
         return service.latest_snapshot
+
+    @app.get("/api/layout")
+    async def dashboard_layout() -> dict[str, Any]:
+        """Return the visual warehouse authority used by the 4173 canvas.
+
+        The legacy coordinator still owns its local control-demo coordinates.
+        Returning the layout separately lets the browser render the same
+        physical 1920-slot warehouse used by the V5/data-package workflow,
+        without claiming that legacy task generation is a V5 execution.
+        """
+        try:
+            layout = json.loads(DEFAULT_DASHBOARD_LAYOUT.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=503, detail="dashboard layout is unavailable") from exc
+        return {
+            "source": "warehouse100-expanded-balanced-v1",
+            "coordinateMode": "legacy-console-mapped",
+            "layout": layout,
+        }
 
     @app.get("/api/knowledge/status")
     async def knowledge_status() -> dict:
@@ -530,6 +626,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--ray-address", default=os.environ.get("RAY_ADDRESS") or None)
     parser.add_argument(
+        "--ray-node-ip-address",
+        default=os.environ.get("RAY_NODE_IP_ADDRESS", "127.0.0.1"),
+        help="single-machine Ray bind address; ignored when --ray-address is supplied",
+    )
+    parser.add_argument(
         "--ray-num-cpus",
         type=float,
         default=float(os.environ["RAY_NUM_CPUS"]) if os.environ.get("RAY_NUM_CPUS") else None,
@@ -558,7 +659,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--warehouse-neo4j-database", default=os.environ.get("WAREHOUSE_NEO4J_DATABASE", "neo4j"))
     parser.add_argument("--warehouse-neo4j-dataset-id", default=os.environ.get("WAREHOUSE_NEO4J_DATASET_ID") or None)
     parser.add_argument("--warehouse-neo4j-package-dir", type=Path, default=Path(os.environ["WAREHOUSE_NEO4J_PACKAGE_DIR"]) if os.environ.get("WAREHOUSE_NEO4J_PACKAGE_DIR") else None)
+    parser.add_argument(
+        "--simulation-dataset-dir", type=Path,
+        default=Path(os.environ["WAREHOUSE_SIMULATION_DATASET_DIR"]) if os.environ.get("WAREHOUSE_SIMULATION_DATASET_DIR") else None,
+        help="CSV package directory whose tasks.csv drives 4173 dispatch",
+    )
     parser.add_argument("--warehouse-neo4j-state-interval-ticks", type=int, default=int(os.environ.get("WAREHOUSE_NEO4J_STATE_INTERVAL_TICKS", "4")))
+    parser.add_argument(
+        "--warehouse-neo4j-write-mode",
+        choices=["robot-actors", "central"],
+        default=os.environ.get("WAREHOUSE_NEO4J_WRITE_MODE", "robot-actors"),
+        help="robot-actors: each Ray robot writes its own graph facts; central: legacy server batch writer",
+    )
     parser.add_argument(
         "--ray-recovery-attempts",
         type=int,
@@ -594,6 +706,7 @@ def main(argv: list[str] | None = None) -> None:
         ray_address=args.ray_address,
         ray_num_cpus=args.ray_num_cpus,
         ray_actor_cpus=args.ray_actor_cpus,
+        ray_node_ip_address=args.ray_node_ip_address,
         checkpoint_path=args.checkpoint_path,
         checkpoint_every_ticks=args.checkpoint_every_ticks,
         resume=args.resume,
@@ -608,7 +721,9 @@ def main(argv: list[str] | None = None) -> None:
         warehouse_neo4j_database=args.warehouse_neo4j_database,
         warehouse_neo4j_dataset_id=args.warehouse_neo4j_dataset_id,
         warehouse_neo4j_package_dir=args.warehouse_neo4j_package_dir,
+        simulation_dataset_dir=args.simulation_dataset_dir,
         warehouse_neo4j_write_enabled=os.environ.get("WAREHOUSE_NEO4J_WRITE_ENABLED", "0") == "1",
+        warehouse_neo4j_write_mode=args.warehouse_neo4j_write_mode,
         warehouse_neo4j_state_interval_ticks=args.warehouse_neo4j_state_interval_ticks,
     )
     try:
