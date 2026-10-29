@@ -7,6 +7,7 @@
 # Usage:
 #   bash ops/start_runtime.sh             # start medium live at 4173
 #   bash ops/start_runtime.sh --restart   # stop the current 4173 process first
+#   bash ops/start_runtime.sh --ray       # 120 medium + 100 Ray motion actors
 #   bash ops/start_runtime.sh --legacy    # start the old Ray/backend.server console
 #   bash ops/start_runtime.sh --legacy new
 set -euo pipefail
@@ -17,10 +18,14 @@ cd "$ROOT"
 STACK="medium"
 MODE="resume"
 RESTART=0
+RAY=0
+ROBOT_GRAPH=0
 for arg in "$@"; do
   case "$arg" in
     medium|--medium) STACK="medium" ;;
     legacy|--legacy) STACK="legacy" ;;
+    ray|--ray) RAY=1 ;;
+    robot-graph|--robot-graph) ROBOT_GRAPH=1 ;;
     resume|new) MODE="$arg" ;;
     --restart) RESTART=1 ;;
     -h|--help)
@@ -200,6 +205,12 @@ if [ "$STACK" = "medium" ]; then
     --dist "$ROOT/dist/medium"
     --port 4173
   )
+  if [ "$RAY" = "1" ]; then
+    LIVE_ARGS+=(--ray --ray-address "${RAY_ADDRESS:-127.0.0.1:26380}" --ray-actor-cpus "${RAY_ACTOR_CPUS:-0.1}")
+    if [ "$ROBOT_GRAPH" = "1" ]; then
+      LIVE_ARGS+=(--robot-graph --graph-state-interval "${GRAPH_STATE_INTERVAL:-4}")
+    fi
+  fi
   if [ -n "${MAX_ACTIVE_ROBOTS:-}" ]; then
     LIVE_ARGS+=(--max-active-robots "$MAX_ACTIVE_ROBOTS")
   fi

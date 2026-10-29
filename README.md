@@ -39,6 +39,15 @@ bash ops/start_medium.sh
 # 或把 4173 本身切到 120 布局（会先停止当前 4173）
 bash ops/start_runtime.sh --restart
 
+# 120 布局 + 100 个 Ray 运动 Actor（V5 派单/库存/交通/换电仍在中央）
+RAY=1 bash ops/start_medium.sh
+# 或切换 4173 为 Ray 版
+bash ops/start_runtime.sh --restart --ray
+
+# 让每个 Ray actor 写自己的 Robot/AgentState/Event 子图（需 Neo4j 密码）
+ROBOT_GRAPH=1 RAY=1 bash ops/start_medium.sh
+bash ops/start_runtime.sh --restart --ray --robot-graph
+
 # 批量短跑（必须带 medium 的完整配置）
 python -m backend.warehouse run \
   --scene data/layouts/expansion-candidates/medium/layout.json \
@@ -50,6 +59,8 @@ python -m backend.warehouse run \
 ```
 
 当前 4173 仍保留旧 32×22 控制台的「控制状态映射」视图；120 布局是独立的真实 V5 实时页，两者不要混用 runId。medium 的 0 晚点结论只适用于其 1728 任务峰值输入，不能外推到任意负载。
+
+Ray 版是同一个 V5 medium 运行：派单、库存、SIPP 交通预留、换电和知识写入仍由中央协调器负责；100 个 Ray Actor（`--ray-actor-cpus 0.1`）执行每台机器人每个 tick 的运动段。加 `--robot-graph` 后，每个 actor 用本地 Neo4j writer 只写自己的 `Robot/AgentState/Execution/RuntimeEvent` 子图；共享 `Run` 节点由主进程启动时创建一次，避免 100 个 actor 争抢同一个 Run 写锁。它不能替换成 legacy `backend.server` 的 32×22 Ray 控制台。
 
 ## 真实图谱与历史控制
 

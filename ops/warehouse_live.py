@@ -323,6 +323,11 @@ def main(argv=None):
     # Parse before selecting/importing a producer tree; importing backend here
     # would pin the wrong source when --source-root selects another release.
     p.add_argument('--mobility',choices=('legacy','wheeled'),default='legacy')
+    p.add_argument('--ray',action='store_true',help='100 Ray motion actors; V5 dispatch/reservations remain central')
+    p.add_argument('--ray-address',default=os.environ.get('RAY_ADDRESS'))
+    p.add_argument('--ray-actor-cpus',type=float,default=0.1)
+    p.add_argument('--robot-graph',action='store_true',help='each Ray actor writes its own robot graph subgraph')
+    p.add_argument('--graph-state-interval',type=int,default=4,help='AgentState cadence per robot actor, 1..300 ticks')
     p.add_argument('--robot-agents',action='store_true')
     p.add_argument('--agent-query-seconds',type=int,default=30)
     p.add_argument('--agent-observation-seconds',type=int,default=30)
@@ -368,6 +373,8 @@ def main(argv=None):
         query_summary_root=(args.summary_root or args.output_root) if args.query_acceleration=='summary' else None,
         query_summary_cache=args.query_summary_cache if args.query_acceleration=='summary' else None,
         query_point_path=args.query_point_file,mobility=args.mobility,max_active_robots=args.max_active_robots,
+        ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,
+        robot_graph=args.robot_graph,graph_state_interval=args.graph_state_interval,
         robot_agents=args.robot_agents,agent_options=dict(query_interval=args.agent_query_seconds,
             observation_interval=args.agent_observation_seconds,timeout=args.agent_timeout,
             startup_timeout=args.agent_startup_timeout))

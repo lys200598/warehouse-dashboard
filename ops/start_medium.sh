@@ -16,6 +16,11 @@ cd "$ROOT"
 
 PORT="${PORT:-14583}"
 DATASET="${DATASET:-medium1728}"
+RAY="${RAY:-0}"
+RAY_ADDRESS="${RAY_ADDRESS:-127.0.0.1:26380}"
+RAY_ACTOR_CPUS="${RAY_ACTOR_CPUS:-0.1}"
+ROBOT_GRAPH="${ROBOT_GRAPH:-0}"
+GRAPH_STATE_INTERVAL="${GRAPH_STATE_INTERVAL:-4}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-$ROOT/data/local-runs}"
 LOG_DIR="$ROOT/logs"
 PID_DIR="$ROOT/.runtime/pids"
@@ -35,7 +40,15 @@ fi
 LOG="$LOG_DIR/medium-$PORT.log"
 PIDFILE="$PID_DIR/medium-$PORT.pid"
 
-echo "Starting medium live console on :$PORT ($DATASET, 120x90 / 48 racks / 2304 slots)..."
+RAY_ARGS=()
+if [ "$RAY" = "1" ]; then
+  RAY_ARGS=(--ray --ray-address "$RAY_ADDRESS" --ray-actor-cpus "$RAY_ACTOR_CPUS")
+  if [ "$ROBOT_GRAPH" = "1" ]; then
+    RAY_ARGS+=(--robot-graph --graph-state-interval "$GRAPH_STATE_INTERVAL")
+  fi
+fi
+
+echo "Starting medium live console on :$PORT ($DATASET, 120x90 / 48 racks / 2304 slots, ray=$RAY)..."
 nohup "$ROOT/run_in_lade.sh" python "$ROOT/ops/warehouse_live.py" \
   --source-root "$ROOT" \
   --dist "$ROOT/dist/medium" \
@@ -46,6 +59,7 @@ nohup "$ROOT/run_in_lade.sh" python "$ROOT/ops/warehouse_live.py" \
   --knowledge-backend journal \
   --mobility wheeled \
   --commit-seconds 5 \
+  "${RAY_ARGS[@]}" \
   --port "$PORT" >"$LOG" 2>&1 &
 PID=$!
 echo "$PID" >"$PIDFILE"

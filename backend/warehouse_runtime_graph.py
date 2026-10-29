@@ -111,6 +111,60 @@ class Neo4jRuntimeGraphWriter:
         except Exception as exc:
             raise RuntimeGraphUnavailable(f"Neo4j runtime graph schema setup failed: {exc}") from exc
 
+    def ensure_run(self, run: dict[str, Any]) -> None:
+        """Create/update the shared Run node once, before robot actor fan-out."""
+        if not self.configured:
+            raise RuntimeGraphUnavailable("WAREHOUSE_NEO4J_PASSWORD is not configured")
+        try:
+            with self._get_driver().session(database=self.database) as session:
+                session.run("MERGE (run:Run {id: $run.id}) SET run += $run", run=run).consume()
+                if self.dataset_id:
+                    session.run(_LINK_RUN_DATASET, run_id=str(run['id']), dataset_id=self.dataset_id).consume()
+        except RuntimeGraphUnavailable:
+            raise
+        except Exception as exc:
+            raise RuntimeGraphUnavailable(f"Neo4j runtime Run setup failed: {exc}") from exc
+
+    def record_robot_snapshot(self, snapshot: dict[str, Any]) -> None:
+        """Persist one robot's subgraph without racing 99 actors on the Run node."""
+        if not self.configured:
+            raise RuntimeGraphUnavailable("WAREHOUSE_NEO4J_PASSWORD is not configured")
+        run_id, tick = str(snapshot["runId"]), int(snapshot["tick"])
+        if run_id != self.last_run_id:
+            self.last_run_id, self.exported_events = run_id, set()
+        driver = self._get_driver()
+        try:
+            with driver.session(database=self.database) as session:
+                if not self.schema_ready:
+                    for query in RUNTIME_SCHEMA:
+                        session.run(query).consume()
+                    self.schema_ready = True
+                event_rows = self._event_rows(snapshot, run_id)
+                write_state = tick % self.state_interval_ticks == 0 or tick == 1
+                robots = self._robot_rows(snapshot, run_id) if write_state else []
+                execution_rows = self._execution_rows(robots, event_rows, tick)
+                if write_state:
+                    session.run(_WRITE_ROBOTS_ONLY, robots=robots).consume()
+                    session.run(_WRITE_AGENT_STATES, run_id=run_id, states=self._state_rows(robots, tick)).consume()
+                if execution_rows:
+                    session.run(_WRITE_EXECUTIONS, run_id=run_id, dataset_id=self.dataset_id, executions=execution_rows).consume()
+                    if self.dataset_id:
+                        session.run(_LINK_EXECUTIONS_TO_TASKS, dataset_id=self.dataset_id, executions=execution_rows).consume()
+                if event_rows:
+                    session.run(_WRITE_EVENTS, run_id=run_id, events=event_rows).consume()
+                    robot_events = [row for row in event_rows if row["robot_node_id"]]
+                    task_events = [row for row in event_rows if row["task_id"]]
+                    if robot_events:
+                        session.run(_LINK_EVENTS_TO_ROBOTS, events=robot_events).consume()
+                    if task_events:
+                        session.run(_LINK_EVENTS_TO_EXECUTIONS, events=task_events).consume()
+                    self._update_execution_statuses(session, event_rows)
+                    self.exported_events.update(row["id"] for row in event_rows)
+        except RuntimeGraphUnavailable:
+            raise
+        except Exception as exc:
+            raise RuntimeGraphUnavailable(f"Neo4j robot graph write failed: {exc}") from exc
+
     def record_snapshot(self, snapshot: dict[str, Any]) -> None:
         """Synchronously persist one snapshot; intended for a background worker."""
         if not self.configured:
@@ -222,6 +276,12 @@ class Neo4jRuntimeGraphWriter:
         return list(rows.values())
 
 
+_WRITE_ROBOTS_ONLY = """
+UNWIND $robots AS row
+MATCH (run:Run {id: row.run_id})
+MERGE (robot:Robot {id: row.id}) SET robot += row
+MERGE (robot)-[:IN_RUN]->(run)
+"""
 _WRITE_RUN_AND_ROBOTS = """
 MERGE (run:Run {id: $run.id}) SET run += $run
 WITH run UNWIND $robots AS row
