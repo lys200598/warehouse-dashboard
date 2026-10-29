@@ -1,0 +1,1556 @@
+{
+  "version": "warehouse-continuous-multiday-v1",
+  "capacity": 1728,
+  "initial_inventory": 864,
+  "minimum_inside": 430,
+  "maximum_inside": 1316,
+  "capacity_checks": 150336,
+  "reference_transitions": 100224,
+  "hourly_inventory": [
+    {
+      "second": 0,
+      "inside": 864,
+      "stored": 864,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 864,
+      "inside_after_all_pending_out_complete": 864
+    },
+    {
+      "second": 3600,
+      "inside": 853,
+      "stored": 817,
+      "inbound_pending": 11,
+      "outbound_pending": 25,
+      "empty": 875,
+      "inside_after_all_pending_out_complete": 828
+    },
+    {
+      "second": 7200,
+      "inside": 848,
+      "stored": 814,
+      "inbound_pending": 18,
+      "outbound_pending": 16,
+      "empty": 880,
+      "inside_after_all_pending_out_complete": 832
+    },
+    {
+      "second": 10800,
+      "inside": 853,
+      "stored": 817,
+      "inbound_pending": 19,
+      "outbound_pending": 17,
+      "empty": 875,
+      "inside_after_all_pending_out_complete": 836
+    },
+    {
+      "second": 14400,
+      "inside": 873,
+      "stored": 838,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 855,
+      "inside_after_all_pending_out_complete": 856
+    },
+    {
+      "second": 18000,
+      "inside": 866,
+      "stored": 832,
+      "inbound_pending": 14,
+      "outbound_pending": 20,
+      "empty": 862,
+      "inside_after_all_pending_out_complete": 846
+    },
+    {
+      "second": 21600,
+      "inside": 866,
+      "stored": 830,
+      "inbound_pending": 18,
+      "outbound_pending": 18,
+      "empty": 862,
+      "inside_after_all_pending_out_complete": 848
+    },
+    {
+      "second": 25200,
+      "inside": 866,
+      "stored": 833,
+      "inbound_pending": 19,
+      "outbound_pending": 14,
+      "empty": 862,
+      "inside_after_all_pending_out_complete": 852
+    },
+    {
+      "second": 28800,
+      "inside": 846,
+      "stored": 811,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 882,
+      "inside_after_all_pending_out_complete": 828
+    },
+    {
+      "second": 32400,
+      "inside": 843,
+      "stored": 808,
+      "inbound_pending": 20,
+      "outbound_pending": 15,
+      "empty": 885,
+      "inside_after_all_pending_out_complete": 828
+    },
+    {
+      "second": 36000,
+      "inside": 827,
+      "stored": 792,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 901,
+      "inside_after_all_pending_out_complete": 810
+    },
+    {
+      "second": 39600,
+      "inside": 840,
+      "stored": 807,
+      "inbound_pending": 17,
+      "outbound_pending": 16,
+      "empty": 888,
+      "inside_after_all_pending_out_complete": 824
+    },
+    {
+      "second": 43200,
+      "inside": 854,
+      "stored": 819,
+      "inbound_pending": 15,
+      "outbound_pending": 20,
+      "empty": 874,
+      "inside_after_all_pending_out_complete": 834
+    },
+    {
+      "second": 46800,
+      "inside": 875,
+      "stored": 838,
+      "inbound_pending": 22,
+      "outbound_pending": 15,
+      "empty": 853,
+      "inside_after_all_pending_out_complete": 860
+    },
+    {
+      "second": 50400,
+      "inside": 882,
+      "stored": 847,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 846,
+      "inside_after_all_pending_out_complete": 864
+    },
+    {
+      "second": 54000,
+      "inside": 885,
+      "stored": 850,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 843,
+      "inside_after_all_pending_out_complete": 868
+    },
+    {
+      "second": 57600,
+      "inside": 863,
+      "stored": 827,
+      "inbound_pending": 19,
+      "outbound_pending": 17,
+      "empty": 865,
+      "inside_after_all_pending_out_complete": 846
+    },
+    {
+      "second": 61200,
+      "inside": 850,
+      "stored": 814,
+      "inbound_pending": 20,
+      "outbound_pending": 16,
+      "empty": 878,
+      "inside_after_all_pending_out_complete": 834
+    },
+    {
+      "second": 64800,
+      "inside": 864,
+      "stored": 831,
+      "inbound_pending": 19,
+      "outbound_pending": 14,
+      "empty": 864,
+      "inside_after_all_pending_out_complete": 850
+    },
+    {
+      "second": 68400,
+      "inside": 855,
+      "stored": 819,
+      "inbound_pending": 17,
+      "outbound_pending": 19,
+      "empty": 873,
+      "inside_after_all_pending_out_complete": 836
+    },
+    {
+      "second": 72000,
+      "inside": 854,
+      "stored": 818,
+      "inbound_pending": 16,
+      "outbound_pending": 20,
+      "empty": 874,
+      "inside_after_all_pending_out_complete": 834
+    },
+    {
+      "second": 75600,
+      "inside": 872,
+      "stored": 837,
+      "inbound_pending": 19,
+      "outbound_pending": 16,
+      "empty": 856,
+      "inside_after_all_pending_out_complete": 856
+    },
+    {
+      "second": 79200,
+      "inside": 880,
+      "stored": 846,
+      "inbound_pending": 22,
+      "outbound_pending": 12,
+      "empty": 848,
+      "inside_after_all_pending_out_complete": 868
+    },
+    {
+      "second": 82800,
+      "inside": 884,
+      "stored": 849,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 844,
+      "inside_after_all_pending_out_complete": 866
+    },
+    {
+      "second": 86400,
+      "inside": 890,
+      "stored": 852,
+      "inbound_pending": 18,
+      "outbound_pending": 20,
+      "empty": 838,
+      "inside_after_all_pending_out_complete": 870
+    },
+    {
+      "second": 90000,
+      "inside": 881,
+      "stored": 872,
+      "inbound_pending": 3,
+      "outbound_pending": 6,
+      "empty": 847,
+      "inside_after_all_pending_out_complete": 875
+    },
+    {
+      "second": 93600,
+      "inside": 887,
+      "stored": 879,
+      "inbound_pending": 4,
+      "outbound_pending": 4,
+      "empty": 841,
+      "inside_after_all_pending_out_complete": 883
+    },
+    {
+      "second": 97200,
+      "inside": 875,
+      "stored": 867,
+      "inbound_pending": 3,
+      "outbound_pending": 5,
+      "empty": 853,
+      "inside_after_all_pending_out_complete": 870
+    },
+    {
+      "second": 100800,
+      "inside": 869,
+      "stored": 860,
+      "inbound_pending": 3,
+      "outbound_pending": 6,
+      "empty": 859,
+      "inside_after_all_pending_out_complete": 863
+    },
+    {
+      "second": 104400,
+      "inside": 877,
+      "stored": 868,
+      "inbound_pending": 2,
+      "outbound_pending": 7,
+      "empty": 851,
+      "inside_after_all_pending_out_complete": 870
+    },
+    {
+      "second": 108000,
+      "inside": 870,
+      "stored": 861,
+      "inbound_pending": 3,
+      "outbound_pending": 6,
+      "empty": 858,
+      "inside_after_all_pending_out_complete": 864
+    },
+    {
+      "second": 111600,
+      "inside": 877,
+      "stored": 867,
+      "inbound_pending": 5,
+      "outbound_pending": 5,
+      "empty": 851,
+      "inside_after_all_pending_out_complete": 872
+    },
+    {
+      "second": 115200,
+      "inside": 872,
+      "stored": 862,
+      "inbound_pending": 4,
+      "outbound_pending": 6,
+      "empty": 856,
+      "inside_after_all_pending_out_complete": 866
+    },
+    {
+      "second": 118800,
+      "inside": 959,
+      "stored": 846,
+      "inbound_pending": 54,
+      "outbound_pending": 59,
+      "empty": 769,
+      "inside_after_all_pending_out_complete": 900
+    },
+    {
+      "second": 122400,
+      "inside": 952,
+      "stored": 841,
+      "inbound_pending": 57,
+      "outbound_pending": 54,
+      "empty": 776,
+      "inside_after_all_pending_out_complete": 898
+    },
+    {
+      "second": 126000,
+      "inside": 901,
+      "stored": 892,
+      "inbound_pending": 2,
+      "outbound_pending": 7,
+      "empty": 827,
+      "inside_after_all_pending_out_complete": 894
+    },
+    {
+      "second": 129600,
+      "inside": 901,
+      "stored": 891,
+      "inbound_pending": 5,
+      "outbound_pending": 5,
+      "empty": 827,
+      "inside_after_all_pending_out_complete": 896
+    },
+    {
+      "second": 133200,
+      "inside": 905,
+      "stored": 897,
+      "inbound_pending": 5,
+      "outbound_pending": 3,
+      "empty": 823,
+      "inside_after_all_pending_out_complete": 902
+    },
+    {
+      "second": 136800,
+      "inside": 908,
+      "stored": 898,
+      "inbound_pending": 5,
+      "outbound_pending": 5,
+      "empty": 820,
+      "inside_after_all_pending_out_complete": 903
+    },
+    {
+      "second": 140400,
+      "inside": 993,
+      "stored": 881,
+      "inbound_pending": 55,
+      "outbound_pending": 57,
+      "empty": 735,
+      "inside_after_all_pending_out_complete": 936
+    },
+    {
+      "second": 144000,
+      "inside": 939,
+      "stored": 825,
+      "inbound_pending": 51,
+      "outbound_pending": 63,
+      "empty": 789,
+      "inside_after_all_pending_out_complete": 876
+    },
+    {
+      "second": 147600,
+      "inside": 882,
+      "stored": 873,
+      "inbound_pending": 7,
+      "outbound_pending": 2,
+      "empty": 846,
+      "inside_after_all_pending_out_complete": 880
+    },
+    {
+      "second": 151200,
+      "inside": 889,
+      "stored": 879,
+      "inbound_pending": 7,
+      "outbound_pending": 3,
+      "empty": 839,
+      "inside_after_all_pending_out_complete": 886
+    },
+    {
+      "second": 154800,
+      "inside": 892,
+      "stored": 883,
+      "inbound_pending": 5,
+      "outbound_pending": 4,
+      "empty": 836,
+      "inside_after_all_pending_out_complete": 888
+    },
+    {
+      "second": 158400,
+      "inside": 906,
+      "stored": 897,
+      "inbound_pending": 4,
+      "outbound_pending": 5,
+      "empty": 822,
+      "inside_after_all_pending_out_complete": 901
+    },
+    {
+      "second": 162000,
+      "inside": 933,
+      "stored": 823,
+      "inbound_pending": 53,
+      "outbound_pending": 57,
+      "empty": 795,
+      "inside_after_all_pending_out_complete": 876
+    },
+    {
+      "second": 165600,
+      "inside": 913,
+      "stored": 800,
+      "inbound_pending": 54,
+      "outbound_pending": 59,
+      "empty": 815,
+      "inside_after_all_pending_out_complete": 854
+    },
+    {
+      "second": 169200,
+      "inside": 857,
+      "stored": 847,
+      "inbound_pending": 6,
+      "outbound_pending": 4,
+      "empty": 871,
+      "inside_after_all_pending_out_complete": 853
+    },
+    {
+      "second": 172800,
+      "inside": 856,
+      "stored": 847,
+      "inbound_pending": 5,
+      "outbound_pending": 4,
+      "empty": 872,
+      "inside_after_all_pending_out_complete": 852
+    },
+    {
+      "second": 176400,
+      "inside": 861,
+      "stored": 826,
+      "inbound_pending": 16,
+      "outbound_pending": 19,
+      "empty": 867,
+      "inside_after_all_pending_out_complete": 842
+    },
+    {
+      "second": 180000,
+      "inside": 864,
+      "stored": 829,
+      "inbound_pending": 15,
+      "outbound_pending": 20,
+      "empty": 864,
+      "inside_after_all_pending_out_complete": 844
+    },
+    {
+      "second": 183600,
+      "inside": 864,
+      "stored": 827,
+      "inbound_pending": 19,
+      "outbound_pending": 18,
+      "empty": 864,
+      "inside_after_all_pending_out_complete": 846
+    },
+    {
+      "second": 187200,
+      "inside": 847,
+      "stored": 809,
+      "inbound_pending": 15,
+      "outbound_pending": 23,
+      "empty": 881,
+      "inside_after_all_pending_out_complete": 824
+    },
+    {
+      "second": 190800,
+      "inside": 853,
+      "stored": 817,
+      "inbound_pending": 15,
+      "outbound_pending": 21,
+      "empty": 875,
+      "inside_after_all_pending_out_complete": 832
+    },
+    {
+      "second": 194400,
+      "inside": 851,
+      "stored": 815,
+      "inbound_pending": 21,
+      "outbound_pending": 15,
+      "empty": 877,
+      "inside_after_all_pending_out_complete": 836
+    },
+    {
+      "second": 198000,
+      "inside": 874,
+      "stored": 840,
+      "inbound_pending": 20,
+      "outbound_pending": 14,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 860
+    },
+    {
+      "second": 201600,
+      "inside": 862,
+      "stored": 826,
+      "inbound_pending": 14,
+      "outbound_pending": 22,
+      "empty": 866,
+      "inside_after_all_pending_out_complete": 840
+    },
+    {
+      "second": 205200,
+      "inside": 869,
+      "stored": 834,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 859,
+      "inside_after_all_pending_out_complete": 852
+    },
+    {
+      "second": 208800,
+      "inside": 878,
+      "stored": 843,
+      "inbound_pending": 19,
+      "outbound_pending": 16,
+      "empty": 850,
+      "inside_after_all_pending_out_complete": 862
+    },
+    {
+      "second": 212400,
+      "inside": 894,
+      "stored": 859,
+      "inbound_pending": 21,
+      "outbound_pending": 14,
+      "empty": 834,
+      "inside_after_all_pending_out_complete": 880
+    },
+    {
+      "second": 216000,
+      "inside": 916,
+      "stored": 880,
+      "inbound_pending": 20,
+      "outbound_pending": 16,
+      "empty": 812,
+      "inside_after_all_pending_out_complete": 900
+    },
+    {
+      "second": 219600,
+      "inside": 891,
+      "stored": 856,
+      "inbound_pending": 12,
+      "outbound_pending": 23,
+      "empty": 837,
+      "inside_after_all_pending_out_complete": 868
+    },
+    {
+      "second": 223200,
+      "inside": 892,
+      "stored": 858,
+      "inbound_pending": 18,
+      "outbound_pending": 16,
+      "empty": 836,
+      "inside_after_all_pending_out_complete": 876
+    },
+    {
+      "second": 226800,
+      "inside": 882,
+      "stored": 846,
+      "inbound_pending": 16,
+      "outbound_pending": 20,
+      "empty": 846,
+      "inside_after_all_pending_out_complete": 862
+    },
+    {
+      "second": 230400,
+      "inside": 889,
+      "stored": 854,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 839,
+      "inside_after_all_pending_out_complete": 872
+    },
+    {
+      "second": 234000,
+      "inside": 874,
+      "stored": 840,
+      "inbound_pending": 14,
+      "outbound_pending": 20,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 854
+    },
+    {
+      "second": 237600,
+      "inside": 881,
+      "stored": 848,
+      "inbound_pending": 14,
+      "outbound_pending": 19,
+      "empty": 847,
+      "inside_after_all_pending_out_complete": 862
+    },
+    {
+      "second": 241200,
+      "inside": 854,
+      "stored": 820,
+      "inbound_pending": 16,
+      "outbound_pending": 18,
+      "empty": 874,
+      "inside_after_all_pending_out_complete": 836
+    },
+    {
+      "second": 244800,
+      "inside": 841,
+      "stored": 807,
+      "inbound_pending": 15,
+      "outbound_pending": 19,
+      "empty": 887,
+      "inside_after_all_pending_out_complete": 822
+    },
+    {
+      "second": 248400,
+      "inside": 858,
+      "stored": 823,
+      "inbound_pending": 19,
+      "outbound_pending": 16,
+      "empty": 870,
+      "inside_after_all_pending_out_complete": 842
+    },
+    {
+      "second": 252000,
+      "inside": 889,
+      "stored": 854,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 839,
+      "inside_after_all_pending_out_complete": 872
+    },
+    {
+      "second": 255600,
+      "inside": 905,
+      "stored": 870,
+      "inbound_pending": 18,
+      "outbound_pending": 17,
+      "empty": 823,
+      "inside_after_all_pending_out_complete": 888
+    },
+    {
+      "second": 259200,
+      "inside": 898,
+      "stored": 862,
+      "inbound_pending": 12,
+      "outbound_pending": 24,
+      "empty": 830,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 262800,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 266400,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 270000,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 273600,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 277200,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 280800,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 284400,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 288000,
+      "inside": 874,
+      "stored": 874,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 854,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 291600,
+      "inside": 987,
+      "stored": 875,
+      "inbound_pending": 57,
+      "outbound_pending": 55,
+      "empty": 741,
+      "inside_after_all_pending_out_complete": 932
+    },
+    {
+      "second": 295200,
+      "inside": 1012,
+      "stored": 905,
+      "inbound_pending": 53,
+      "outbound_pending": 54,
+      "empty": 716,
+      "inside_after_all_pending_out_complete": 958
+    },
+    {
+      "second": 298800,
+      "inside": 958,
+      "stored": 958,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 770,
+      "inside_after_all_pending_out_complete": 958
+    },
+    {
+      "second": 302400,
+      "inside": 958,
+      "stored": 958,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 770,
+      "inside_after_all_pending_out_complete": 958
+    },
+    {
+      "second": 306000,
+      "inside": 958,
+      "stored": 958,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 770,
+      "inside_after_all_pending_out_complete": 958
+    },
+    {
+      "second": 309600,
+      "inside": 958,
+      "stored": 958,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 770,
+      "inside_after_all_pending_out_complete": 958
+    },
+    {
+      "second": 313200,
+      "inside": 1003,
+      "stored": 889,
+      "inbound_pending": 59,
+      "outbound_pending": 55,
+      "empty": 725,
+      "inside_after_all_pending_out_complete": 948
+    },
+    {
+      "second": 316800,
+      "inside": 1002,
+      "stored": 891,
+      "inbound_pending": 57,
+      "outbound_pending": 54,
+      "empty": 726,
+      "inside_after_all_pending_out_complete": 948
+    },
+    {
+      "second": 320400,
+      "inside": 948,
+      "stored": 948,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 780,
+      "inside_after_all_pending_out_complete": 948
+    },
+    {
+      "second": 324000,
+      "inside": 948,
+      "stored": 948,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 780,
+      "inside_after_all_pending_out_complete": 948
+    },
+    {
+      "second": 327600,
+      "inside": 948,
+      "stored": 948,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 780,
+      "inside_after_all_pending_out_complete": 948
+    },
+    {
+      "second": 331200,
+      "inside": 948,
+      "stored": 948,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 780,
+      "inside_after_all_pending_out_complete": 948
+    },
+    {
+      "second": 334800,
+      "inside": 1009,
+      "stored": 898,
+      "inbound_pending": 54,
+      "outbound_pending": 57,
+      "empty": 719,
+      "inside_after_all_pending_out_complete": 952
+    },
+    {
+      "second": 338400,
+      "inside": 1010,
+      "stored": 899,
+      "inbound_pending": 63,
+      "outbound_pending": 48,
+      "empty": 718,
+      "inside_after_all_pending_out_complete": 962
+    },
+    {
+      "second": 342000,
+      "inside": 962,
+      "stored": 962,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 766,
+      "inside_after_all_pending_out_complete": 962
+    },
+    {
+      "second": 345600,
+      "inside": 962,
+      "stored": 962,
+      "inbound_pending": 0,
+      "outbound_pending": 0,
+      "empty": 766,
+      "inside_after_all_pending_out_complete": 962
+    },
+    {
+      "second": 349200,
+      "inside": 1014,
+      "stored": 977,
+      "inbound_pending": 25,
+      "outbound_pending": 12,
+      "empty": 714,
+      "inside_after_all_pending_out_complete": 1002
+    },
+    {
+      "second": 352800,
+      "inside": 1020,
+      "stored": 985,
+      "inbound_pending": 15,
+      "outbound_pending": 20,
+      "empty": 708,
+      "inside_after_all_pending_out_complete": 1000
+    },
+    {
+      "second": 356400,
+      "inside": 1068,
+      "stored": 1032,
+      "inbound_pending": 20,
+      "outbound_pending": 16,
+      "empty": 660,
+      "inside_after_all_pending_out_complete": 1052
+    },
+    {
+      "second": 360000,
+      "inside": 1055,
+      "stored": 1020,
+      "inbound_pending": 16,
+      "outbound_pending": 19,
+      "empty": 673,
+      "inside_after_all_pending_out_complete": 1036
+    },
+    {
+      "second": 363600,
+      "inside": 1061,
+      "stored": 1027,
+      "inbound_pending": 21,
+      "outbound_pending": 13,
+      "empty": 667,
+      "inside_after_all_pending_out_complete": 1048
+    },
+    {
+      "second": 367200,
+      "inside": 1102,
+      "stored": 1068,
+      "inbound_pending": 12,
+      "outbound_pending": 22,
+      "empty": 626,
+      "inside_after_all_pending_out_complete": 1080
+    },
+    {
+      "second": 370800,
+      "inside": 1108,
+      "stored": 1073,
+      "inbound_pending": 23,
+      "outbound_pending": 12,
+      "empty": 620,
+      "inside_after_all_pending_out_complete": 1096
+    },
+    {
+      "second": 374400,
+      "inside": 1122,
+      "stored": 1087,
+      "inbound_pending": 19,
+      "outbound_pending": 16,
+      "empty": 606,
+      "inside_after_all_pending_out_complete": 1106
+    },
+    {
+      "second": 378000,
+      "inside": 1131,
+      "stored": 1094,
+      "inbound_pending": 12,
+      "outbound_pending": 25,
+      "empty": 597,
+      "inside_after_all_pending_out_complete": 1106
+    },
+    {
+      "second": 381600,
+      "inside": 1130,
+      "stored": 1095,
+      "inbound_pending": 19,
+      "outbound_pending": 16,
+      "empty": 598,
+      "inside_after_all_pending_out_complete": 1114
+    },
+    {
+      "second": 385200,
+      "inside": 1120,
+      "stored": 1086,
+      "inbound_pending": 22,
+      "outbound_pending": 12,
+      "empty": 608,
+      "inside_after_all_pending_out_complete": 1108
+    },
+    {
+      "second": 388800,
+      "inside": 1145,
+      "stored": 1111,
+      "inbound_pending": 19,
+      "outbound_pending": 15,
+      "empty": 583,
+      "inside_after_all_pending_out_complete": 1130
+    },
+    {
+      "second": 392400,
+      "inside": 1153,
+      "stored": 1118,
+      "inbound_pending": 20,
+      "outbound_pending": 15,
+      "empty": 575,
+      "inside_after_all_pending_out_complete": 1138
+    },
+    {
+      "second": 396000,
+      "inside": 1161,
+      "stored": 1127,
+      "inbound_pending": 21,
+      "outbound_pending": 13,
+      "empty": 567,
+      "inside_after_all_pending_out_complete": 1148
+    },
+    {
+      "second": 399600,
+      "inside": 1177,
+      "stored": 1141,
+      "inbound_pending": 17,
+      "outbound_pending": 19,
+      "empty": 551,
+      "inside_after_all_pending_out_complete": 1158
+    },
+    {
+      "second": 403200,
+      "inside": 1176,
+      "stored": 1142,
+      "inbound_pending": 18,
+      "outbound_pending": 16,
+      "empty": 552,
+      "inside_after_all_pending_out_complete": 1160
+    },
+    {
+      "second": 406800,
+      "inside": 1131,
+      "stored": 1096,
+      "inbound_pending": 14,
+      "outbound_pending": 21,
+      "empty": 597,
+      "inside_after_all_pending_out_complete": 1110
+    },
+    {
+      "second": 410400,
+      "inside": 1132,
+      "stored": 1097,
+      "inbound_pending": 19,
+      "outbound_pending": 16,
+      "empty": 596,
+      "inside_after_all_pending_out_complete": 1116
+    },
+    {
+      "second": 414000,
+      "inside": 1114,
+      "stored": 1077,
+      "inbound_pending": 15,
+      "outbound_pending": 22,
+      "empty": 614,
+      "inside_after_all_pending_out_complete": 1092
+    },
+    {
+      "second": 417600,
+      "inside": 1088,
+      "stored": 1054,
+      "inbound_pending": 18,
+      "outbound_pending": 16,
+      "empty": 640,
+      "inside_after_all_pending_out_complete": 1072
+    },
+    {
+      "second": 421200,
+      "inside": 1066,
+      "stored": 1030,
+      "inbound_pending": 14,
+      "outbound_pending": 22,
+      "empty": 662,
+      "inside_after_all_pending_out_complete": 1044
+    },
+    {
+      "second": 424800,
+      "inside": 1053,
+      "stored": 1019,
+      "inbound_pending": 19,
+      "outbound_pending": 15,
+      "empty": 675,
+      "inside_after_all_pending_out_complete": 1038
+    },
+    {
+      "second": 428400,
+      "inside": 1054,
+      "stored": 1019,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 674,
+      "inside_after_all_pending_out_complete": 1036
+    },
+    {
+      "second": 432000,
+      "inside": 1034,
+      "stored": 999,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 694,
+      "inside_after_all_pending_out_complete": 1016
+    },
+    {
+      "second": 435600,
+      "inside": 836,
+      "stored": 799,
+      "inbound_pending": 3,
+      "outbound_pending": 34,
+      "empty": 892,
+      "inside_after_all_pending_out_complete": 802
+    },
+    {
+      "second": 439200,
+      "inside": 637,
+      "stored": 602,
+      "inbound_pending": 4,
+      "outbound_pending": 31,
+      "empty": 1091,
+      "inside_after_all_pending_out_complete": 606
+    },
+    {
+      "second": 442800,
+      "inside": 509,
+      "stored": 473,
+      "inbound_pending": 11,
+      "outbound_pending": 25,
+      "empty": 1219,
+      "inside_after_all_pending_out_complete": 484
+    },
+    {
+      "second": 446400,
+      "inside": 470,
+      "stored": 434,
+      "inbound_pending": 20,
+      "outbound_pending": 16,
+      "empty": 1258,
+      "inside_after_all_pending_out_complete": 454
+    },
+    {
+      "second": 450000,
+      "inside": 446,
+      "stored": 409,
+      "inbound_pending": 21,
+      "outbound_pending": 16,
+      "empty": 1282,
+      "inside_after_all_pending_out_complete": 430
+    },
+    {
+      "second": 453600,
+      "inside": 448,
+      "stored": 413,
+      "inbound_pending": 13,
+      "outbound_pending": 22,
+      "empty": 1280,
+      "inside_after_all_pending_out_complete": 426
+    },
+    {
+      "second": 457200,
+      "inside": 434,
+      "stored": 399,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 1294,
+      "inside_after_all_pending_out_complete": 416
+    },
+    {
+      "second": 460800,
+      "inside": 442,
+      "stored": 409,
+      "inbound_pending": 17,
+      "outbound_pending": 16,
+      "empty": 1286,
+      "inside_after_all_pending_out_complete": 426
+    },
+    {
+      "second": 464400,
+      "inside": 624,
+      "stored": 589,
+      "inbound_pending": 27,
+      "outbound_pending": 8,
+      "empty": 1104,
+      "inside_after_all_pending_out_complete": 616
+    },
+    {
+      "second": 468000,
+      "inside": 827,
+      "stored": 792,
+      "inbound_pending": 26,
+      "outbound_pending": 9,
+      "empty": 901,
+      "inside_after_all_pending_out_complete": 818
+    },
+    {
+      "second": 471600,
+      "inside": 1041,
+      "stored": 1004,
+      "inbound_pending": 32,
+      "outbound_pending": 5,
+      "empty": 687,
+      "inside_after_all_pending_out_complete": 1036
+    },
+    {
+      "second": 475200,
+      "inside": 1217,
+      "stored": 1181,
+      "inbound_pending": 23,
+      "outbound_pending": 13,
+      "empty": 511,
+      "inside_after_all_pending_out_complete": 1204
+    },
+    {
+      "second": 478800,
+      "inside": 1283,
+      "stored": 1248,
+      "inbound_pending": 16,
+      "outbound_pending": 19,
+      "empty": 445,
+      "inside_after_all_pending_out_complete": 1264
+    },
+    {
+      "second": 482400,
+      "inside": 1303,
+      "stored": 1267,
+      "inbound_pending": 23,
+      "outbound_pending": 13,
+      "empty": 425,
+      "inside_after_all_pending_out_complete": 1290
+    },
+    {
+      "second": 486000,
+      "inside": 1301,
+      "stored": 1264,
+      "inbound_pending": 20,
+      "outbound_pending": 17,
+      "empty": 427,
+      "inside_after_all_pending_out_complete": 1284
+    },
+    {
+      "second": 489600,
+      "inside": 1314,
+      "stored": 1279,
+      "inbound_pending": 25,
+      "outbound_pending": 10,
+      "empty": 414,
+      "inside_after_all_pending_out_complete": 1304
+    },
+    {
+      "second": 493200,
+      "inside": 1121,
+      "stored": 1086,
+      "inbound_pending": 6,
+      "outbound_pending": 29,
+      "empty": 607,
+      "inside_after_all_pending_out_complete": 1092
+    },
+    {
+      "second": 496800,
+      "inside": 955,
+      "stored": 920,
+      "inbound_pending": 10,
+      "outbound_pending": 25,
+      "empty": 773,
+      "inside_after_all_pending_out_complete": 930
+    },
+    {
+      "second": 500400,
+      "inside": 903,
+      "stored": 870,
+      "inbound_pending": 18,
+      "outbound_pending": 15,
+      "empty": 825,
+      "inside_after_all_pending_out_complete": 888
+    },
+    {
+      "second": 504000,
+      "inside": 912,
+      "stored": 878,
+      "inbound_pending": 14,
+      "outbound_pending": 20,
+      "empty": 816,
+      "inside_after_all_pending_out_complete": 892
+    },
+    {
+      "second": 507600,
+      "inside": 891,
+      "stored": 858,
+      "inbound_pending": 14,
+      "outbound_pending": 19,
+      "empty": 837,
+      "inside_after_all_pending_out_complete": 872
+    },
+    {
+      "second": 511200,
+      "inside": 892,
+      "stored": 857,
+      "inbound_pending": 17,
+      "outbound_pending": 18,
+      "empty": 836,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 514800,
+      "inside": 886,
+      "stored": 851,
+      "inbound_pending": 25,
+      "outbound_pending": 10,
+      "empty": 842,
+      "inside_after_all_pending_out_complete": 876
+    },
+    {
+      "second": 518400,
+      "inside": 890,
+      "stored": 856,
+      "inbound_pending": 18,
+      "outbound_pending": 16,
+      "empty": 838,
+      "inside_after_all_pending_out_complete": 874
+    },
+    {
+      "second": 522000,
+      "inside": 860,
+      "stored": 833,
+      "inbound_pending": 13,
+      "outbound_pending": 14,
+      "empty": 868,
+      "inside_after_all_pending_out_complete": 846
+    },
+    {
+      "second": 525600,
+      "inside": 872,
+      "stored": 846,
+      "inbound_pending": 10,
+      "outbound_pending": 16,
+      "empty": 856,
+      "inside_after_all_pending_out_complete": 856
+    },
+    {
+      "second": 529200,
+      "inside": 867,
+      "stored": 843,
+      "inbound_pending": 11,
+      "outbound_pending": 13,
+      "empty": 861,
+      "inside_after_all_pending_out_complete": 854
+    },
+    {
+      "second": 532800,
+      "inside": 844,
+      "stored": 817,
+      "inbound_pending": 11,
+      "outbound_pending": 16,
+      "empty": 884,
+      "inside_after_all_pending_out_complete": 828
+    },
+    {
+      "second": 536400,
+      "inside": 846,
+      "stored": 819,
+      "inbound_pending": 13,
+      "outbound_pending": 14,
+      "empty": 882,
+      "inside_after_all_pending_out_complete": 832
+    },
+    {
+      "second": 540000,
+      "inside": 851,
+      "stored": 826,
+      "inbound_pending": 10,
+      "outbound_pending": 15,
+      "empty": 877,
+      "inside_after_all_pending_out_complete": 836
+    },
+    {
+      "second": 543600,
+      "inside": 890,
+      "stored": 768,
+      "inbound_pending": 54,
+      "outbound_pending": 68,
+      "empty": 838,
+      "inside_after_all_pending_out_complete": 822
+    },
+    {
+      "second": 547200,
+      "inside": 888,
+      "stored": 767,
+      "inbound_pending": 71,
+      "outbound_pending": 50,
+      "empty": 840,
+      "inside_after_all_pending_out_complete": 838
+    },
+    {
+      "second": 550800,
+      "inside": 904,
+      "stored": 781,
+      "inbound_pending": 73,
+      "outbound_pending": 50,
+      "empty": 824,
+      "inside_after_all_pending_out_complete": 854
+    },
+    {
+      "second": 554400,
+      "inside": 886,
+      "stored": 763,
+      "inbound_pending": 59,
+      "outbound_pending": 64,
+      "empty": 842,
+      "inside_after_all_pending_out_complete": 822
+    },
+    {
+      "second": 558000,
+      "inside": 872,
+      "stored": 745,
+      "inbound_pending": 55,
+      "outbound_pending": 72,
+      "empty": 856,
+      "inside_after_all_pending_out_complete": 800
+    },
+    {
+      "second": 561600,
+      "inside": 804,
+      "stored": 684,
+      "inbound_pending": 56,
+      "outbound_pending": 64,
+      "empty": 924,
+      "inside_after_all_pending_out_complete": 740
+    },
+    {
+      "second": 565200,
+      "inside": 742,
+      "stored": 734,
+      "inbound_pending": 4,
+      "outbound_pending": 4,
+      "empty": 986,
+      "inside_after_all_pending_out_complete": 738
+    },
+    {
+      "second": 568800,
+      "inside": 731,
+      "stored": 722,
+      "inbound_pending": 2,
+      "outbound_pending": 7,
+      "empty": 997,
+      "inside_after_all_pending_out_complete": 724
+    },
+    {
+      "second": 572400,
+      "inside": 730,
+      "stored": 721,
+      "inbound_pending": 3,
+      "outbound_pending": 6,
+      "empty": 998,
+      "inside_after_all_pending_out_complete": 724
+    },
+    {
+      "second": 576000,
+      "inside": 737,
+      "stored": 728,
+      "inbound_pending": 4,
+      "outbound_pending": 5,
+      "empty": 991,
+      "inside_after_all_pending_out_complete": 732
+    },
+    {
+      "second": 579600,
+      "inside": 743,
+      "stored": 734,
+      "inbound_pending": 6,
+      "outbound_pending": 3,
+      "empty": 985,
+      "inside_after_all_pending_out_complete": 740
+    },
+    {
+      "second": 583200,
+      "inside": 760,
+      "stored": 751,
+      "inbound_pending": 5,
+      "outbound_pending": 4,
+      "empty": 968,
+      "inside_after_all_pending_out_complete": 756
+    },
+    {
+      "second": 586800,
+      "inside": 754,
+      "stored": 737,
+      "inbound_pending": 11,
+      "outbound_pending": 6,
+      "empty": 974,
+      "inside_after_all_pending_out_complete": 748
+    },
+    {
+      "second": 590400,
+      "inside": 762,
+      "stored": 743,
+      "inbound_pending": 11,
+      "outbound_pending": 8,
+      "empty": 966,
+      "inside_after_all_pending_out_complete": 754
+    },
+    {
+      "second": 594000,
+      "inside": 763,
+      "stored": 746,
+      "inbound_pending": 12,
+      "outbound_pending": 5,
+      "empty": 965,
+      "inside_after_all_pending_out_complete": 758
+    },
+    {
+      "second": 597600,
+      "inside": 764,
+      "stored": 747,
+      "inbound_pending": 5,
+      "outbound_pending": 12,
+      "empty": 964,
+      "inside_after_all_pending_out_complete": 752
+    },
+    {
+      "second": 601200,
+      "inside": 765,
+      "stored": 749,
+      "inbound_pending": 9,
+      "outbound_pending": 7,
+      "empty": 963,
+      "inside_after_all_pending_out_complete": 758
+    },
+    {
+      "second": 604800,
+      "inside": 767,
+      "stored": 751,
+      "inbound_pending": 7,
+      "outbound_pending": 9,
+      "empty": 961,
+      "inside_after_all_pending_out_complete": 758
+    }
+  ],
+  "reference_received_total": 25003,
+  "reference_shipped_total": 25109,
+  "inventory_at_horizon": {
+    "inside": 767,
+    "stored": 751,
+    "inbound_pending": 7,
+    "outbound_pending": 9,
+    "empty": 961,
+    "inside_after_all_pending_out_complete": 758
+  },
+  "inventory_after_reference_drain": {
+    "inside": 758,
+    "stored": 758,
+    "inbound_pending": 0,
+    "outbound_pending": 0,
+    "empty": 970,
+    "inside_after_all_pending_out_complete": 758
+  },
+  "reference_drain_second": 606593,
+  "minimum_observed_same_slot_release_gap": 1800,
+  "counting": "IN counted at reference receipt/release; OUT capacity released at reference completion",
+  "slot_rule": "one cargo/reservation per slot; next release after reference completion and declared turnaround",
+  "reference_capacity_conserved": true,
+  "runtime_feasibility_claim": false
+}
