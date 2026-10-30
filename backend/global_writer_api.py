@@ -6,6 +6,11 @@ never blocks the simulation tick.
 """
 from __future__ import annotations
 
+try:  # FastAPI resolves postponed annotations from module globals
+    from fastapi import Request
+except ImportError:  # the writer core stays importable without FastAPI
+    Request = None
+
 import argparse
 import json
 import os
@@ -111,7 +116,7 @@ class RecordQueue:
 
 
 def create_app(writer: GlobalWriter, *, queue_size: int = 256):
-    from fastapi import FastAPI, Request
+    from fastapi import FastAPI
     from fastapi.responses import JSONResponse
 
     records = RecordQueue(writer, queue_size)
