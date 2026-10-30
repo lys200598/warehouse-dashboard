@@ -77,3 +77,30 @@
   3. 前端从 `dist/medium` 迁移到统一 `dist/live.html`，kg.html 只保留一份；
   4. 以协作者的 `dispatch-golden` 为回归基准，验证全局 writer 和 Ray 运动拆分不改变调度结果。
 - 当前 4173 的 global writer/DispatchState 已验证；协作者分支还没有这些能力，因此合并时不能假设目标分支已包含当前最新提交。
+
+## 合并结果
+
+已创建并落地集成分支：
+
+```text
+branch: integration/lys-wz-261030
+merge:  393a397
+base:   wz/integration-on-lys e30af3a
+ours:   dev_lys_261030 2956e3e
+```
+
+冲突与处理：
+
+- `README.md`：保留协作者的当前/历史说明，并补 120 单一基准；
+- `dist/medium/kg.html`：协作者已删除 `dist/medium`，按统一前端删除该文件；
+- `ops/warehouse_live_runtime.py`：保留协作者的 live motion/catch-up/persist timing，同时保留我们的 global writer、`_record_global` 和 `_persist` 事件传递；
+- `dist/kg.html`：保留我们的全局面板，合并后统一前端仍可访问；
+- 启动脚本统一使用 `dist`。
+
+验证：
+
+- 26 项相关测试通过（global writer、live runtime、dispatch golden、medium、graph query）。
+- `test_warehouse_live_http.py` 因当前 venv 缺 `httpx2` 未跑通，属于依赖问题。
+- 合并后启动 14584 验证：统一 live 页面 200、kg.html 200、global writer errors=0、RunStat/Assist/DispatchState API 正常。
+- 4173 已用合并后的代码启动：120 medium、Ray motion actors、robot graph、global writer、DispatchState 同时工作。
+
