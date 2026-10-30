@@ -1,0 +1,343 @@
+{
+  "core_commit": "f8da3e10e33e41b1f7bdf7759d94551975034bf1",
+  "wiring_commit": "3ca75b4ee6e753aa19937e7173d2fceeac9d6890",
+  "published_point_fix": "b62c2ca",
+  "regression": {
+    "total": 127,
+    "passed": 125,
+    "known_error": 1,
+    "skipped": 1
+  },
+  "goldens": {
+    "mode": "memory dispatch + bounded asynchronous robot graph writes",
+    "scenarios": {
+      "ordinary": {
+        "scenario": "ordinary",
+        "ticks": 1780,
+        "wall_s": 1066.0489408411086,
+        "mean_ms": {
+          "advance_ms": 42.13685539727502,
+          "write_ms": 0.0,
+          "wait_step_ms": 0.0,
+          "read_ms": 0.0,
+          "dispatch_ms": 2.291257703125041,
+          "backpressure_ms": 537.9406252384873,
+          "total_ms": 593.8374892975496
+        },
+        "step": {
+          "latest": 1780,
+          "count": 1781,
+          "receipts": 100
+        },
+        "owners": [],
+        "robot_fields": 19,
+        "step_audit": {
+          "complete_steps": 1781,
+          "missing_steps": 0,
+          "invalid_steps": 0,
+          "receipt_ids_per_step": 100
+        },
+        "kg_state_source": "memory",
+        "robot_graph_async": true,
+        "graph_backpressure": {
+          "pending": 0,
+          "max_pending": 8,
+          "limit": 8,
+          "confirmed_tick": 1780,
+          "pause_count": 222,
+          "pause_seconds": 955.5599274011329,
+          "waiting": false,
+          "error": null
+        },
+        "run_id": "wz-test-kg-af94168d3bae",
+        "worker_phases": {
+          "write_ms": {
+            "n": 1781,
+            "mean_ms": 432.38719882770897,
+            "p99_ms": 2985.781687311828,
+            "max_ms": 83769.56163719296,
+            "over_5000": 6
+          },
+          "wait_step_ms": {
+            "n": 1781,
+            "mean_ms": 135.4940670774073,
+            "p99_ms": 325.1132285222411,
+            "max_ms": 5676.546873524785,
+            "over_5000": 1
+          },
+          "context_ms": {
+            "n": 1781,
+            "mean_ms": 14.832982191568108,
+            "p99_ms": 167.2255266457796,
+            "max_ms": 405.13043478131294,
+            "over_5000": 0
+          }
+        },
+        "worker_error_rows": 0,
+        "context_errors": 0,
+        "context_end_to_end": {
+          "n": 17900,
+          "mean_ms": 67.47182949279649,
+          "p99_ms": 273.62374123185873,
+          "max_ms": 388.3983660489321,
+          "over_5000": 0
+        },
+        "cleanup_zero": true,
+        "physical_speedup": 1.6697169630838775
+      },
+      "redo": {
+        "scenario": "redo",
+        "ticks": 1990,
+        "wall_s": 794.8941351138055,
+        "mean_ms": {
+          "advance_ms": 43.34112779551517,
+          "write_ms": 0.0,
+          "wait_step_ms": 0.0,
+          "read_ms": 0.0,
+          "dispatch_ms": 2.4662117191434447,
+          "backpressure_ms": 336.75442006796703,
+          "total_ms": 393.88828561910515
+        },
+        "step": {
+          "latest": 1990,
+          "count": 1991,
+          "receipts": 100
+        },
+        "owners": [
+          {
+            "task": "V3-T-0000008",
+            "receiver": 6,
+            "owner": 6
+          }
+        ],
+        "robot_fields": 19,
+        "step_audit": {
+          "complete_steps": 1991,
+          "missing_steps": 0,
+          "invalid_steps": 0,
+          "receipt_ids_per_step": 100
+        },
+        "kg_state_source": "memory",
+        "robot_graph_async": true,
+        "graph_backpressure": {
+          "pending": 0,
+          "max_pending": 8,
+          "limit": 8,
+          "confirmed_tick": 1990,
+          "pause_count": 248,
+          "pause_seconds": 667.868242315948,
+          "waiting": false,
+          "error": null
+        },
+        "run_id": "wz-test-kg-75ad4d1d66d8",
+        "worker_phases": {
+          "write_ms": {
+            "n": 1991,
+            "mean_ms": 248.60293623799058,
+            "p99_ms": 1137.601730413735,
+            "max_ms": 4220.28199583292,
+            "over_5000": 0
+          },
+          "wait_step_ms": {
+            "n": 1991,
+            "mean_ms": 119.29324947883217,
+            "p99_ms": 219.7828432545066,
+            "max_ms": 731.5504616126418,
+            "over_5000": 0
+          },
+          "context_ms": {
+            "n": 1991,
+            "mean_ms": 14.878419541769265,
+            "p99_ms": 166.7932504788041,
+            "max_ms": 364.1066299751401,
+            "over_5000": 0
+          }
+        },
+        "worker_error_rows": 0,
+        "context_errors": 0,
+        "context_end_to_end": {
+          "n": 20000,
+          "mean_ms": 66.90382248829118,
+          "p99_ms": 260.43979823589325,
+          "max_ms": 345.6423580646515,
+          "over_5000": 0
+        },
+        "cleanup_zero": true,
+        "physical_speedup": 2.503478025680854
+      }
+    }
+  },
+  "day_smoke": {
+    "run_id": "wz-test-day-async-smoke-20261030",
+    "tick": 24,
+    "last_successful_tick": 24,
+    "status": "bounded_complete",
+    "dataset_duration_seconds": 86400,
+    "all_day_executed": false,
+    "windows": {
+      "0-7200": {
+        "advance_ms": {
+          "n": 24,
+          "mean_ms": 198.85604871281734,
+          "p99_ms": 3982.341975905001,
+          "max_ms": 3982.341975905001
+        },
+        "write_ms": {
+          "n": 24,
+          "mean_ms": 0.0,
+          "p99_ms": 0.0,
+          "max_ms": 0.0
+        },
+        "wait_step_ms": {
+          "n": 24,
+          "mean_ms": 0.0,
+          "p99_ms": 0.0,
+          "max_ms": 0.0
+        },
+        "read_ms": {
+          "n": 24,
+          "mean_ms": 0.0,
+          "p99_ms": 0.0,
+          "max_ms": 0.0
+        },
+        "dispatch_ms": {
+          "n": 24,
+          "mean_ms": 39.06687116250396,
+          "p99_ms": 936.5622913464904,
+          "max_ms": 936.5622913464904
+        },
+        "context_ms": {
+          "n": 24,
+          "mean_ms": 0.0,
+          "p99_ms": 0.0,
+          "max_ms": 0.0
+        },
+        "backpressure_ms": {
+          "n": 24,
+          "mean_ms": 233.0902503648152,
+          "p99_ms": 2868.2769667357206,
+          "max_ms": 2868.2769667357206
+        },
+        "total_ms": {
+          "n": 24,
+          "mean_ms": 480.1487042180573,
+          "p99_ms": 3990.2308117598295,
+          "max_ms": 3990.2308117598295
+        }
+      }
+    },
+    "robot_context_interval": 10,
+    "requested_ticks": 24,
+    "kg_state_source": "memory",
+    "robot_graph_async": true,
+    "robot_graph_backlog": 8,
+    "started_at_utc": "2026-10-30T13:24:36Z",
+    "last_successful_tick_definition": "last returned sim.step(); not a durable Neo4j watermark",
+    "wall_seconds": 23.83310225792229,
+    "completed_tasks": 0,
+    "total_tasks": 1728,
+    "graph": {
+      "latestCompleteStep": 24,
+      "currentTick": 24,
+      "lag": 0,
+      "errors": 0,
+      "lastError": null,
+      "contextErrors": 0,
+      "contextSamples": 300,
+      "async": true,
+      "pendingSteps": 0,
+      "maxLagSteps": 8,
+      "pauseCount": 2,
+      "pauseSeconds": 5.585347713902593,
+      "backpressurePaused": false
+    },
+    "async_context_windows": {
+      "0-7200": {
+        "n": 3,
+        "mean_ms": 155.61615861952305,
+        "p99_ms": 303.080172277987,
+        "max_ms": 303.080172277987
+      }
+    },
+    "graph_windows": {
+      "0-7200": {
+        "pause_count": 2,
+        "pause_seconds": 5.585347713902593,
+        "max_observed_pending_steps": 8,
+        "max_lag_steps": 8
+      }
+    },
+    "worker_graph_windows": {
+      "0-7200": {
+        "write_ms": {
+          "n": 25,
+          "mean_ms": 396.0142206400633,
+          "p99_ms": 4144.975757226348,
+          "max_ms": 4144.975757226348
+        },
+        "wait_step_ms": {
+          "n": 25,
+          "mean_ms": 124.7351535782218,
+          "p99_ms": 244.1645236685872,
+          "max_ms": 244.1645236685872
+        },
+        "context_ms": {
+          "n": 25,
+          "mean_ms": 18.674380034208298,
+          "p99_ms": 303.08491457253695,
+          "max_ms": 303.08491457253695
+        }
+      }
+    },
+    "graph_pause_events": [
+      {
+        "tick": 8,
+        "started_at_utc": "2026-10-30T13:24:45Z",
+        "ended_at_utc": "2026-10-30T13:24:48Z",
+        "duration_seconds": 2.86317534558475,
+        "status": "caught_up"
+      },
+      {
+        "tick": 17,
+        "started_at_utc": "2026-10-30T13:24:49Z",
+        "ended_at_utc": "2026-10-30T13:24:52Z",
+        "duration_seconds": 2.722190693952143,
+        "status": "caught_up"
+      }
+    ],
+    "graph_window_definition": "pause episode attributed to next physical tick blocked by capacity; duration uses queue pause_seconds deltas",
+    "graph_audit": {
+      "step": {
+        "latest": 24,
+        "count": 25,
+        "receipts": 100
+      },
+      "owners": [],
+      "robot_fields": 19,
+      "step_audit": {
+        "complete_steps": 25,
+        "missing_steps": 0,
+        "invalid_steps": 0,
+        "receipt_ids_per_step": 100
+      },
+      "kg_state_source": "memory",
+      "robot_graph_async": true,
+      "graph_backpressure": {
+        "pending": 0,
+        "max_pending": 8,
+        "limit": 8,
+        "confirmed_tick": 24,
+        "pause_count": 2,
+        "pause_seconds": 5.585347713902593,
+        "waiting": false,
+        "error": null
+      }
+    },
+    "cleanup": {
+      "status": "complete",
+      "remaining_nodes": 0
+    }
+  },
+  "day_run_id": "wz-test-day-memory-async-20261030",
+  "day_acceptance": "pending"
+}
