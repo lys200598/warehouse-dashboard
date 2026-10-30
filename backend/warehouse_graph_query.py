@@ -68,6 +68,32 @@ class Neo4jWarehouseGraph:
         RETURN event { .type,.text,.tick,.time } AS event, r.robot_id AS robot_id ORDER BY event.tick LIMIT 20""", task_id=task_id, dataset_id=dataset_id)
         return {"taskId": task_id, "static": graph, "executions": executions, "events": events}
 
+    def run_stats(self, run_id: str, limit: int = 200) -> dict[str, Any]:
+        rows = self._query("""MATCH (:Run {id:$run_id})<-[:IN_RUN]-(stat:RunStat)
+        RETURN stat {.*} AS stat ORDER BY stat.commit_seq DESC LIMIT $limit""",
+                           run_id=run_id, limit=max(1, min(limit, 500)))
+        return {'runId': run_id, 'stats': [row['stat'] for row in rows]}
+
+    def dispatch_state(self, run_id: str, commit_seq: int | None = None) -> dict[str, Any] | None:
+        rows = self._query("""MATCH (:Run {id:$run_id})<-[:IN_RUN]-(state:DispatchState {run_id:$run_id})
+        WHERE $commit_seq IS NULL OR state.commit_seq = $commit_seq
+        RETURN state {.*} AS state ORDER BY state.commit_seq DESC LIMIT 1""",
+                           run_id=run_id, commit_seq=commit_seq)
+        return rows[0]['state'] if rows else None
+
+    def global_events(self, run_id: str, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self._query("""MATCH (event:RuntimeEvent {run_id:$run_id})
+        WHERE event.robot_node_id IS NULL
+        RETURN event {.*} AS event ORDER BY event.tick DESC, event.id DESC LIMIT $limit""",
+                           run_id=run_id, limit=max(1, min(limit, 500)))
+        return [row['event'] for row in rows]
+
+    def assists(self, run_id: str, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self._query("""MATCH (assist:Assist {run_id:$run_id})
+        RETURN assist {.*} AS assist ORDER BY assist.start_tick DESC, assist.id DESC LIMIT $limit""",
+                           run_id=run_id, limit=max(1, min(limit, 500)))
+        return [row['assist'] for row in rows]
+
     def robot_trace_context(self, run_id: str, robot_id: int, tick: int | None = None, history_limit: int = 20) -> dict[str, Any]:
         """Return a bounded, time-scoped robot trace rather than raw graph fragments."""
         history_limit = max(2, min(history_limit, 100))

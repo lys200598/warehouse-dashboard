@@ -203,6 +203,33 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
             return JSONResponse({'detail':str(exc)},status_code=400)
         except Exception as exc:return kg_unavailable(exc)
 
+    @app.get('/api/kg/warehouse/runs/{run_id}/stats')
+    async def kg_run_stats(run_id: str, limit: int = 200):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.run_stats,run_id,limit)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/dispatch')
+    async def kg_dispatch(run_id: str, commit_seq: int | None = None):
+        if kg_graph is None:return kg_unavailable()
+        try:
+            state = await asyncio.to_thread(kg_graph.dispatch_state,run_id,commit_seq)
+            if state is None:return JSONResponse({'detail':'DispatchState not found'},status_code=404)
+            return state
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/global-events')
+    async def kg_global_events(run_id: str, limit: int = 200):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.global_events,run_id,limit)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/assists')
+    async def kg_assists(run_id: str, limit: int = 200):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.assists,run_id,limit)
+        except Exception as exc:return kg_unavailable(exc)
+
     @app.get('/api/kg/warehouse/runs/{run_id}/robots/{robot_id}/trace')
     async def kg_robot_trace(run_id: str, robot_id: int, tick: int | None = None, history_limit: int = 20):
         if kg_graph is None:return kg_unavailable()
@@ -328,6 +355,8 @@ def main(argv=None):
     p.add_argument('--ray-actor-cpus',type=float,default=0.1)
     p.add_argument('--robot-graph',action='store_true',help='each Ray actor writes its own robot graph subgraph')
     p.add_argument('--graph-state-interval',type=int,default=4,help='AgentState cadence per robot actor, 1..300 ticks')
+    p.add_argument('--global-writer',action='store_true',help='one plain child process writes global RunStat/global events')
+    p.add_argument('--global-writer-queue',type=int,default=256,help='bounded global writer queue, 16..10000')
     p.add_argument('--robot-agents',action='store_true')
     p.add_argument('--agent-query-seconds',type=int,default=30)
     p.add_argument('--agent-observation-seconds',type=int,default=30)
@@ -375,6 +404,7 @@ def main(argv=None):
         query_point_path=args.query_point_file,mobility=args.mobility,max_active_robots=args.max_active_robots,
         ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,
         robot_graph=args.robot_graph,graph_state_interval=args.graph_state_interval,
+        global_writer=args.global_writer,global_writer_queue=args.global_writer_queue,
         robot_agents=args.robot_agents,agent_options=dict(query_interval=args.agent_query_seconds,
             observation_interval=args.agent_observation_seconds,timeout=args.agent_timeout,
             startup_timeout=args.agent_startup_timeout))

@@ -9,6 +9,7 @@
 # Usage:
 #   bash ops/start_medium.sh                 # medium1728 on 14583
 #   PORT=14584 DATASET=medium19 bash ops/start_medium.sh
+#   GLOBAL_WRITER=1 bash ops/start_medium.sh # + plain child RunStat/global writer
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -21,6 +22,8 @@ RAY_ADDRESS="${RAY_ADDRESS:-127.0.0.1:26380}"
 RAY_ACTOR_CPUS="${RAY_ACTOR_CPUS:-0.1}"
 ROBOT_GRAPH="${ROBOT_GRAPH:-0}"
 GRAPH_STATE_INTERVAL="${GRAPH_STATE_INTERVAL:-4}"
+GLOBAL_WRITER="${GLOBAL_WRITER:-0}"
+GLOBAL_WRITER_QUEUE="${GLOBAL_WRITER_QUEUE:-256}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-$ROOT/data/local-runs}"
 LOG_DIR="$ROOT/logs"
 PID_DIR="$ROOT/.runtime/pids"
@@ -53,7 +56,7 @@ if [ "$RAY" = "1" ] && ! ss -ltn 2>/dev/null | grep -q ":$RAY_PORT "; then
   echo "Ray head is not listening on $RAY_ADDRESS; run: bash ops/start_ray.sh" >&2
   exit 1
 fi
-if [ "$ROBOT_GRAPH" = "1" ] && ! ss -ltn 2>/dev/null | grep -q ':47687 '; then
+if { [ "$ROBOT_GRAPH" = "1" ] || [ "$GLOBAL_WRITER" = "1" ]; } && ! ss -ltn 2>/dev/null | grep -q ':47687 '; then
   echo "Neo4j is not listening on 47687; run: bash ops/start_neo4j.sh" >&2
   exit 1
 fi
@@ -64,6 +67,9 @@ if [ "$RAY" = "1" ]; then
   if [ "$ROBOT_GRAPH" = "1" ]; then
     RAY_ARGS+=(--robot-graph --graph-state-interval "$GRAPH_STATE_INTERVAL")
   fi
+fi
+if [ "$GLOBAL_WRITER" = "1" ]; then
+  RAY_ARGS+=(--global-writer --global-writer-queue "$GLOBAL_WRITER_QUEUE")
 fi
 
 echo "Starting medium live console on :$PORT ($DATASET, 120x90 / 48 racks / 2304 slots, ray=$RAY)..."
