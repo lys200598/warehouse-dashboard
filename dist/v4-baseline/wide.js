@@ -39,9 +39,37 @@ export function robotColor(robot){const phase=robot.stage||'';return phase==='ch
 
 export function startWidePage(doc=document){
   const $=id=>doc.getElementById(id),canvas=$('wideCanvas'),ctx=canvas.getContext('2d'),stage=$('wideStage');
-  const state={camera:newCamera(),scene:null,status:null,frame:null,selected:null,cursor:0,latest:0,playing:false,busy:false,pending:null,manualSeq:false};
-  let width=1,height=1,drag=null,lastTime=0,lastFetch=0;
+  const state={camera:newCamera(),scene:null,status:null,frame:null,selected:null,runId:null,current:false,cursor:0,latest:0,playing:false,busy:false,pending:null,manualSeq:false};
+  let width=1,height=1,drag=null,lastTime=0,lastFetch=0,lastStatusRefresh=0;
   const set=(id,value)=>{$(id).textContent=String(value??'—');};
+  function api(path){
+    if(!state.runId)return path;
+    const target=new URL(path,location.origin);
+    target.searchParams.set('run',state.runId);
+    return target.pathname+target.search;
+  }
+  async function loadRuns(){
+    try{
+      const runs=await fetchJSON('/api/runs');
+      if(!Array.isArray(runs)||!runs.length){error('暂无可用回放运行');return false;}
+      const requested=new URLSearchParams(location.search).get('run');
+      const match=runs.find(run=>run.id===requested||run.run_id===requested);
+      const current=runs.find(run=>run.current);
+      const selected=match?match.id:(current?current.id:runs[0].id);
+      const picker=$('runPicker'),select=$('runSelect');
+      if(picker&&select){
+        select.replaceChildren(...runs.map(run=>new Option(`${run.current?'● 当前 · ':''}${run.run_id||run.id} · ${run.status||'recorded'} · ${formatClock(run.latest_second||0)}`,run.id,false,run.id===selected)));
+        picker.hidden=false;
+        select.addEventListener('change',()=>{const next=new URL(location.href);next.searchParams.set('run',select.value);location.href=next.toString();});
+      }
+      state.runId=selected;
+      state.current=Boolean(current&&current.id===selected);
+      return true;
+    }catch(_){
+      if($('runPicker'))$('runPicker').hidden=true;
+      return true;
+    }
+  }
   const world=(x,y,z=0)=>project({x,y},projectionMetrics(state.scene.spec,state.camera,width,height),z);
   const palette={floor:'#18251c',rackTop:'#6a8774',rackLeft:'#40594b',rackRight:'#526e5b'};
   function polygon(points,fill,stroke='#9cb59f30'){
@@ -95,7 +123,7 @@ export function startWidePage(doc=document){
   function error(message){$('runStatus').classList.add('wide-error');set('runStatus',message);}
   async function refresh(){
     try{
-      const status=await fetchJSON('/api/status');state.status=status;state.latest=Math.max(0,Number(status.latest_second)||0);$('runTimeline').max=String(state.latest);
+      const status=await fetchJSON(api('/api/status'));state.status=status;state.latest=Math.max(0,Number(status.latest_second)||0);$('runTimeline').max=String(state.latest);
       const knowledge=status.knowledge||{};facts('knowledgeFacts',[['运行',status.run_id],['持久化序号',knowledge.durable_seq],['图谱已提交序号',knowledge.mirrored_seq],['镜像滞后',knowledge.lag],['后端',knowledge.backend]]);
       set('runStatus',`${status.run_id} · ${status.results?.status||(status.running?'running':'已记录')} · 最新 ${formatClock(state.latest)} · 图谱 ${knowledge.mirrored_seq??0}/${knowledge.durable_seq??0}`);$('runStatus').classList.remove('wide-error');
       return status;
@@ -105,7 +133,7 @@ export function startWidePage(doc=document){
     second=clamp(Math.floor(second),0,state.latest);if(state.busy){state.pending=second;return;}
     state.busy=true;
     try{
-      const response=await fetchJSON(`/api/frame?second=${second}`),frame=response.frame||response;state.frame=frame;state.cursor=Number(frame.elapsed??frame.tick??second);$('runTimeline').value=String(state.cursor);set('frameClock',formatClock(state.cursor));set('cursorValue',formatClock(state.cursor));
+      const response=await fetchJSON(api(`/api/frame?second=${second}`)),frame=response.frame||response;state.frame=frame;state.cursor=Number(frame.elapsed??frame.tick??second);$('runTimeline').value=String(state.cursor);set('frameClock',formatClock(state.cursor));set('cursorValue',formatClock(state.cursor));
       const robots=realRobots(frame);set('robotCount',robots.length);set('completed',frame.metrics?.completed);set('inside',frame.inside);for(const name of ['moving','handling','charging','queued','standby'])set(name,frame.counts?.[name]);
       const signature=robots.map(r=>r.robot_id).join(',');if($('robotSelect').dataset.signature!==signature){const options=[new Option('请选择机器人',''),...robots.map(r=>new Option(`机器人 ${r.robot_id}`,String(r.robot_id)))];$('robotSelect').replaceChildren(...options);$('robotSelect').dataset.signature=signature;}
       if(!state.manualSeq){const seq=frame.knowledge?.mirrored_seq??state.status?.knowledge?.mirrored_seq;if(seq>0)$('querySeq').value=String(seq);}
@@ -114,7 +142,7 @@ export function startWidePage(doc=document){
     finally{state.busy=false;if(state.pending!==null){const pending=state.pending;state.pending=null;showFrame(pending);}}
   }
   async function query(kind=$('queryKind').value,id=$('queryId').value){
-    try{const seq=Number($('querySeq').value);if(seq>(state.status?.knowledge?.mirrored_seq??0))throw new Error('截止序号超过已提交图谱');$('queryKind').value=kind;$('queryId').value=id;set('queryStatus','正在查询…');const value=await fetchJSON(queryURL(kind,id,seq));set('knowledgeResult',JSON.stringify(value,null,2));set('queryStatus',`服务端查询结果 · ${kind} / ${id} · cutoff seq=${seq}；历史截止以该序号为准`);}catch(e){set('queryStatus',e.message);}
+    try{const seq=Number($('querySeq').value);if(seq>(state.status?.knowledge?.mirrored_seq??0))throw new Error('截止序号超过已提交图谱');$('queryKind').value=kind;$('queryId').value=id;set('queryStatus','正在查询…');const value=await fetchJSON(api(queryURL(kind,id,seq)));set('knowledgeResult',JSON.stringify(value,null,2));set('queryStatus',`服务端查询结果 · ${kind} / ${id} · cutoff seq=${seq}；历史截止以该序号为准`);}catch(e){set('queryStatus',e.message);}
   }
   $('robotSelect').addEventListener('change',()=>{state.selected=Number($('robotSelect').value)||null;selection();draw();});
   for(const [id,kind,key] of [['queryRobot','robot','robot_id'],['queryGoods','goods','cargo_id'],['queryCoop','cooperation','task_id']])$(id).addEventListener('click',()=>{const r=selectedRobot();if(!r||r[key]===null||r[key]===undefined){set('queryStatus','选中机器人在本帧没有该实体；可在上方输入历史ID查询。');return;}query(kind,String(r[key]));});
@@ -133,9 +161,26 @@ export function startWidePage(doc=document){
   $('latestRun').addEventListener('click',async()=>{state.playing=false;set('playRun','播放回放');try{await refresh();showFrame(state.latest);}catch{/* refresh already displays the server error */}});
   $('refreshRun').addEventListener('click',async()=>{try{await refresh();showFrame(state.cursor||state.latest);}catch{/* keep the last real frame on a failed refresh */}});
   globalThis.addEventListener('resize',resize);
-  function tick(now){if(state.playing&&!state.busy&&now-lastFetch>100){const delta=lastTime?Math.min(1,(now-lastTime)/1000):.1;lastTime=lastFetch=now;const next=Math.min(state.latest,state.cursor+Math.max(10,delta*Number($('replaySpeed').value)));showFrame(next);if(next>=state.latest){state.playing=false;set('playRun','播放回放');}}requestAnimationFrame(tick);}
+  function tick(now){
+    if(state.playing&&!state.busy&&now-lastFetch>100){const delta=lastTime?Math.min(1,(now-lastTime)/1000):.1;lastTime=lastFetch=now;const next=Math.min(state.latest,state.cursor+Math.max(10,delta*Number($('replaySpeed').value)));showFrame(next);if(next>=state.latest){state.playing=false;set('playRun','播放回放');}}
+    if(state.current&&!state.busy&&now-lastStatusRefresh>5000){lastStatusRefresh=now;const wasLatest=state.cursor>=state.latest;refresh().then(()=>{if(wasLatest)showFrame(state.latest);}).catch(()=>{});}
+    requestAnimationFrame(tick);
+  }
   requestAnimationFrame(tick);
-  Promise.all([fetchJSON('/api/scene'),refresh()]).then(([data])=>{const scene=data.scene||data;if(!(scene.spec?.width>0&&scene.spec?.depth>0))throw new Error('场景尺寸无效');state.scene=scene;set('sceneSize',`${scene.spec.width}×${scene.spec.depth}m`);set('bayCount',canonicalBays(scene).length);set('slotCount',scene.capacity??scene.racks.reduce((sum,r)=>sum+r.capacity,0));set('sceneLabel',`${scene.spec.version} · 实际运行地图`);resize();showFrame(state.latest);}).catch(e=>error(e.message));
+  async function bootWide(){
+    if(!await loadRuns())return;
+    const [data]=await Promise.all([fetchJSON(api('/api/scene')),refresh()]);
+    const scene=data.scene||data;
+    if(!(scene.spec?.width>0&&scene.spec?.depth>0))throw new Error('场景尺寸无效');
+    state.scene=scene;
+    set('sceneSize',`${scene.spec.width}×${scene.spec.depth}m`);
+    set('bayCount',canonicalBays(scene).length);
+    set('slotCount',scene.capacity??scene.racks.reduce((sum,r)=>sum+r.capacity,0));
+    set('sceneLabel',`${scene.spec.version} · 实际运行地图`);
+    resize();
+    showFrame(state.latest);
+  }
+  bootWide().catch(e=>error(e.message));
   return state;
 }
 if(typeof document!=='undefined'&&document.getElementById('wideCanvas'))startWidePage();
