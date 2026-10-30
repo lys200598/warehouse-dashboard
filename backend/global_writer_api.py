@@ -15,6 +15,8 @@ import time
 from contextlib import asynccontextmanager
 from typing import Any
 
+from fastapi import Request
+
 from .global_writer import GlobalWriter
 
 
@@ -164,7 +166,7 @@ class RecordQueue:
 
 
 def create_app(writer: GlobalWriter, *, queue_size: int = 256):
-    from fastapi import FastAPI, Request
+    from fastapi import FastAPI
     from fastapi.responses import JSONResponse
 
     records = RecordQueue(writer, queue_size)
