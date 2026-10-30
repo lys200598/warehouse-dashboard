@@ -242,6 +242,12 @@ class RobotProcessSplit:
             self._pool.close()
         self._pool = None  # rebuild robot processes from the restored state
 
+    def close(self):
+        self.close_robot_pool()
+        parent = getattr(super(), 'close', None)
+        if parent is not None:
+            parent()
+
     def close_robot_pool(self):
         if getattr(self, '_pool', None) is not None:
             self._pool.close()

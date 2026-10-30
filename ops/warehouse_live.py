@@ -354,6 +354,8 @@ def main(argv=None):
     p.add_argument('--ray-address',default=os.environ.get('RAY_ADDRESS'))
     p.add_argument('--ray-actor-cpus',type=float,default=0.1)
     p.add_argument('--robot-graph',action='store_true',help='each Ray actor writes its own robot graph subgraph')
+    p.add_argument('--robot-processes',choices=('off','local','ray'),default='off',
+                   help='robots advance in their own robot processes (local objects or one Ray actor each); same dispatch results')
     p.add_argument('--graph-state-interval',type=int,default=4,help='AgentState cadence per robot actor, 1..300 ticks')
     p.add_argument('--global-writer',action='store_true',help='one plain child process writes global RunStat/global events')
     p.add_argument('--global-writer-queue',type=int,default=256,help='bounded global writer queue, 16..10000')
@@ -402,7 +404,7 @@ def main(argv=None):
         query_summary_root=(args.summary_root or args.output_root) if args.query_acceleration=='summary' else None,
         query_summary_cache=args.query_summary_cache if args.query_acceleration=='summary' else None,
         query_point_path=args.query_point_file,mobility=args.mobility,max_active_robots=args.max_active_robots,
-        ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,
+        ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,robot_processes=args.robot_processes,
         robot_graph=args.robot_graph,graph_state_interval=args.graph_state_interval,
         global_writer=args.global_writer,global_writer_queue=args.global_writer_queue,
         robot_agents=args.robot_agents,agent_options=dict(query_interval=args.agent_query_seconds,

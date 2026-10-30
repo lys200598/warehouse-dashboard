@@ -117,7 +117,7 @@ class WarehouseLiveRuntime:
                  resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False,
                  query_summary_root=None, query_summary_cache=None, query_point_path=None,
                  mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None,
-                 ray=False, ray_address=None, ray_actor_cpus=0.1,
+                 ray=False, ray_address=None, ray_actor_cpus=0.1, robot_processes='off',
                  robot_graph=False, graph_state_interval=4,
                  global_writer=False, global_writer_queue=256):
         if max_active_robots is not None and (type(max_active_robots) is not int or not 1<=max_active_robots<=100):
@@ -131,6 +131,13 @@ class WarehouseLiveRuntime:
         self.ray=bool(ray)
         if self.ray and mobility!='wheeled':
             raise ValueError('Ray medium execution requires mobility=wheeled')
+        if robot_processes not in ('off','local','ray'):
+            raise ValueError('robot_processes must be off, local or ray')
+        if robot_processes!='off' and mobility!='wheeled':
+            raise ValueError('robot processes require mobility=wheeled')
+        if robot_processes!='off' and self.ray:
+            raise ValueError('choose either --ray (motion actors) or --robot-processes, not both')
+        self.robot_processes=robot_processes
         if isinstance(ray_actor_cpus,bool) or not isinstance(ray_actor_cpus,(int,float)) or not math.isfinite(ray_actor_cpus) or not 0<ray_actor_cpus<=1:
             raise ValueError('ray_actor_cpus must be finite within (0,1]')
         self.ray_address=ray_address
@@ -401,7 +408,8 @@ class WarehouseLiveRuntime:
             simulation_class,config_class=self._core.sim.KnowledgeSimulation,self._core.writer.Config
         else:
             from backend.warehouse.composition import physical_classes
-            simulation_class,config_class=physical_classes('wheeled_ray' if self.ray else self.mobility)
+            simulation_class,config_class=physical_classes('wheeled_ray' if self.ray else self.mobility,
+                robot_processes=getattr(self,'robot_processes','off'),ray_address=self.ray_address,ray_actor_cpus=self.ray_actor_cpus)
         physical_config = config_class(**cfg)
         disturbance_path = spec.get('disturbances_json') or self.default_disturbances
         disturbances = json.loads(Path(disturbance_path).read_text(encoding='utf-8')) if disturbance_path else []
@@ -409,6 +417,7 @@ class WarehouseLiveRuntime:
         identity = {'version': VERSION, 'run_id': run_id, 'dataset_id': dataset_id,
                     'graph_dataset_id': spec.get('graph_dataset_id') or dataset_id,
                     'mobility':self.mobility, 'ray':self.ray, 'ray_actor_cpus':self.ray_actor_cpus,
+                    'robot_processes':getattr(self,'robot_processes','off'),
                     'ray_address':self.ray_address, 'robot_graph':self.robot_graph,
                     'graph_state_interval':self.graph_state_interval,
                     'global_writer':self.global_writer_enabled, 'global_writer_queue':self.global_writer_queue,
@@ -801,6 +810,7 @@ class WarehouseLiveRuntime:
         if self._sim.run_metadata.get('boundary_routing'):
             snap['metadata']['boundary_routing']=deepcopy(self._sim.run_metadata['boundary_routing'])
         snap['metadata']['mobility']=getattr(self,'mobility','legacy')
+        snap['metadata']['robot_processes']=getattr(self,'robot_processes','off')
         snap['metadata']['robot_agents_enabled']=getattr(self,'robot_agents',False)
         fleet=getattr(self._store.mirror,'agent_fleet',None) if self._store.mirror else None
         if fleet is not None:
