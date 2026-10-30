@@ -331,7 +331,10 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
             if body.get('confirm_run_id') != run_id:
                 raise ValueError('confirm_run_id must equal the path run_id')
             with writer.driver.session(database=writer.database) as session:
-                session.run('MATCH (n {run_id:$run_id}) DETACH DELETE n', run_id=run_id).consume()
+                # Large test runs must not hold millions of deletions in one heap transaction.
+                session.run('MATCH (n {run_id:$run_id}) '
+                            'CALL (n) { DETACH DELETE n } IN TRANSACTIONS OF 1000 ROWS',
+                            run_id=run_id).consume()
                 session.run('MATCH (run:Run {id:$run_id}) DETACH DELETE run', run_id=run_id).consume()
             return {'deleted': True, 'run_id': run_id}
         except (ValueError, TypeError, json.JSONDecodeError) as exc:

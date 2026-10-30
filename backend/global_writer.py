@@ -117,7 +117,7 @@ def build_dispatch_state(sim, *, commit_seq: int, identity: dict[str, Any] | Non
 def build_global_record(sim, events, *, status: str, identity: dict[str, Any] | None = None,
                         commit_seq: int | None = None, durable_seq: int | None = None,
                         mirrored_seq: int | None = None, writer_errors: int = 0,
-                        writer_dropped: int = 0) -> dict[str, Any]:
+                        writer_dropped: int = 0, include_dispatch: bool = True) -> dict[str, Any]:
     """Build a small picklable record in the simulation owner; no sim object
     is sent to the writer process."""
     identity = identity or {}
@@ -193,7 +193,7 @@ def build_global_record(sim, events, *, status: str, identity: dict[str, Any] | 
         'metrics': {key: value for key, value in sim.metrics.items()
                     if isinstance(value, (str, int, float, bool, type(None)))},
         'inside': int(getattr(sim, 'inside', 0)),
-        'dispatch': build_dispatch_state(sim, commit_seq=effective_commit, identity=identity),
+        'dispatch': build_dispatch_state(sim, commit_seq=effective_commit, identity=identity) if include_dispatch else {},
         'events': global_events,
         # A Step is deliberately not inferred here.  Only the future
         # stateful-actor coordinator knows which StepResult acknowledgements
@@ -203,8 +203,26 @@ def build_global_record(sim, events, *, status: str, identity: dict[str, Any] | 
         # The main coordinator is the authority for task ownership.  It adds
         # assignment/handoff changes here; robot actors never infer the
         # mutable ``Execution.current_robot_id`` field themselves.
-        'ownership_changes': [],
+        'ownership_changes': ownership_changes(events),
     }
+
+
+def ownership_changes(events):
+    """Coordinator events, stable across transport retries; no actor inference."""
+    changes = []
+    for event in events:
+        kind, task, tick = event.get('kind'), event.get('task_id'), event.get('tick')
+        if not task or tick is None:
+            continue
+        if kind in ('task_assigned', 'dataset_task_assigned') and event.get('robot_id') is not None:
+            changes.append({'change_id': f'assigned-{task}-{tick}', 'task_id': task, 'tick': int(tick),
+                            'to_robot_id': int(event['robot_id']), 'reason': 'assigned'})
+        elif kind == 'cargo_handoff':
+            changes.append({'change_id': f'handoff-{task}-{tick}', 'task_id': task, 'tick': int(tick),
+                            'from_robot_id': int(event.get('donor_robot_id', event.get('donor_id'))),
+                            'to_robot_id': int(event.get('receiver_robot_id', event.get('receiver_id'))),
+                            'reason': 'cargo_handoff'})
+    return changes
 
 
 _SCHEMA_READY = False
@@ -306,7 +324,6 @@ class GlobalWriter:
                 'MERGE (stat)-[:IN_RUN]->(run)',
                 run_id=run_id, stat=stat).consume()
             self._write_dispatch(session, run_id, record.get('dispatch') or {}, status)
-            self._write_step(session, run_id, record.get('step') or {}, now)
             self._write_assists(session, run_id, tick, now, record.get('assists') or {}, status)
             self._write_handoffs(session, run_id, record.get('handoffs') or [], now)
             self._write_ownership_changes(session, run_id, record.get('ownership_changes') or [], now)
@@ -319,6 +336,8 @@ class GlobalWriter:
                     'MERGE (event:RuntimeEvent {id: row.id}) SET event += row '
                     'MERGE (event)-[:IN_RUN]->(run)',
                     run_id=run_id, events=rows).consume()
+            # Publish the complete boundary only after ownership and all global facts.
+            self._write_step(session, run_id, record.get('step') or {}, now)
 
     def _write_step(self, session, run_id: str, step: dict[str, Any], now: int):
         """Write a monotonic complete-frame marker for bounded graph reads."""
@@ -426,6 +445,7 @@ class GlobalWriter:
             'UNWIND $changes AS row WITH row WHERE row.from_robot_id IS NOT NULL '
             'MERGE (source:Robot {id:row.from_robot_node_id}) '
             'ON CREATE SET source.run_id=row.run_id,source.robot_id=row.from_robot_id '
+            'WITH row,source '
             'MATCH (run:Run {id:row.run_id}) MERGE (source)-[:IN_RUN]->(run) '
             'MERGE (change:OwnershipChange {id:row.id}) '
             'MERGE (change)-[:FROM_ROBOT]->(source)',

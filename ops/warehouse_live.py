@@ -345,7 +345,7 @@ def main(argv=None):
     p.add_argument('--dist',type=Path,default=ROOT/'dist')
     p.add_argument('--registry',type=Path,default=ROOT/'config/live-datasets.json')
     p.add_argument('--output-root',type=Path,default=ROOT/'data/live-runs')
-    p.add_argument('--dataset-id');p.add_argument('--mode',choices=('required','rules'),default='required')
+    p.add_argument('--dataset-id');p.add_argument('--mode',choices=('required','rules'),default='rules')
     p.add_argument('--knowledge-backend',choices=('neo4j','journal'),default='neo4j')
     p.add_argument('--commit-seconds',type=int,default=5);p.add_argument('--resume-run-id')
     p.add_argument('--resource-graph',action='store_true',help='same-transaction rack resources for new runs')
@@ -372,11 +372,17 @@ def main(argv=None):
     p.add_argument('--robot-graph',action='store_true',help='each Ray actor writes its own robot graph subgraph')
     p.add_argument('--robot-processes',choices=('off','local','ray'),default='off',
                    help='robots advance in their own robot processes (local objects or one Ray actor each); same dispatch results')
+    p.add_argument('--kg-state-source', choices=('memory', 'neo4j'), default='memory',
+                   help='robot state input used by the main dispatcher')
     p.add_argument('--graph-state-interval',type=int,default=4,help='AgentState cadence per robot actor, 1..300 ticks')
     p.add_argument('--global-writer',action='store_true',help='one plain child process writes global RunStat/global events')
     p.add_argument('--global-writer-queue',type=int,default=256,help='bounded global writer queue, 16..10000')
     p.add_argument('--global-writer-url',default=None,help='HTTP global record service, e.g. http://127.0.0.1:14284')
-    p.add_argument('--robot-agents',action='store_true')
+    p.add_argument('--legacy-a-graph',action='store_true',
+                   help='opt in to the retired main-process A graph snapshots and legacy history queries')
+    p.add_argument('--robot-context-interval',type=int,default=10,
+                   help='stateful Ray actor C context query cadence; 0 disables, default 10 ticks')
+    p.add_argument('--robot-agents',action='store_true',help='deprecated; use --robot-processes ray')
     p.add_argument('--agent-query-seconds',type=int,default=30)
     p.add_argument('--agent-observation-seconds',type=int,default=30)
     p.add_argument('--agent-timeout',type=float,default=30.)
@@ -424,6 +430,9 @@ def main(argv=None):
         ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,robot_processes=args.robot_processes,
         robot_graph=args.robot_graph,graph_state_interval=args.graph_state_interval,
         global_writer=args.global_writer,global_writer_queue=args.global_writer_queue,global_writer_url=args.global_writer_url,
+        kg_state_source=args.kg_state_source,
+        legacy_a_graph=args.legacy_a_graph,
+        robot_context_interval=args.robot_context_interval,
         robot_agents=args.robot_agents,agent_options=dict(query_interval=args.agent_query_seconds,
             observation_interval=args.agent_observation_seconds,timeout=args.agent_timeout,
             startup_timeout=args.agent_startup_timeout))
@@ -432,7 +441,7 @@ def main(argv=None):
             'point':runtime.query_point(),'query_point_file':str(runtime.query_point_path)}}),flush=True)
     query_options=({'summary_root':args.summary_root or args.output_root,'summary_cache_root':args.query_summary_cache,
                     'cache_fleet':True} if args.query_acceleration=='summary' else {})
-    factory=(lambda:QueryCatalogService.from_env(timeout=15,pool_size=1,**query_options)) if args.knowledge_backend=='neo4j' and not args.query_upstream else None
+    factory=(lambda:QueryCatalogService.from_env(timeout=15,pool_size=1,**query_options)) if args.legacy_a_graph and args.knowledge_backend=='neo4j' and not args.query_upstream else None
     try:
         if args.query_acceleration=='summary' and factory is not None:
             # Startup prewarm is before HTTP readiness and explicitly reported;

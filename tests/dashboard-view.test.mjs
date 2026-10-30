@@ -1,8 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {progressPresentation,platformStageProgress,platformTaskPresentation,samePhysicalFrame,shouldPickRobot,nextFrameInterval,FRAME_INTERVAL_MAX_MS} from '../dist/dashboard-view.mjs';
+import {progressPresentation,platformStageProgress,platformTaskPresentation,samePhysicalFrame,shouldPickRobot,nextFrameInterval,FRAME_INTERVAL_MAX_MS,robotGraphPresentation,legacyAQueriesEnabled} from '../dist/dashboard-view.mjs';
 import {exportRows} from '../dist/live-model.mjs';
+
+test('explicitly disabled legacy A queries keep C status separate and old sources compatible',()=>{
+  assert.equal(legacyAQueriesEnabled({metadata:{legacy_a_graph:false}}),false);
+  assert.equal(legacyAQueriesEnabled({metadata:{legacy_a_graph:true}}),true);
+  assert.equal(legacyAQueriesEnabled({}),true);
+  const panel=readFileSync(new URL('../dist/original-knowledge.mjs',import.meta.url),'utf8');
+  assert.match(panel,/legacyKnowledgeControls'\)\.hidden=!legacyEnabled/);
+  assert.match(panel,/旧版 A 查询已停用；C 图谱状态见运行状态栏/);
+});
+
+test('runtime modes and graph watermarks use observed complete steps',()=>{
+  const view=robotGraphPresentation({tick:105,robotProcesses:'ray',kgStateSource:'neo4j',
+    robotGraph:{latestCompleteStep:102,currentTick:105,lag:0,errors:2,lastError:'write failed'}});
+  assert.equal(view.modeText,'机器人进程 ray · 派单状态 neo4j');
+  assert.equal(view.graphText,'完整 Step 102 · 落后 3 步 · 写入错误 2');
+  assert.equal(view.attention,true);assert.equal(view.error,'write failed');
+});
+test('unknown graph watermarks are not presented as zero lag or successful writes',()=>{
+  const unknown=robotGraphPresentation({tick:100,metadata:{robot_processes:'local',kg_state_source:'memory'}});
+  assert.equal(unknown.modeText,'机器人进程 local · 派单状态 memory');
+  assert.equal(unknown.graphText,'完整 Step — · 滞后 — · 写入错误 —');
+  const synced=robotGraphPresentation({tick:0,robotGraph:{latestCompleteStep:0,errors:0}});
+  assert.equal(synced.graphText,'完整 Step 0 · 已同步 · 写入错误 0');
+  assert.equal(synced.attention,false);
+});
 
 test('unknown progress clears CSS width rather than retaining an earlier battery percentage',()=>{
   assert.deepEqual(progressPresentation(null),{known:false,width:'0%',text:'阶段进度未提供'});

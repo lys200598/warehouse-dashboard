@@ -119,14 +119,26 @@ class WarehouseLiveRuntime:
                  mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None,
                  ray=False, ray_address=None, ray_actor_cpus=0.1, robot_processes='off',
                  robot_graph=False, graph_state_interval=4,
-                 global_writer=False, global_writer_queue=256, global_writer_url=None):
+                 global_writer=False, global_writer_queue=256, global_writer_url=None,
+                 kg_state_source='memory', legacy_a_graph=False, robot_context_interval=10):
+        if type(robot_context_interval) is not int or not 0 <= robot_context_interval <= 3600:
+            raise ValueError('robot_context_interval must be within 0..3600')
+        self.robot_context_interval = robot_context_interval
+        if type(legacy_a_graph) is not bool:
+            raise ValueError('legacy_a_graph must be boolean')
+        self.legacy_a_graph = legacy_a_graph
+        if kg_state_source not in ('memory', 'neo4j'):
+            raise ValueError('kg_state_source must be memory or neo4j')
+        if kg_state_source == 'neo4j' and (robot_processes != 'ray' or not robot_graph or not global_writer_url):
+            raise ValueError('neo4j state requires --robot-processes ray --robot-graph --global-writer-url')
+        self.kg_state_source = kg_state_source
         if max_active_robots is not None and (type(max_active_robots) is not int or not 1<=max_active_robots<=100):
             raise ValueError('max_active_robots must be an integer within 1..100, or None')
         self.max_active_robots=max_active_robots
         if mobility not in ('legacy','wheeled') or type(robot_agents) is not bool:
             raise ValueError('explicit mobility and robot_agents options required')
-        if robot_agents and knowledge_backend!='neo4j':
-            raise ValueError('independent robot graph I/O requires Neo4j')
+        if robot_agents:
+            raise ValueError('--robot-agents is deprecated; use --robot-processes ray for robot graph I/O')
         self.mobility=mobility
         self.ray=bool(ray)
         if self.ray and mobility!='wheeled':
@@ -169,6 +181,8 @@ class WarehouseLiveRuntime:
             raise ValueError('explicit rules/required and journal/neo4j modes required')
         if knowledge_mode == 'required' and knowledge_backend != 'neo4j':
             raise ValueError('required live history needs Neo4j')
+        if knowledge_mode == 'required' and not self.legacy_a_graph:
+            raise ValueError('legacy required-history decisions need explicit --legacy-a-graph; C context is observational')
         if type(commit_seconds) is not int or not 1 <= commit_seconds <= 300:
             raise ValueError('commit_seconds must be within [1,300]')
         if isinstance(wall_interval, bool) or not math.isfinite(wall_interval) or wall_interval <= 0:
@@ -183,6 +197,8 @@ class WarehouseLiveRuntime:
         self.query_summary_root=Path(query_summary_root).resolve() if query_summary_root is not None else None
         self.query_summary_cache=Path(query_summary_cache).resolve() if query_summary_cache is not None else None
         if self.query_summary_root is not None:
+            if not self.legacy_a_graph:
+                raise ValueError('legacy A query summaries require explicit --legacy-a-graph')
             if knowledge_backend!='neo4j' or self.query_summary_root!=self.output_root:
                 raise ValueError('live query summaries require Neo4j and the owned output_root as their journal root')
         elif self.query_summary_cache is not None:
@@ -219,6 +235,8 @@ class WarehouseLiveRuntime:
         self.knowledge_mode = knowledge_mode
         if type(resource_graph) is not bool or resource_graph and knowledge_backend!='neo4j':
             raise ValueError('resource_graph requires explicit Neo4j mode')
+        if resource_graph and not self.legacy_a_graph:
+            raise ValueError('legacy A resource graph requires explicit --legacy-a-graph')
         self.resource_graph_enabled=resource_graph
         self.knowledge_backend = knowledge_backend
         self.wall_interval = float(wall_interval)
@@ -379,6 +397,11 @@ class WarehouseLiveRuntime:
         # Only retire old resources AFTER the new, independently owned run has
         # completed its initial durable boundary and published a real frame.
         retirement_errors=[]
+        close_previous = getattr(previous['_sim'], 'close', None)
+        if close_previous is not None:
+            try:close_previous()
+            except Exception as exc:
+                retirement_errors.append({'resource':'_sim','error':type(exc).__name__})
         for name in ('_provider','_store'):
             if previous[name] is not None:
                 try:previous[name].close()
@@ -423,10 +446,13 @@ class WarehouseLiveRuntime:
                     'graph_dataset_id': spec.get('graph_dataset_id') or dataset_id,
                     'mobility':self.mobility, 'ray':self.ray, 'ray_actor_cpus':self.ray_actor_cpus,
                     'robot_processes':getattr(self,'robot_processes','off'),
+                    'kg_state_source':self.kg_state_source,
                     'ray_address':self.ray_address, 'robot_graph':self.robot_graph,
                     'graph_state_interval':self.graph_state_interval,
                     'global_writer':self.global_writer_enabled, 'global_writer_queue':self.global_writer_queue,
                     'robot_agents':self.robot_agents,
+                    'legacy_a_graph':self.legacy_a_graph,
+                    'robot_context_interval':self.robot_context_interval,
                     'agent_options':self.agent_options,
                     'source_sha256': self._source_sha, 'adapter_sha256': file_sha(__file__),
                     'scene_sha256': file_sha(spec['scene']),
@@ -453,7 +479,8 @@ class WarehouseLiveRuntime:
         elif output.exists():
             raise FileExistsError('existing run output preserved; choose a new run_id')
         if self.knowledge_backend == 'neo4j':
-            uri = os.environ.get('NEO4J_URI')
+            uri = (os.environ.get('NEO4J_URI') if self.legacy_a_graph else
+                   os.environ.get('WAREHOUSE_NEO4J_URI') or os.environ.get('NEO4J_URI'))
             if not uri or self.expected_neo4j_uri and uri != self.expected_neo4j_uri:
                 raise ValueError('live Neo4j URI differs from its explicit isolated target')
         # Validate core/input before closing a previous completed/paused run.
@@ -461,11 +488,16 @@ class WarehouseLiveRuntime:
         if self.ray:
             sim_kwargs.update(ray_address=self.ray_address, ray_actor_cpus=self.ray_actor_cpus,
                               robot_graph=self.robot_graph, graph_state_interval=self.graph_state_interval)
-        elif getattr(self,'robot_processes','off')=='ray' and self.robot_graph:
-            sim_kwargs.update(robot_graph=True, graph_state_interval=self.graph_state_interval)
+        elif getattr(self,'robot_processes','off')=='ray':
+            sim_kwargs.update(robot_graph=self.robot_graph, graph_state_interval=self.graph_state_interval,
+                              kg_state_source=self.kg_state_source, global_writer_url=self.global_writer_url,
+                              robot_context_interval=self.robot_context_interval)
         sim = simulation_class(spec['scene'], spec['dataset'], run_id,
             physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode,
             **sim_kwargs)
+        sim.run_metadata['kg_state_source'] = self.kg_state_source
+        sim.global_record_identity = identity
+        sim.context_log_path = str(output / 'robot-context.jsonl')
         layout = self._core.layout.audit_roadmap(sim.roadmap, circle_probes=False)
         if not layout['initial_roadmap_usable']:
             raise ValueError('layout static safety gate failed')
@@ -477,7 +509,7 @@ class WarehouseLiveRuntime:
         if self.robot_agents:
             from backend.warehouse.composition import with_agents
             mirror_class=with_agents(mirror_class,output=output,enabled=True,options=self.agent_options)
-        mirror = mirror_class.from_env() if self.knowledge_backend == 'neo4j' else None
+        mirror = mirror_class.from_env() if self.knowledge_backend == 'neo4j' and self.legacy_a_graph else None
         try:
             if mirror and not resume and mirror.query('MATCH (r:WHRun {run_id:$run}) RETURN count(r) AS runs', {'run': run_id})[0]['runs']:
                 raise ValueError('graph run_id already exists; old run is protected')
@@ -627,6 +659,11 @@ class WarehouseLiveRuntime:
             self._global_writer_error = type(exc).__name__ + ': ' + str(exc)
 
     def _record_global(self, sim, events):
+        if getattr(sim, 'global_writer_url', None):
+            # Stateful actors submit exactly once per tick, including between saves.
+            # Reset cursors before _persist replaces pending_events.
+            sim._global_cursor = sim._graph_cursor = 0
+            return
         if getattr(self, 'global_writer_url', None):
             return self._record_global_http(sim, events)
         if not getattr(self, "global_writer_enabled", False):
@@ -809,6 +846,7 @@ class WarehouseLiveRuntime:
     def _publish(self):
         lap = time.perf_counter_ns()
         snap = self._sim.frame()
+        snap['kgStateSource'] = self.kg_state_source
         self._note_loop('pub_frame', lap); lap = time.perf_counter_ns()
         if 'robots' in snap and hasattr(self._sim, 'jobs'):
             if not hasattr(self, '_motion_view'):
@@ -846,7 +884,9 @@ class WarehouseLiveRuntime:
             snap['metadata']['boundary_routing']=deepcopy(self._sim.run_metadata['boundary_routing'])
         snap['metadata']['mobility']=getattr(self,'mobility','legacy')
         snap['metadata']['robot_processes']=getattr(self,'robot_processes','off')
+        snap['metadata']['kg_state_source']=self.kg_state_source
         snap['metadata']['robot_agents_enabled']=getattr(self,'robot_agents',False)
+        snap['metadata']['legacy_a_graph']=self.legacy_a_graph
         fleet=getattr(self._store.mirror,'agent_fleet',None) if self._store.mirror else None
         if fleet is not None:
             pids=sorted(fleet.pids.values())
@@ -944,6 +984,14 @@ class WarehouseLiveRuntime:
         os.replace(temporary, self._output / 'results.json')
 
     def _close(self):
+        close_sim = getattr(getattr(self, '_sim', None), 'close', None)
+        if close_sim is not None:
+            try:
+                close_sim()
+            except Exception as exc:
+                self._global_writer_error = type(exc).__name__ + ': ' + str(exc)
+                self._error = self._error or self._global_writer_error
+                traceback.print_exc()
         if getattr(self,'_global_client',None) is not None:
             try:self._global_client.close(timeout=10)
             except Exception:pass

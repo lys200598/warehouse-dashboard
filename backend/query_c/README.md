@@ -79,7 +79,8 @@ payload_json/payload_sha256、交接双方等扩展字段均通过 properties() 
 已只读核对 B 的 RobotGraphWriter：AgentState 有 run_id/robot_id/tick，四步采样；
 其历史额外携带 payload_json，与此目录兼容。但它本身不写 Step 或 Run.latest_step，
 仍需全局写者提供完成标记才能使用最新模式。此目录不会代写标记或补造历史。
-原有 warehouse_runtime_graph 写者也缺少该完成合同；可用显式 tick 查询并检查 missing。
+当前运行链路由主进程收齐机器人回执后提交 Step，由全局服务推进 Run.latest_step。
+旧历史检查可用 read_context 的显式 tick 并检查 missing；机器人运行时使用下述严格接口。
 
 性能证据单独放在分支外；原型基准不冒充生产写者性能。查询读取全部窗口内原始属性；
 不同写者的字段体积、事件密度、采样频率会改变性能。
@@ -88,5 +89,34 @@ payload_json/payload_sha256、交接双方等扩展字段均通过 properties() 
 robot_node_id；缺失身份的历史事件无法可靠归属，本目录不会猜测或修补。
 B 写者保留 robot_id=0，已另用其真实写入代码验证完整嵌套 payload 和历史隔离。
 
-当前最后采样查询保留同 tick 的 id 稳定排序，PROFILE 显示使用复合索引，但会读取
-该机器人 <=t 的历史候选再选最后一条；不能据小规模基准承诺百万历史性能。
+当前最近采样按 `(run_id, robot_id, tick)` 倒序取一条。前两列已被匹配条件固定，
+结果等价于 tick 倒序，但完整复合排序使 Neo4j 直接反向读取索引，避免历史排序扫描。
+正式写者同一 run/robot/tick 使用唯一编号；性能仍以实际百万规模联合验收为准。
+
+## 机器人进程接口
+
+`RobotContextClient` 在各个 actor/独立进程中各持有自己的只读连接。
+
+```python
+from backend.query_c import RobotContextClient, context_distributions
+
+client = RobotContextClient(graph_config)  # uri/user/password/database
+try:
+    sample = client.query(run_id, robot_id)  # 固定一次 Run.latest_step
+finally:
+    client.close()
+
+report = context_distributions([sample])
+```
+
+严格接口在指定 tick 时也要求 `tick <= Run.latest_step` 且该 Step 的 `complete=true`。
+历史状态、近期状态和事件、邻居与帮助候选都使用同一个截止时刻；近期窗口是 `(t-window,t]`。
+真实查询集中于 lys 的 `Neo4jWarehouseGraph.robot_context_rows`，本目录负责组装五包。
+启用前由主进程一次执行 `SCHEMA` 并等待索引就绪，不由 100 个机器人重复建索引。
+
+返回的 `total_ms` 是整组实际端到端耗时，用于平均查询时间指标；`pack_ms` 是各包使用的
+数据库调用耗时之和，共享事实只读取一次，因此五包耗时不能相加当成整组耗时。
+`pack_rows` 记录各包结果条数。`context_distributions(samples)` 按机器人和包输出样本数、
+均值、P50/P95/P99、最大值及超过 500ms 的次数，失败请求单独计数。结果不参与派单。
+
+接口小测试：`bash run_in_lade.sh python -m unittest tests.test_robot_context tests.test_query_c_catalog tests.test_warehouse_graph_query`。

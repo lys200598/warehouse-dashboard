@@ -3,7 +3,7 @@ import {acceptsFrame,formatClock as platformClock,exportRows} from './live-model
 import {createKnowledgePanel} from './original-knowledge.mjs';
 import {platformMotionOrigin,platformRenderPosition,platformRoutePoints} from './motion-view.mjs';
 import {createFrameBuffer,bufferDelayFromQuery} from './frame-buffer.mjs';
-import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTaskPresentation,shouldPickRobot,nextFrameInterval} from './dashboard-view.mjs';
+import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTaskPresentation,shouldPickRobot,nextFrameInterval,robotGraphPresentation} from './dashboard-view.mjs';
 (() => {
   "use strict";
 
@@ -1723,7 +1723,16 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     $$("#speedControl button").forEach((item) => item.classList.toggle("active", Number(item.dataset.speed) === state.speed));
     $("#flowRange").value = String(state.flowRate);
     const runtimeMode = $("#runtimeMode");
-    if (runtimeMode) runtimeMode.textContent = `SIMULATION / ${snapshot.backend.toUpperCase()} · ${snapshot.runtime.workerProcessCount} PROCESSES`;
+    const graphStatus = $("#robotGraphStatus");
+    if(platformFrame){
+      const view=robotGraphPresentation(platformFrame);
+      if(runtimeMode)runtimeMode.textContent=view.modeText;
+      if(graphStatus){graphStatus.hidden=false;graphStatus.textContent=view.graphText;graphStatus.title=view.error;
+        graphStatus.classList.toggle('runtime-graph-warning',view.attention);}
+    }else{
+      if(runtimeMode)runtimeMode.textContent=`SIMULATION / ${snapshot.backend.toUpperCase()} · ${snapshot.runtime.workerProcessCount} PROCESSES`;
+      if(graphStatus)graphStatus.hidden=true;
+    }
     updateAllDom(true);
     renderLatestEvent();
   }

@@ -1,9 +1,9 @@
 """Joint acceptance: one live run, million-node graph, writes during queries, 100 concurrent clients.
 
-Measurement is delegated unchanged to ops.quick_load / ops.load_harness. This
-script fixes the protocol, records the run, writer watermark and node count
-around each round (outside every measured interval), and writes one verdict.
-It never controls the simulation and never writes the database.
+The CLI delegates to kg_joint_acceptance and executes the C-label context
+client used by robot actors, in 100 independent processes. Optional synthetic
+negative-tick history is scoped to the selected test run and cleaned afterward.
+The earlier A-label report helpers remain for inspecting archived results.
 
 Exit codes: 0 pass; 1 metric not met or tool error; 2 not a qualified
 acceptance (too few rounds, too few nodes, no concurrent writes, run changed).
@@ -109,7 +109,7 @@ def render(result):
     return '\n'.join(lines) + '\n'
 
 
-def main(argv=None):
+def _legacy_a_main(argv=None):
     q.configure_console()
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--url', required=True, help='live service, e.g. http://127.0.0.1:14192')
@@ -153,6 +153,12 @@ def main(argv=None):
     print(render(result) + f'\n结果目录：{out}', flush=True)
     v = result['verdict']
     return 0 if v['pass'] else (2 if not v['qualified'] else 1)
+
+
+def main(argv=None):
+    """Current acceptance uses C-label robot context; old helpers serve stored reports."""
+    from .kg_joint_acceptance import main as c_main
+    return c_main(argv)
 
 
 if __name__ == '__main__':

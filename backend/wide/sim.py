@@ -111,6 +111,9 @@ class Simulation(V3Simulation):
             self.tasks[t['task_id']]=t
         from .free_ports import prepare_tasks
         prepare_tasks(self)
+        # Checkpoints omit unreleased tasks. Preserve their pristine logical
+        # endpoints so same-instance rewind cannot retain future port bindings.
+        self._initial_tasks = deepcopy(self.tasks)
         self.release_order=sorted(self.tasks,key=lambda k:(self.tasks[k]['release_second'],k))
         self.cursor=0
         self.pending=[]
@@ -342,7 +345,13 @@ class Simulation(V3Simulation):
     def restore(self, state):
         # V3 restores actual jobs first. Reconstruct the same terminal tails and
         # idle bodies, never silently restore an empty parking aisle.
-        super().restore(state)
+        previous_tasks = self.tasks
+        self.tasks = deepcopy(self._initial_tasks)
+        try:
+            super().restore(state)
+        except Exception:
+            self.tasks = previous_tasks
+            raise
         if len(self.jobs) > self.config.max_active_robots:
             raise ValueError('checkpoint exceeds configured activation limit')
         if any(r.get('robot_type_key') != self.fleet_type_by_id[i] for i, r in self.robots.items()):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import json
 from typing import Any, Callable, Iterable
 
 
@@ -26,6 +27,7 @@ RUNTIME_SCHEMA = (
     "CREATE INDEX warehouse_runtime_handoff_run_tick IF NOT EXISTS FOR (n:Handoff) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_ownership_run_task_tick IF NOT EXISTS FOR (n:OwnershipChange) ON (n.run_id, n.task_id, n.tick)",
     "CREATE INDEX warehouse_runtime_state_run_tick IF NOT EXISTS FOR (n:AgentState) ON (n.run_id, n.tick)",
+    "CREATE INDEX warehouse_runtime_robot_run_tick IF NOT EXISTS FOR (n:Robot) ON (n.run_id, n.last_written_tick)",
     "CREATE INDEX warehouse_runtime_state_robot_tick IF NOT EXISTS FOR (n:AgentState) ON (n.robot_node_id, n.tick)",
     "CREATE INDEX warehouse_runtime_execution_run_task IF NOT EXISTS FOR (n:Execution) ON (n.run_id, n.task_id)",
     "CREATE INDEX warehouse_runtime_execution_state_run_task_tick IF NOT EXISTS FOR (n:ExecutionState) ON (n.run_id, n.task_id, n.tick)",
@@ -140,6 +142,14 @@ class Neo4jRuntimeGraphWriter:
         except Exception as exc:
             raise RuntimeGraphUnavailable(f"Neo4j runtime Run setup failed: {exc}") from exc
 
+    def ensure_context_schema(self) -> None:
+        """One control-plane bootstrap, before actors begin read-only context queries."""
+        from .query_c import SCHEMA
+        with self._get_driver().session(database=self.database) as session:
+            for query in SCHEMA:
+                session.run(query).consume()
+            session.run('CALL db.awaitIndexes(60)').consume()
+
     def record_robot_snapshot(self, snapshot: dict[str, Any]) -> None:
         """Persist one robot's subgraph without racing 99 actors on the Run node."""
         if not self.configured:
@@ -188,6 +198,25 @@ class Neo4jRuntimeGraphWriter:
             raise
         except Exception as exc:
             raise RuntimeGraphUnavailable(f"Neo4j robot graph write failed: {exc}") from exc
+
+    def record_robot_current_state(self, snapshot: dict[str, Any], robot: dict[str, Any]) -> None:
+        """Publish the full actor state after history/events succeed; reuse robot writes."""
+        if not self.configured:
+            raise RuntimeGraphUnavailable("WAREHOUSE_NEO4J_PASSWORD is not configured")
+        run_id = str(snapshot['runId'])
+        rows = self._robot_rows(snapshot, run_id)
+        if len(rows) != 1 or rows[0]['robot_id'] != robot['robot_id']:
+            raise ValueError('current state must belong to this robot snapshot')
+        row = rows[0]
+        row.update(payload=json.dumps(robot, sort_keys=True), last_written_tick=int(snapshot['tick']))
+        key = (run_id, row['id'])
+        try:
+            with self._get_driver().session(database=self.database) as session:
+                session.run(_UPDATE_ROBOTS_ONLY if key in self._registered_robots else _WRITE_ROBOTS_ONLY,
+                            robots=rows).consume()
+            self._registered_robots.add(key)
+        except Exception as exc:
+            raise RuntimeGraphUnavailable(f'Neo4j current robot state write failed: {exc}') from exc
 
     def record_snapshot(self, snapshot: dict[str, Any]) -> None:
         """Synchronously persist one snapshot; intended for a background worker."""

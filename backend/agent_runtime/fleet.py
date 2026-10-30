@@ -147,9 +147,13 @@ def _agent_worker_loop(connection, *, endpoint, token, run_id, robot_id, initial
 
 
 class AgentFleet:
+    """Deprecated native-process fleet; new runs must use RayRobotPool."""
     def __init__(self, *, run_id, robot_ids, backend, output_dir, query_interval=30,
                  observation_interval=30, timeout=30., startup_timeout=120., port=0,
                  queue_size=512, batch_size=100, query_slots=16, query_wait_timeout=1.):
+        import warnings
+        warnings.warn('AgentFleet is deprecated; use backend.robot_actor.RayRobotPool for new runs',
+                      DeprecationWarning, stacklevel=2)
         if type(query_interval) is not int or query_interval <= 0 or type(observation_interval) is not int or observation_interval <= 0:
             raise ValueError('positive integer agent cadences required')
         self.output = Path(output_dir); self.output.mkdir(parents=True, exist_ok=True)

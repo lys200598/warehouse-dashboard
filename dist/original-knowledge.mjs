@@ -1,4 +1,5 @@
 import {normalizeDatasets,knowledgeFacts,buildQuery,formatClock} from './live-model.mjs';
+import {legacyAQueriesEnabled} from './dashboard-view.mjs';
 
 // On-demand knowledge controls in the original dashboard. Rendering never queries ANN.
 export function createKnowledgePanel({getFrame,getSelected,control,toast}) {
@@ -42,17 +43,22 @@ export function createKnowledgePanel({getFrame,getSelected,control,toast}) {
     if(!loaded){loaded=true;load();}
     $('platformKnowledge').hidden=false;
     const k=knowledgeFacts(f),meta=f.metadata||{};
+    const legacyEnabled=legacyAQueriesEnabled(f);
+    $('legacyKnowledgeControls').hidden=!legacyEnabled;
+    $('fillSelected').hidden=!legacyEnabled;
     if(pendingDataset===null&&datasets.some(d=>d.id===meta.dataset_id))$('datasetSelect').value=meta.dataset_id;
     const dataset=datasets.find(d=>d.id===meta.dataset_id);
     $('datasetDetail').textContent=`当前：${dataset?.label||meta.dataset_id} · ${f.totalTasks}项 · 未发布 ${f.unreleased} · 仓内 ${f.inside}`;
-    $('knowledgeSummary').textContent=`持久化 ${k.durable} / 图谱 ${k.mirrored} / 滞后 ${k.lag}批 · 物理 ${formatClock(f.elapsed)} / 图谱 ${formatClock(k.committedTime)}${k.error?` · 写入错误 ${k.error}`:''}`;
+    $('knowledgeSummary').textContent=legacyEnabled?
+      `持久化 ${k.durable} / 图谱 ${k.mirrored} / 滞后 ${k.lag}批 · 物理 ${formatClock(f.elapsed)} / 图谱 ${formatClock(k.committedTime)}${k.error?` · 写入错误 ${k.error}`:''}`:
+      '旧版 A 查询已停用；C 图谱状态见运行状态栏';
     $('runIdentity').textContent=f.runId;
     $('runMetadata').textContent=JSON.stringify({runId:f.runId,sourceKind:f.sourceKind,metadata:meta,knowledge:f.knowledge},null,2);
     if($('latestQuery').checked)$('querySeq').value=k.mirrored;
     $('stepButton').disabled=!['paused','ready'].includes(f.status);
     $('checkpointButton').disabled=f.status==='failed';
     $('newRunButton').disabled=f.running||!datasets.length;
-    $('runQuery').disabled=queryBusy||!(k.mirrored>0);
+    $('runQuery').disabled=!legacyEnabled||queryBusy||!(k.mirrored>0);
     $('sceneVersion').textContent=f.specVersion||'V5';
   }
   return {apply,duration:id=>datasets.find(d=>d.id===id)?.duration_seconds};

@@ -56,7 +56,7 @@ class FakeService:
                     self.connection.close()
                     return
                 if code == 202 and service.auto_write:
-                    service.last_tick = record['tick']
+                    service.last_tick = record['records'][-1]['tick'] if 'records' in record else record['tick']
                 self.reply(code, {'detail': 'fake response'})
 
             def do_GET(self):
@@ -292,6 +292,21 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(client.health()['buffer_length'], 0)
         client.submit(self.record(1))
         client.flush(2)
+
+    def test_batches_are_bounded_ordered_and_identical_on_retry(self):
+        self.service.post_gate.clear()
+        self.service.post_codes = [503, 202]
+        client = self.client(batch_size=128)
+        client.submit(self.record(0))
+        self.assertTrue(self.service.post_entered.wait(2))
+        for tick in range(1, 260):
+            client.submit(self.record(tick))
+        self.service.post_gate.set()
+        client.flush(5)
+        batches = [r['records'] for _, r in self.service.posts]
+        self.assertEqual(batches[0], batches[1])
+        self.assertTrue(all(1 <= len(b) <= 128 for b in batches))
+        self.assertEqual([r['tick'] for b in batches[1:] for r in b], list(range(260)))
 
 
 if __name__ == '__main__':

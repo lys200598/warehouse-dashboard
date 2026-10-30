@@ -1,5 +1,19 @@
 /* Pure presentation of returned state; no simulation or invented progress. */
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
+export const legacyAQueriesEnabled=frame=>frame?.metadata?.legacy_a_graph!==false;
+export function robotGraphPresentation(frame={}){
+  const meta=frame.metadata||{},graph=frame.robotGraph||{};
+  const processes=frame.robotProcesses??meta.robot_processes??'—';
+  const source=frame.kgStateSource??meta.kg_state_source??'—';
+  const step=Number.isInteger(graph.latestCompleteStep)&&graph.latestCompleteStep>=0?graph.latestCompleteStep:null;
+  const current=Number.isInteger(graph.currentTick)&&graph.currentTick>=0?graph.currentTick:frame.tick;
+  const lag=step!==null&&Number.isInteger(current)?Math.max(0,current-step):null;
+  const errors=Number.isInteger(graph.errors)&&graph.errors>=0?graph.errors:null;
+  return {modeText:`机器人进程 ${processes} · 派单状态 ${source}`,
+    graphText:`完整 Step ${step??'—'} · ${lag===null?'滞后 —':lag===0?'已同步':`落后 ${lag} 步`} · 写入错误 ${errors??'—'}`,
+    attention:(errors??0)>0||(lag??0)>0||Boolean(graph.lastError),
+    error:typeof graph.lastError==='string'?graph.lastError:''};
+}
 export function samePhysicalFrame(a,b){
   if(!a||!b||a.runId!==b.runId||a.runtimeInstanceId!==b.runtimeInstanceId||a.tick!==b.tick
       ||a.robots.length!==b.robots.length)return false;

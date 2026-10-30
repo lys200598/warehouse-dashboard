@@ -260,6 +260,7 @@
         <section class="panel platform-knowledge" id="platformKnowledge" hidden>
           <div class="panel-heading"><div><span class="section-kicker">SHARED KNOWLEDGE</span><h2>共享知识与历史查询</h2></div><button class="button ghost" id="fillSelected">使用选中机器人</button></div>
           <p id="knowledgeSummary">等待已提交知识</p>
+          <div id="legacyKnowledgeControls">
           <div class="platform-query-fields">
             <label>查询包<select id="queryKind"><option value="self">机器人上下文</option></select></label>
             <label>机器人<input id="queryRobot" type="number" min="1" max="100" value="1"></label>
@@ -272,12 +273,14 @@
           </div>
           <label><input id="latestQuery" type="checkbox" checked> 使用本帧已镜像水位</label><p id="queryStatus">查询按需触发，地图刷新不自动执行ANN。</p>
           <details id="queryOutput"><summary>完整请求与返回</summary><div class="platform-query-output"><pre id="queryRequest">尚未查询</pre><pre id="queryResult">尚未查询</pre></div></details>
+          </div>
           <details><summary>本run来源与知识水位</summary><pre id="runMetadata">等待真实来源</pre></details>
         </section>
       </main>
 
       <footer class="footer-bar">
         <span id="runtimeMode">等待真实运行帧</span>
+        <span id="robotGraphStatus" hidden>等待图谱水位</span>
         <span>场景版本 <strong id="sceneVersion">等待场景</strong></span>
         <span>坐标单位 <strong>m</strong></span>
         <span class="footer-spacer"></span>

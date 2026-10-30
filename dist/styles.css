@@ -1146,13 +1146,16 @@ input[type="range"]::-webkit-slider-thumb {
 .event-ticker strong { color: #bac5c1; }
 
 .footer-bar {
-  height: 32px;
-  gap: 20px;
+  min-height: 32px;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 8px 0;
   color: #68746f;
   font: 8px var(--mono);
 }
 
 .footer-bar strong { color: #9da9a4; font-weight: 400; }
+.footer-bar .runtime-graph-warning { color: var(--orange); }
 .footer-spacer { flex: 1; }
 .footer-dot { display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; background: var(--lime); }
 .footer-dot.blue { background: var(--blue); }

@@ -15,8 +15,87 @@ class WarehouseGraphUnavailable(RuntimeError):
     """The persistent graph has not been configured or cannot be reached."""
 
 
+class RobotContextUnavailable(WarehouseGraphUnavailable):
+    pass
+
+
+ROBOT_CONTEXT_ANCHOR = """MATCH (run:Run {id: $run_id})
+RETURN run.latest_step AS latest_step"""
+ROBOT_CONTEXT_QUERIES = {
+    "step": """MATCH (st:Step {run_id: $run_id, tick: $t})
+RETURN properties(st) AS step""",
+    "self_state": """MATCH (s:AgentState {run_id: $run_id, robot_id: $robot_id})
+WHERE s.tick <= $t
+RETURN properties(s) AS state ORDER BY s.run_id DESC, s.robot_id DESC, s.tick DESC LIMIT 1""",
+    "recent_states": """MATCH (s:AgentState {run_id: $run_id, robot_id: $robot_id})
+WHERE s.tick > $state_lower AND s.tick <= $t
+RETURN properties(s) AS state ORDER BY s.tick DESC, s.id""",
+    # 原型有 robot_id，正式写者有 robot_node_id。UNION 按事件去重且各走复合索引。
+    "recent_events": """CALL () {
+ WITH $run_id AS run_id, $robot_id AS robot_id, $event_lower AS lo, $t AS t
+ MATCH (e:RuntimeEvent {run_id: run_id, robot_id: robot_id})
+ WHERE e.tick > lo AND e.tick <= t
+ RETURN e
+ UNION
+ WITH $run_id AS run_id, $robot_node_id AS robot_node_id, $event_lower AS lo, $t AS t
+ MATCH (e:RuntimeEvent {run_id: run_id, robot_node_id: robot_node_id})
+ WHERE e.tick > lo AND e.tick <= t
+ RETURN e
+}
+RETURN properties(e) AS event ORDER BY e.tick DESC, e.id""",
+    # Robot 只提供稳定身份；所有可变属性均来自 <= t 的 AgentState。
+    "fleet_states": """MATCH (r:Robot {run_id: $run_id})
+CALL (r) {
+ OPTIONAL MATCH (s:AgentState {run_id: r.run_id, robot_id: r.robot_id})
+ WHERE s.tick <= $t
+ RETURN s ORDER BY s.run_id DESC, s.robot_id DESC, s.tick DESC LIMIT 1
+}
+RETURN r.robot_id AS robot_id, properties(s) AS state ORDER BY robot_id""",
+}
+
 class Neo4jWarehouseGraph:
     QUERY_PRESETS = ("run-progress", "task-trace", "robot-trace", "replay-tick", "latest-step")
+
+    def robot_context_rows(self, run_id: str, robot_id: int, *, tick=None, state_window=400,
+                           event_window=600, require_complete=False):
+        """Shared C-state/event reads for actor decision context, with one pinned cutoff.
+
+        The actor API requires a complete Step. Legacy explicit history readers
+        may ask for a missing historical Step but can never read mutable Robot
+        properties as historical state. Query timings include server round trips.
+        """
+        timings = {}
+
+        def fetch(tx):
+            began = time.perf_counter()
+            anchor = tx.run(ROBOT_CONTEXT_ANCHOR, run_id=run_id).data()
+            timings['anchor'] = (time.perf_counter() - began) * 1000
+            if not anchor:
+                raise RobotContextUnavailable(f'Run not found: {run_id}')
+            latest = anchor[0]['latest_step']
+            t = latest if tick is None else tick
+            if isinstance(t, bool) or not isinstance(t, int) or t < 0:
+                raise RobotContextUnavailable('Run.latest_step is missing or invalid')
+            if require_complete and (isinstance(latest, bool) or not isinstance(latest, int) or latest < t):
+                raise RobotContextUnavailable(f'tick {t} is beyond the latest complete Step')
+            params = dict(run_id=run_id, robot_id=robot_id, robot_node_id=f'{run_id}:robot:{robot_id}',
+                          t=t, state_lower=t-state_window, event_lower=t-event_window)
+            rows = {}
+            for name, query in ROBOT_CONTEXT_QUERIES.items():
+                began = time.perf_counter()
+                rows[name] = tx.run(query, **params).data()
+                timings[name] = (time.perf_counter() - began) * 1000
+            if (tick is None or require_complete) and len(rows['step']) != 1:
+                raise RobotContextUnavailable('cutoff must identify exactly one complete Step')
+            if len(rows['step']) > 1:
+                raise RobotContextUnavailable('duplicate Step for run/tick')
+            if require_complete and rows['step'][0]['step'].get('complete') is not True:
+                raise RobotContextUnavailable('requested Step is not complete')
+            return t, rows
+
+        with self._get_driver().session(database=self.database, default_access_mode='READ') as session:
+            t, rows = session.execute_read(fetch)
+        return t, rows, timings
 
     def query_preset(self, preset: str, *, task_id: str = "", run_id: str = "", robot_id: int = 1, tick: int = 0) -> dict[str, Any]:
         """Run only a named, bounded read query; never accept arbitrary Cypher."""

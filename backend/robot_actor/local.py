@@ -11,6 +11,7 @@ tests/test_dispatch_golden.py and tests/test_robot_process_split.py.
 """
 from copy import deepcopy
 import math
+import time
 
 from ..scheduling_v3.sim import position
 
@@ -147,6 +148,32 @@ class RobotProcessSplit:
     used.
     """
 
+    kg_state_source = 'memory'
+
+    def release_and_dispatch(self):
+        if self.kg_state_source == 'neo4j':
+            self._prepare_kg_dispatch()
+            states = self._kg_reader.read(self.run_id, self.tick, self.robots, self._kg_fields)
+            # Validate the whole frame before replacing any robot. Object identity
+            # is retained for jobs/planners holding references to these dictionaries.
+            for owner, state in states.items():
+                self.robots[owner].clear()
+                self.robots[owner].update(state)
+            self.kg_timing.update(self._kg_reader.timings)
+            after_read = getattr(self, '_after_kg_state_read', None)
+            if after_read is not None:
+                after_read()
+        began = time.perf_counter()
+        result = super().release_and_dispatch()
+        if hasattr(self, 'kg_timing'):
+            self.kg_timing['dispatch_ms'] = (time.perf_counter() - began) * 1000
+        return result
+
+    def frame(self):
+        value = super().frame()
+        value['kgStateSource'] = self.kg_state_source
+        return value
+
     def _make_robot_pool(self):
         return LocalRobotPool(self.robots, self.energy, self.config.charge_target_soc)
 
@@ -237,10 +264,19 @@ class RobotProcessSplit:
         self.split_stats['ticks'] += 1
 
     def restore(self, state):
+        validate = getattr(self, '_validate_restore', None)
+        if validate is not None:
+            validate(state)
         super().restore(state)
         if getattr(self, '_pool', None) is not None:
             self._pool.close()
         self._pool = None  # rebuild robot processes from the restored state
+        self._pool_ids = None
+        self._mirror = {}
+        self._sent_job = {}
+        reset = getattr(self, '_reset_after_restore', None)
+        if reset is not None:
+            reset()
 
     def close(self):
         self.close_robot_pool()

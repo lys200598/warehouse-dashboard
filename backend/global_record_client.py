@@ -15,6 +15,9 @@ BufferFull means PAUSE the simulation and retry the same unaccepted record.
 The in-flight head counts toward capacity. 503 and transport failures retry
 forever after 0.5, 1, 2, 4, 4, ... seconds; other HTTP statuses are fatal.
 An uncertain POST may be repeated: the server must provide idempotent writes.
+batch_size=128 enables ordered {"records": [...]} requests (also for a singleton).
+An in-flight batch is frozen until acknowledgement; accumulated records are
+coalesced up to the configured limit and the service's 8 MiB request limit.
 
 flush uses queue.last_tick, queue.errors and queue.worker_alive from health.
 At baseline 63f90a5 this watermark is SERVICE-WIDE, resets on service restart,
@@ -59,7 +62,7 @@ class GlobalRecordClient:
     """One worker and one strictly ordered queue; public methods are thread-safe."""
 
     def __init__(self, base_url: str, run_id: str, *, max_buffer: int = 300,
-                 request_timeout: float = 2.0):
+                 request_timeout: float = 2.0, batch_size: int = 1):
         url = urlsplit(base_url)
         if url.scheme not in ('http', 'https') or not url.netloc or url.query or url.fragment:
             raise ValueError('base_url must be an HTTP(S) service URL')
@@ -73,6 +76,9 @@ class GlobalRecordClient:
         self.run_id = run_id
         self.max_buffer = max_buffer
         self.request_timeout = request_timeout
+        if type(batch_size) is not int or not 1 <= batch_size <= 128:
+            raise ValueError('batch_size must be within 1..128')
+        self.batch_size = batch_size
         self._opener = build_opener(_NoRedirect())
         self._cv = threading.Condition()
         self._records = deque()
@@ -163,6 +169,7 @@ class GlobalRecordClient:
 
     def _run(self):
         attempt = 0
+        inflight = None
         try:
             while True:
                 with self._cv:
@@ -171,7 +178,21 @@ class GlobalRecordClient:
                     if self._closed:
                         return
                     check_health = self._confirmed < self._flush_target <= self._last_sent
-                    tick, payload = (self._flush_target, None) if check_health else self._records[0]
+                    if check_health:
+                        tick, payload = self._flush_target, None
+                    else:
+                        if inflight is None:
+                            # Freeze the exact batch until 202, including uncertain retries.
+                            items, size = [], 16
+                            for item in self._records:
+                                if len(items) >= self.batch_size or items and size + len(item[1]) + 1 > 8 * 1024 * 1024:
+                                    break
+                                items.append(item)
+                                size += len(item[1]) + 1
+                            payload = (b'{"records":[' + b','.join(p for _, p in items) + b']}'
+                                       if self.batch_size > 1 else items[0][1])
+                            inflight = (items[-1][0], payload, len(items))
+                        tick, payload, count = inflight
                 try:
                     status, body = self._request('/v1/health' if check_health else '/v1/records', payload)
                 except (OSError, URLError, http.client.HTTPException) as exc:
@@ -208,7 +229,9 @@ class GlobalRecordClient:
                         self._wait(0.1)
                 else:
                     with self._cv:
-                        self._records.popleft()  # only a 202 releases capacity
+                        for _ in range(count):
+                            self._records.popleft()  # only a 202 releases capacity
+                        inflight = None
                         self._last_sent = tick
                         self._transient_error = None
                         self._cv.notify_all()
