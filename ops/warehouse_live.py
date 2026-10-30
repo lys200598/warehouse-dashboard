@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import sys
 import threading
@@ -83,7 +84,7 @@ def _body(raw):
 
 
 def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=None,own_runtime=True,
-               catalog_workers=4,catalog_upstreams=None):
+               catalog_workers=4,catalog_upstreams=None,kg_graph=None):
     if type(catalog_workers) is not int or not 1<=catalog_workers<=24:
         raise ValueError('catalog_workers must be an integer within 1..24')
     from fastapi import FastAPI,Request,WebSocket
@@ -111,6 +112,7 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
             await asyncio.to_thread(executor.shutdown,wait=True)
             if queries:queries.close()
             if proxy:await proxy.close()
+            if kg_graph is not None:await asyncio.to_thread(kg_graph.close)
 
     app=FastAPI(title='Warehouse V5 live console',lifespan=lifespan)
 
@@ -153,6 +155,66 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
 
     @app.get('/api/knowledge/catalog')
     async def catalog():return catalog_description or {'queries':{},'error':'catalog not configured'}
+
+    def kg_unavailable(exc=None):
+        detail=str(exc) if exc is not None else 'Neo4j warehouse graph is not configured'
+        return JSONResponse({'detail':detail,'backend':'neo4j-warehouse'},status_code=503)
+
+    @app.get('/api/kg/warehouse/health')
+    async def kg_health():
+        if kg_graph is None:return kg_unavailable()
+        return await asyncio.to_thread(kg_graph.health)
+
+    @app.get('/api/kg/warehouse/dashboard')
+    async def kg_dashboard(dataset_id: str | None = None):
+        if kg_graph is None:return kg_unavailable()
+        try:
+            summary=await asyncio.to_thread(kg_graph.summary,dataset_id)
+            health=await asyncio.to_thread(kg_graph.health)
+            return {'source':'neo4j-knowledge-graph','health':health,'summary':summary}
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/tasks')
+    async def kg_tasks(limit: int = 8, dataset_id: str | None = None):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.task_list,limit,dataset_id)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/tasks/{task_id}/trace')
+    async def kg_task_trace(task_id: str, dataset_id: str | None = None):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.task_execution_trace,task_id,dataset_id)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/query-presets')
+    async def kg_presets():
+        return {'presets':list(getattr(kg_graph,'QUERY_PRESETS',())) if kg_graph is not None else [],
+                'readOnly':True,'maxRows':200}
+
+    @app.post('/api/kg/warehouse/query-presets/{preset}')
+    async def kg_preset(preset: str, request: Request):
+        if kg_graph is None:return kg_unavailable()
+        try:
+            body=_body(await request.body())
+            return await asyncio.to_thread(kg_graph.query_preset,preset,
+                task_id=str(body.get('taskId',''))[:160],run_id=str(body.get('runId',''))[:160],
+                robot_id=int(body.get('robotId',1)),tick=int(body.get('tick',0)))
+        except (ValueError,TypeError,json.JSONDecodeError) as exc:
+            return JSONResponse({'detail':str(exc)},status_code=400)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/robots/{robot_id}/trace')
+    async def kg_robot_trace(run_id: str, robot_id: int, tick: int | None = None, history_limit: int = 20):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.robot_trace_context,run_id,robot_id,tick,history_limit)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/runtime-trace')
+    async def kg_runtime_trace(run_id: str, tick: int | None = None, robot_id: int | None = None):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.runtime_state_trace,run_id,tick,robot_id)
+        except ValueError as exc:return JSONResponse({'detail':str(exc)},status_code=400)
+        except Exception as exc:return kg_unavailable(exc)
 
     @app.post('/api/control')
     async def control(request:Request):
@@ -261,6 +323,11 @@ def main(argv=None):
     # Parse before selecting/importing a producer tree; importing backend here
     # would pin the wrong source when --source-root selects another release.
     p.add_argument('--mobility',choices=('legacy','wheeled'),default='legacy')
+    p.add_argument('--ray',action='store_true',help='100 Ray motion actors; V5 dispatch/reservations remain central')
+    p.add_argument('--ray-address',default=os.environ.get('RAY_ADDRESS'))
+    p.add_argument('--ray-actor-cpus',type=float,default=0.1)
+    p.add_argument('--robot-graph',action='store_true',help='each Ray actor writes its own robot graph subgraph')
+    p.add_argument('--graph-state-interval',type=int,default=4,help='AgentState cadence per robot actor, 1..300 ticks')
     p.add_argument('--robot-agents',action='store_true')
     p.add_argument('--agent-query-seconds',type=int,default=30)
     p.add_argument('--agent-observation-seconds',type=int,default=30)
@@ -286,6 +353,17 @@ def main(argv=None):
     sys.path.insert(0,str(ROOT));sys.path.insert(0,str(source))
     from ops.warehouse_live_runtime import WarehouseLiveRuntime
     from backend.query_catalog import QueryCatalogService
+    kg_graph=None
+    try:
+        from backend.warehouse_graph_query import Neo4jWarehouseGraph
+        kg_graph=Neo4jWarehouseGraph(
+            uri=os.environ.get('WAREHOUSE_NEO4J_URI') or os.environ.get('NEO4J_URI') or 'bolt://127.0.0.1:47687',
+            user=os.environ.get('WAREHOUSE_NEO4J_USER') or os.environ.get('NEO4J_USER') or 'neo4j',
+            password=os.environ.get('WAREHOUSE_NEO4J_PASSWORD') or os.environ.get('NEO4J_PASSWORD'),
+            database=os.environ.get('WAREHOUSE_NEO4J_DATABASE') or os.environ.get('NEO4J_DATABASE') or 'neo4j',
+            dataset_id=os.environ.get('WAREHOUSE_NEO4J_DATASET_ID'))
+    except Exception:
+        kg_graph=None
     # An optional, not-yet-generated dataset stays visible as unavailable in
     # the UI; the owner only receives existing inputs it can actually validate.
     active_datasets={key:spec for key,spec in datasets.items() if available.get(key)}
@@ -295,6 +373,8 @@ def main(argv=None):
         query_summary_root=(args.summary_root or args.output_root) if args.query_acceleration=='summary' else None,
         query_summary_cache=args.query_summary_cache if args.query_acceleration=='summary' else None,
         query_point_path=args.query_point_file,mobility=args.mobility,max_active_robots=args.max_active_robots,
+        ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,
+        robot_graph=args.robot_graph,graph_state_interval=args.graph_state_interval,
         robot_agents=args.robot_agents,agent_options=dict(query_interval=args.agent_query_seconds,
             observation_interval=args.agent_observation_seconds,timeout=args.agent_timeout,
             startup_timeout=args.agent_startup_timeout))
@@ -312,7 +392,8 @@ def main(argv=None):
             try:print(json.dumps({'query_summary_startup':warm.prepare_run(runtime.latest()['runId'])}),flush=True)
             finally:warm.close()
         app=create_app(runtime,datasets,args.dist,catalog_factory=factory,catalog_description=QueryCatalogService.describe(),
-                       own_runtime=False,catalog_workers=args.query_workers,catalog_upstreams=args.query_upstream)
+                       own_runtime=False,catalog_workers=args.query_workers,catalog_upstreams=args.query_upstream,
+                       kg_graph=kg_graph)
         import uvicorn
         uvicorn.run(app,host=args.host,port=args.port,workers=1,timeout_graceful_shutdown=120)
     finally:runtime.shutdown()

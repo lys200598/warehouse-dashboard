@@ -54,6 +54,43 @@ python -m backend.warehouse serve --output data/runs/my-smoke --port 14183
 
 实时控制使用`python -m backend.warehouse live`，部署入口为`http://127.0.0.1:14186/`；它直接运行V5真实协调器并持续写图，支持固定数据集、开始/暂停/单步、墙钟倍速和按需知识查询。原`serve`继续专用于已保存帧回放。
 
+## 120×90 中型布局与轮式运行
+
+`wz/warehouse-design` 的 medium 候选（120×90m、48架、2304货位、100泊位）已迁入本分支的 `data/layouts/expansion-candidates/medium/`，配套 `data/examples/wheeled-medium-*`、`config/wheeled-medium-100.json` 和 `backend/wheeled/`。
+
+```bash
+# 与 4173 并存：在 14583 启动 120 布局实时页
+bash ops/start_medium.sh
+
+# 或把 4173 本身切到 120 布局（会先停止当前 4173）
+bash ops/start_runtime.sh --restart
+
+# 120 布局 + 100 个 Ray 运动 Actor（V5 派单/库存/交通/换电仍在中央）
+# 先启动独立 Ray head；Neo4j 仅做图谱/机器人写图谱时需要
+bash ops/start_ray.sh
+bash ops/start_neo4j.sh   # 可选
+RAY=1 bash ops/start_medium.sh
+# 或切换 4173 为 Ray 版
+bash ops/start_runtime.sh --restart --ray
+
+# 让每个 Ray actor 写自己的 Robot/AgentState/Event 子图（需 Neo4j 密码）
+ROBOT_GRAPH=1 RAY=1 bash ops/start_medium.sh
+bash ops/start_runtime.sh --restart --ray --robot-graph
+
+# 批量短跑（必须带 medium 的完整配置）
+python -m backend.warehouse run \
+  --scene data/layouts/expansion-candidates/medium/layout.json \
+  --dataset data/examples/wheeled-medium-sample19 \
+  --config-json config/wheeled-medium-100.json \
+  --mobility wheeled --mode rules --knowledge-backend journal \
+  --output data/local-runs/medium-smoke --run-id medium-smoke \
+  --until 30 --frames
+```
+
+当前 4173 已经是 120×90 medium 的 V5 Ray 实时页；14185 只读回放已落盘的批量 frames，14183 保留旧 V5 单 run 回放。三者不要混用 runId。medium 的 0 晚点结论只适用于其 1728 任务峰值输入，不能外推到任意负载。
+
+Ray 版是同一个 V5 medium 运行：派单、库存、SIPP 交通预留、换电和知识写入仍由中央协调器负责；100 个 Ray Actor（`--ray-actor-cpus 0.1`）执行每台机器人每个 tick 的运动段。加 `--robot-graph` 后，每个 actor 用本地 Neo4j writer 只写自己的 `Robot/AgentState/Execution/RuntimeEvent` 子图；共享 `Run` 节点由主进程启动时创建一次，避免 100 个 actor 争抢同一个 Run 写锁。它不能替换成 legacy `backend.server` 的 32×22 Ray 控制台。
+
 ## 真实图谱与历史控制
 
 配置已有Neo4j的`NEO4J_URI`、`NEO4J_USER`、`NEO4J_PASSWORD`，可选`NEO4J_DATABASE`，然后：

@@ -192,17 +192,16 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
         for (let level = 1; level <= dashboardLayout.spec.levels; level += 1) {
           for (let face = 1; face <= dashboardLayout.spec.faces; face += 1) {
             for (let bay = 1; bay <= dashboardLayout.spec.baysPerFace; bay += 1) {
-              const occupied = random() > 0.48;
               slots.push({
                 slotId: `${source.id}-L${level}-C${bay}-F${face}`,
                 rackId,
                 level,
                 bay: bay - 1,
                 depthRow: face - 1,
-                occupied,
+                occupied: false,
                 reservedBy: null,
-                cargoId: occupied ? `ST-${pad(rackId)}${level}${bay}${face}` : null,
-                colorIndex: Math.floor(random() * 4),
+                cargoId: null,
+                colorIndex: 0,
                 placedAt: null,
               });
             }
@@ -267,6 +266,12 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     return { x: 2.2 + (id % 4) * 0.9, y: 19.7 + (id % 2) * 0.45 };
   }
 
+  function inboundPoint(id) {
+    const stations = layoutStations("inbound");
+    if (stations.length) return stations[(id - 1) % stations.length];
+    return { x: 1.55 + ((id - 1) % 20) * 1.48, y: 18.9 + Math.floor((id - 1) / 20) * 0.46 };
+  }
+
   function outboundPoint(id) {
     const stations = layoutStations("outbound");
     if (stations.length) return stations[(id - 1) % stations.length];
@@ -277,6 +282,32 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     const rack = robot.rack;
     const geometry = slotGeometry(rack, robot.slot);
     return { x: geometry.x + geometry.width / 2, y: rack.y + 1.72 };
+  }
+
+  function visualTaskPoint(payload, rack, slot, previous) {
+    const stage = payload.stage;
+    const taskType = payload.taskType || payload.task_type || "INBOUND";
+    if (!dashboardLayout) return payload;
+    let destination = null;
+    let transit = false;
+    if (stage === "toPick") {
+      destination = taskType === "OUTBOUND" ? rackTarget({ ...payload, rack, slot }) : inboundPoint(payload.id);
+      transit = true;
+    } else if (stage === "toRack") {
+      destination = taskType === "OUTBOUND" ? outboundPoint(payload.id) : rackTarget({ ...payload, rack, slot });
+      transit = true;
+    } else if (stage === "picking") {
+      destination = taskType === "OUTBOUND" ? rackTarget({ ...payload, rack, slot }) : inboundPoint(payload.id);
+    } else if (stage === "placing") {
+      destination = taskType === "OUTBOUND" ? outboundPoint(payload.id) : rackTarget({ ...payload, rack, slot });
+    }
+    if (!destination) return mapLegacyPoint(payload);
+    if (!transit) return destination;
+    const start = previous
+      ? { x: previous.renderTargetX ?? previous.x, y: previous.renderTargetY ?? previous.y }
+      : mapLegacyPoint(payload);
+    const progress = clamp((payload.distanceTravelled || 0) / Math.max(0.001, payload.stageDistance || 0), 0, 1);
+    return { x: lerp(start.x, destination.x, progress), y: lerp(start.y, destination.y, progress) };
   }
 
   function slotGeometry(rack, slot) {
@@ -730,6 +761,17 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       return;
     }
     if (dashboardLayout) {
+      // Draw the declared inbound/outbound/handover areas before the small
+      // station and dock squares.  drawFloor previously never read
+      // dashboardLayout.zones, so all three 716.8m²/35m² zones were invisible.
+      for (const zone of dashboardLayout.zones || []) {
+        const fill = zone.id === "inbound"
+          ? "rgba(201,244,108,0.055)"
+          : zone.id === "outbound"
+            ? "rgba(240,166,90,0.05)"
+            : "rgba(104,199,255,0.045)";
+        drawFloorZone(zone.x, zone.y, zone.w, zone.d, fill, "#3f5852");
+      }
       for (const point of layoutStations("inbound")) {
         drawFloorZone(point.x - .55, point.y - .55, 1.1, 1.1, "rgba(201,244,108,0.12)", "#91a86b");
       }
@@ -836,21 +878,23 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     if (state.view === "top") {
       const p1 = project(rack.x, rack.y);
       const p2 = project(rack.x + rack.width, rack.y + rack.depth);
+      const columns = Math.max(1, Number(dashboardLayout?.spec?.baysPerFace) || SHELF_COLUMNS);
+      const rows = Math.max(1, Number(dashboardLayout?.spec?.faces) || SHELF_DEPTH_ROWS);
       ctx.save();
       ctx.fillStyle = "#26342f";
       ctx.strokeStyle = "#60716a";
       ctx.lineWidth = 0.8;
       ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
       ctx.strokeRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-      for (let bay = 1; bay < SHELF_COLUMNS; bay += 1) {
-        const bx = p1.x + ((p2.x - p1.x) * bay) / SHELF_COLUMNS;
+      for (let bay = 1; bay < columns; bay += 1) {
+        const bx = p1.x + ((p2.x - p1.x) * bay) / columns;
         ctx.beginPath();
         ctx.moveTo(bx, p1.y);
         ctx.lineTo(bx, p2.y);
         ctx.stroke();
       }
-      for (let depthRow = 1; depthRow < SHELF_DEPTH_ROWS; depthRow += 1) {
-        const rowY = p1.y + ((p2.y - p1.y) * depthRow) / SHELF_DEPTH_ROWS;
+      for (let depthRow = 1; depthRow < rows; depthRow += 1) {
+        const rowY = p1.y + ((p2.y - p1.y) * depthRow) / rows;
         ctx.beginPath();
         ctx.moveTo(p1.x, rowY);
         ctx.lineTo(p2.x, rowY);
@@ -861,8 +905,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
         const isTarget = slot.reservedBy === state.selectedId;
         const isFresh = slot.placedAt !== null && state.elapsed - slot.placedAt < 12;
         if (!slot.occupied && !isTarget) return;
-        const bayWidth = (p2.x - p1.x) / SHELF_COLUMNS;
-        const rowHeight = (p2.y - p1.y) / SHELF_DEPTH_ROWS;
+        const bayWidth = (p2.x - p1.x) / columns;
+        const rowHeight = (p2.y - p1.y) / rows;
         const inset = 2;
         const x = p1.x + slot.bay * bayWidth + inset;
         const y = p1.y + (slot.depthRow || 0) * rowHeight + inset;
@@ -922,8 +966,9 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     });
     ctx.globalAlpha = state.level === "all" ? 0.32 : 0.18;
     ctx.lineWidth = 0.45;
-    for (let bay = 1; bay < SHELF_COLUMNS; bay += 1) {
-      const x = rack.x + (rack.width * bay) / SHELF_COLUMNS;
+    const bayColumns = Math.max(1, Number(dashboardLayout?.spec?.baysPerFace) || SHELF_COLUMNS);
+    for (let bay = 1; bay < bayColumns; bay += 1) {
+      const x = rack.x + (rack.width * bay) / bayColumns;
       const bottom = project(x, rack.y + rack.depth, 0);
       const top = project(x, rack.y + rack.depth, RACK_HEIGHT);
       ctx.beginPath();
@@ -931,7 +976,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       ctx.lineTo(top.x, top.y);
       ctx.stroke();
     }
-    for (let level = 0; level <= 3; level += 1) {
+    const levelCount = Math.max(1, Number(dashboardLayout?.spec?.levels) || 3);
+    for (let level = 0; level <= levelCount; level += 1) {
       const z = 0.03 + level * SHELF_GAP;
       const points = [
         project(rack.x, rack.y, z),
@@ -1005,7 +1051,12 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   }
 
   function placementPose(robot) {
-    if (robot.stage !== "placing" || !robot.slot) return null;
+    // The legacy coordinator has no physical rack pose in the expanded map.
+    // Moving the body to a rack just to shorten the arm produced the earlier
+    // 34.94-unit cross-rack line.  Show no fake placement when the display is
+    // the legacy control envelope.
+    if (dashboardLayout) return null;
+    if (robot.stage !== "placing" || !robot.slot || robot.taskType === "OUTBOUND") return null;
     const geometry = slotGeometry(robot.rack, robot.slot);
     const progress = clamp(robot.actionTimer / Math.max(0.1, robot.actionDuration), 0, 1);
     const frontY = robot.rack.y + robot.rack.depth + 0.1;
@@ -1194,7 +1245,11 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
 
     unique.forEach((robot) => {
       if (!robot.path || robot.pathIndex >= robot.path.length) return;
-      const points = [{ x: robot.x, y: robot.y }, ...robot.path.slice(robot.pathIndex)].map((point) => project(point.x, point.y, 0.03));
+      // Body and committed path are both legacy control coordinates.  Map the
+      // route vertices through the same transform as the body so the line
+      // cannot end 38..77 display units away in a different coordinate space.
+      const path = robot.path.slice(robot.pathIndex).map((point) => dashboardLayout ? mapLegacyPoint(point) : point);
+      const points = [{ x: robot.x, y: robot.y }, ...path].map((point) => project(point.x, point.y, 0.03));
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
@@ -1261,7 +1316,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       ctx.moveTo(point.x, point.y);
       ctx.lineTo(point.x + hx, point.y + hy);
       ctx.stroke();
-      if (robot.stage === "placing") drawTelescopicArms(robot, point, scale, true);
+      if (robot.stage === "placing" && robot.taskType !== "OUTBOUND") drawTelescopicArms(robot, point, scale, true);
     } else {
       const s = 0.78 * scale;
       ctx.beginPath();
@@ -1293,7 +1348,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
 
       const armY = point.y - 25 * s;
       const armRaise = lift * 4 * s;
-      if (robot.stage === "placing") {
+      if (robot.stage === "placing" && robot.taskType !== "OUTBOUND") {
         drawTelescopicArms(robot, point, scale);
       } else {
         ctx.strokeStyle = "#96a39e";
@@ -1391,8 +1446,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     }
     const inboundLabel = $(".inbound-label");
     if (inboundLabel) inboundLabel.textContent = backendScene?.inboundLayout === "edge" ? "INBOUND / 分布式取货工位" : "INBOUND / 集中入库区";
-    $(".outbound-label").textContent = backendAuthoritative ? "DISPATCH / 调度停靠区" : "OUTBOUND / 出库";
-    $(".charge-label").style.display = backendAuthoritative ? "none" : "";
+    $(".outbound-label").textContent = "OUTBOUND / 出库";
+    $(".charge-label").style.display = "";
     [
       [".inbound-label", backendScene?.inboundLayout === "edge" ? 15.9 : 3.2, 21.25],
       [".outbound-label", 3.2, 2.35],
@@ -1737,7 +1792,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     backendMetrics = snapshot.metrics || null;
     backendRuntime = snapshot.runtime || null;
     $("#sceneName").textContent = dashboardLayout
-      ? "BALANCED 1920 · 控制台状态映射"
+      ? "1920 布局背景 · 32×22 控制状态映射"
       : (backendScene?.name || "WAREHOUSE CONTROL / 后端连接");
     const receivedAt = performance.now();
     const previousById = new Map(robots.map((robot) => [robot.id, robot]));
@@ -2230,7 +2285,18 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     }
   }
 
+  function configureReplayLink() {
+    const link = document.getElementById("replayLink");
+    if (!link) return;
+    const target = new URL(link.href);
+    target.hostname = window.location.hostname;
+    const port = new URLSearchParams(window.location.search).get("replayPort");
+    if (port && /^\d{1,5}$/.test(port)) target.port = port;
+    link.href = target.toString();
+  }
+
   async function boot() {
+    configureReplayLink();
     await loadDashboardLayout();
     resizeCanvas();
     if(window.location.protocol==="file:")initializeSimulation();

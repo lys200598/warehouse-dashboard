@@ -10,14 +10,18 @@ def physical_classes(mobility='legacy'):
     from ..real_scale.writer import Config
     if mobility == 'legacy':
         return KnowledgeSimulation, Config
-    if mobility != 'wheeled':
-        raise ValueError('unknown mobility model')
-    from ..wheeled.sim import WheeledMixin, WheeledConfig
+    if mobility == 'wheeled':
+        from ..wheeled.sim import WheeledMixin, WheeledConfig
 
-    class WheeledKnowledgeSimulation(WheeledMixin, KnowledgeSimulation):
-        pass
+        class WheeledKnowledgeSimulation(WheeledMixin, KnowledgeSimulation):
+            pass
 
-    return WheeledKnowledgeSimulation, WheeledConfig
+        return WheeledKnowledgeSimulation, WheeledConfig
+    if mobility == 'wheeled_ray':
+        from ..ray_medium.sim import RayWheeledKnowledgeSimulation
+        from ..wheeled.sim import WheeledConfig
+        return RayWheeledKnowledgeSimulation, WheeledConfig
+    raise ValueError('unknown mobility model')
 
 
 def with_agents(mirror_class, *, output, enabled=False, options=None):

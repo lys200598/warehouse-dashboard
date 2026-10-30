@@ -26,6 +26,10 @@ ROOT = Path(os.environ.get('WAREHOUSE_FIXTURE_ROOT', CODE_ROOT))
 _PORT_RELIEF_OVERRIDE = ast.parse("""if self.config.port_relief_policy == 'deadline':
     pool = self._port_relief_pool(ready)
 """).body[0]
+_ACTIVATION_FILTER = ast.parse(
+    "candidates = [r for r in candidates if self.activation_available(r)]").body[0]
+_ACTIVATION_SKIP = ast.parse(
+    "if not self.activation_available(r):\n    continue\n").body[0]
 
 
 def _is_exact_port_relief_override(node):
@@ -33,6 +37,16 @@ def _is_exact_port_relief_override(node):
     # Extra logic, a changed RHS/condition, or any safety statements remain visible.
     return isinstance(node, ast.If) and ast.dump(node, include_attributes=False) == ast.dump(
         _PORT_RELIEF_OVERRIDE, include_attributes=False)
+
+
+def _is_exact_activation_filter(node):
+    return isinstance(node, ast.Assign) and ast.dump(node, include_attributes=False) == ast.dump(
+        _ACTIVATION_FILTER, include_attributes=False)
+
+
+def _is_exact_activation_skip(node):
+    return isinstance(node, ast.If) and ast.dump(node, include_attributes=False) == ast.dump(
+        _ACTIVATION_SKIP, include_attributes=False)
 
 
 class PolicyContractTests(unittest.TestCase):
@@ -45,14 +59,22 @@ class PolicyContractTests(unittest.TestCase):
         class Normalize(ast.NodeTransformer):
             def __init__(self):
                 self.port_relief_overrides = 0
+                self.activation_filters = 0
+                self.activation_skips = 0
 
             def visit_If(self, node):
+                if _is_exact_activation_skip(node):
+                    self.activation_skips += 1
+                    return None
                 if _is_exact_port_relief_override(node):
                     self.port_relief_overrides += 1
                     return None
                 return self.generic_visit(node)
 
             def visit_Assign(self, node):
+                if _is_exact_activation_filter(node):
+                    self.activation_filters += 1
+                    return None
                 if len(node.targets) == 1 and isinstance(node.targets[0], ast.Tuple):
                     names = [v.id for v in node.targets[0].elts]
                     if names in [['costs', 'pair_times'], ['row', 'travel_row']]:
@@ -76,6 +98,8 @@ class PolicyContractTests(unittest.TestCase):
         normalizer = Normalize()
         new = normalizer.visit(method(CODE_ROOT/'backend/scheduling_v5/sim.py', 'CandidateSimulation'))
         self.assertEqual(normalizer.port_relief_overrides, 1)
+        self.assertEqual(normalizer.activation_filters, 1)
+        self.assertEqual(normalizer.activation_skips, 1)
         self.assertEqual(ast.dump(old, include_attributes=False), ast.dump(new, include_attributes=False))
 
     def test_port_relief_ast_exception_matches_only_the_exact_documented_override(self):

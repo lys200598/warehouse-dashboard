@@ -873,6 +873,9 @@ class Simulation(V2Simulation):
         self.release_and_dispatch()
         now = self.elapsed
         before = {i: self._point(r) for i, r in self.robots.items()}
+        # Optional execution seam: a Ray pool returns (a,b) for every active job.
+        # Default None keeps the exact local V3/V5 behavior unchanged.
+        motion = self.motion_executor(now) if getattr(self, 'motion_executor', None) is not None else None
         for owner, robot in self.robots.items():
             job = self.jobs.get(owner)
             if not job:
@@ -887,7 +890,10 @@ class Simulation(V2Simulation):
                 raise AssertionError('unprocessed v3 mission completion')
             job['phase_index'] = idx
             part = job['parts'][idx]
-            a, b = position(part, at), position(part, at + 1)
+            if motion is not None:
+                a, b = motion[owner]
+            else:
+                a, b = position(part, at), position(part, at + 1)
             if math.dist((robot['x'], robot['y']), (a['x'], a['y'])) > 1e-6:
                 raise AssertionError('v3 motion discontinuity')
             loaded = robot['carrying']

@@ -13,11 +13,14 @@
     .query-row .query-seq{max-width:150px;flex:0 1 150px}.query-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
     #knowledgeResult{white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;max-height:390px;border:1px solid var(--line);padding:14px;background:#0c1310;font:12px/1.65 var(--mono)}
     #queryStatus{font-size:12px;color:var(--muted)}#robotFacts dd{overflow-wrap:anywhere;max-width:185px;text-align:right}.map-note{letter-spacing:1px}.wide-error{color:#f0a65a!important}
+    #runPicker{display:flex;gap:8px;align-items:center;font:12px var(--mono);color:var(--muted)}
+    #runPicker[hidden]{display:none}
+    #runPicker select{max-width:420px}
   </style>
 </head>
 <body>
 <main class="layout-app">
-  <header class="page-header"><div class="title-group"><span class="brand-symbol">▦</span><div><div class="eyebrow">WAREHOUSE / SHARED TEMPORAL KNOWLEDGE</div><h1>宽松仓库 · 真实运行与时序知识</h1></div></div><button id="refreshRun" type="button">刷新运行</button></header>
+  <header class="page-header"><div class="title-group"><span class="brand-symbol">▦</span><div><div class="eyebrow">WAREHOUSE / SHARED TEMPORAL KNOWLEDGE</div><h1>宽松仓库 · 真实运行与时序知识</h1></div></div><label id="runPicker" hidden>运行 <select id="runSelect"></select></label><button id="refreshRun" type="button">刷新运行</button></header>
   <section class="overview" aria-label="当前场景">
     <div><span>米制布局</span><strong id="sceneSize">—</strong><p>来自当前运行绑定的地图</p></div>
     <div><span>物理泊位</span><strong id="bayCount">—</strong><p>P/C别名只计一个泊位</p></div>

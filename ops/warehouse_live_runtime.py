@@ -116,7 +116,9 @@ class WarehouseLiveRuntime:
                  knowledge_backend='journal', wall_interval=1., disturbances_json=None,
                  resume_run_id=None, expected_neo4j_uri=None, startup_timeout=180, resource_graph=False,
                  query_summary_root=None, query_summary_cache=None, query_point_path=None,
-                 mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None):
+                 mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None,
+                 ray=False, ray_address=None, ray_actor_cpus=0.1,
+                 robot_graph=False, graph_state_interval=4):
         if max_active_robots is not None and (type(max_active_robots) is not int or not 1<=max_active_robots<=100):
             raise ValueError('max_active_robots must be an integer within 1..100, or None')
         self.max_active_robots=max_active_robots
@@ -125,6 +127,19 @@ class WarehouseLiveRuntime:
         if robot_agents and knowledge_backend!='neo4j':
             raise ValueError('independent robot graph I/O requires Neo4j')
         self.mobility=mobility
+        self.ray=bool(ray)
+        if self.ray and mobility!='wheeled':
+            raise ValueError('Ray medium execution requires mobility=wheeled')
+        if isinstance(ray_actor_cpus,bool) or not isinstance(ray_actor_cpus,(int,float)) or not math.isfinite(ray_actor_cpus) or not 0<ray_actor_cpus<=1:
+            raise ValueError('ray_actor_cpus must be finite within (0,1]')
+        self.ray_address=ray_address
+        self.ray_actor_cpus=float(ray_actor_cpus)
+        self.robot_graph=bool(robot_graph)
+        if self.robot_graph and not self.ray:
+            raise ValueError('robot graph writers require --ray')
+        if type(graph_state_interval) is not int or not 1<=graph_state_interval<=300:
+            raise ValueError('graph_state_interval must be an integer within 1..300')
+        self.graph_state_interval=graph_state_interval
         self.robot_agents=robot_agents
         self.agent_options=deepcopy(agent_options or {})
         if isinstance(startup_timeout,bool) or not isinstance(startup_timeout,(int,float)) or not math.isfinite(startup_timeout) or startup_timeout<=0:
@@ -377,13 +392,15 @@ class WarehouseLiveRuntime:
             simulation_class,config_class=self._core.sim.KnowledgeSimulation,self._core.writer.Config
         else:
             from backend.warehouse.composition import physical_classes
-            simulation_class,config_class=physical_classes(self.mobility)
+            simulation_class,config_class=physical_classes('wheeled_ray' if self.ray else self.mobility)
         physical_config = config_class(**cfg)
         disturbance_path = spec.get('disturbances_json') or self.default_disturbances
         disturbances = json.loads(Path(disturbance_path).read_text(encoding='utf-8')) if disturbance_path else []
         validate_disturbances(disturbances)
         identity = {'version': VERSION, 'run_id': run_id, 'dataset_id': dataset_id,
-                    'mobility':self.mobility, 'robot_agents':self.robot_agents,
+                    'mobility':self.mobility, 'ray':self.ray, 'ray_actor_cpus':self.ray_actor_cpus,
+                    'ray_address':self.ray_address, 'robot_graph':self.robot_graph,
+                    'graph_state_interval':self.graph_state_interval, 'robot_agents':self.robot_agents,
                     'agent_options':self.agent_options,
                     'source_sha256': self._source_sha, 'adapter_sha256': file_sha(__file__),
                     'scene_sha256': file_sha(spec['scene']),
@@ -410,9 +427,13 @@ class WarehouseLiveRuntime:
             if not uri or self.expected_neo4j_uri and uri != self.expected_neo4j_uri:
                 raise ValueError('live Neo4j URI differs from its explicit isolated target')
         # Validate core/input before closing a previous completed/paused run.
+        sim_kwargs = {'resource_graph':True} if self.resource_graph_enabled else {}
+        if self.ray:
+            sim_kwargs.update(ray_address=self.ray_address, ray_actor_cpus=self.ray_actor_cpus,
+                              robot_graph=self.robot_graph, graph_state_interval=self.graph_state_interval)
         sim = simulation_class(spec['scene'], spec['dataset'], run_id,
             physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode,
-            **({'resource_graph':True} if self.resource_graph_enabled else {}))
+            **sim_kwargs)
         layout = self._core.layout.audit_roadmap(sim.roadmap, circle_probes=False)
         if not layout['initial_roadmap_usable']:
             raise ValueError('layout static safety gate failed')
