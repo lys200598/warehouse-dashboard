@@ -118,7 +118,8 @@ class WarehouseLiveRuntime:
                  query_summary_root=None, query_summary_cache=None, query_point_path=None,
                  mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None,
                  ray=False, ray_address=None, ray_actor_cpus=0.1,
-                 robot_graph=False, graph_state_interval=4):
+                 robot_graph=False, graph_state_interval=4,
+                 global_writer=False, global_writer_queue=256):
         if max_active_robots is not None and (type(max_active_robots) is not int or not 1<=max_active_robots<=100):
             raise ValueError('max_active_robots must be an integer within 1..100, or None')
         self.max_active_robots=max_active_robots
@@ -140,6 +141,14 @@ class WarehouseLiveRuntime:
         if type(graph_state_interval) is not int or not 1<=graph_state_interval<=300:
             raise ValueError('graph_state_interval must be an integer within 1..300')
         self.graph_state_interval=graph_state_interval
+        self.global_writer_enabled=bool(global_writer)
+        if self.global_writer_enabled and not (os.environ.get('WAREHOUSE_NEO4J_PASSWORD') or os.environ.get('NEO4J_PASSWORD')):
+            raise ValueError('--global-writer requires WAREHOUSE_NEO4J_PASSWORD')
+        if type(global_writer_queue) is not int or not 16<=global_writer_queue<=10000:
+            raise ValueError('global_writer_queue must be an integer within 16..10000')
+        self.global_writer_queue=global_writer_queue
+        self._global_writer=None
+        self._global_writer_error=None
         self.robot_agents=robot_agents
         self.agent_options=deepcopy(agent_options or {})
         if isinstance(startup_timeout,bool) or not isinstance(startup_timeout,(int,float)) or not math.isfinite(startup_timeout) or startup_timeout<=0:
@@ -182,7 +191,7 @@ class WarehouseLiveRuntime:
         self._query_summary_status=None
         self.registry = {}
         for alias, spec in datasets.items():
-            if not isinstance(alias, str) or not isinstance(spec, dict) or set(spec) - {'scene', 'dataset', 'config', 'config_json', 'disturbances_json', 'label'}:
+            if not isinstance(alias, str) or not isinstance(spec, dict) or set(spec) - {'scene', 'dataset', 'config', 'config_json', 'disturbances_json', 'label', 'graph_dataset_id'}:
                 raise ValueError('invalid registered dataset specification')
             normalized = deepcopy(spec)
             normalized['scene'] = str(Path(spec['scene']).resolve(strict=True))
@@ -398,9 +407,12 @@ class WarehouseLiveRuntime:
         disturbances = json.loads(Path(disturbance_path).read_text(encoding='utf-8')) if disturbance_path else []
         validate_disturbances(disturbances)
         identity = {'version': VERSION, 'run_id': run_id, 'dataset_id': dataset_id,
+                    'graph_dataset_id': spec.get('graph_dataset_id') or dataset_id,
                     'mobility':self.mobility, 'ray':self.ray, 'ray_actor_cpus':self.ray_actor_cpus,
                     'ray_address':self.ray_address, 'robot_graph':self.robot_graph,
-                    'graph_state_interval':self.graph_state_interval, 'robot_agents':self.robot_agents,
+                    'graph_state_interval':self.graph_state_interval,
+                    'global_writer':self.global_writer_enabled, 'global_writer_queue':self.global_writer_queue,
+                    'robot_agents':self.robot_agents,
                     'agent_options':self.agent_options,
                     'source_sha256': self._source_sha, 'adapter_sha256': file_sha(__file__),
                     'scene_sha256': file_sha(spec['scene']),
@@ -556,6 +568,40 @@ class WarehouseLiveRuntime:
             # must never be mistaken for a harmless rejected HTTP parameter.
             raise RuntimeError('live producer boundary failed: ' + str(exc)) from exc
 
+    def _ensure_global_writer(self):
+        if not self.global_writer_enabled or self._global_writer is not None:
+            return
+        from backend.global_writer import GlobalWriterProcess
+        config = {
+            'uri': os.environ.get('WAREHOUSE_NEO4J_URI') or os.environ.get('NEO4J_URI') or 'bolt://127.0.0.1:47687',
+            'user': os.environ.get('WAREHOUSE_NEO4J_USER') or os.environ.get('NEO4J_USER') or 'neo4j',
+            'password': os.environ.get('WAREHOUSE_NEO4J_PASSWORD') or os.environ.get('NEO4J_PASSWORD'),
+            'database': os.environ.get('WAREHOUSE_NEO4J_DATABASE') or os.environ.get('NEO4J_DATABASE') or 'neo4j',
+        }
+        self._global_writer = GlobalWriterProcess(config, max_queue=self.global_writer_queue)
+
+    def _record_global(self, sim, events):
+        if not self.global_writer_enabled:
+            return
+        try:
+            self._ensure_global_writer()
+            from backend.global_writer import build_global_record
+            health = self._global_writer.health()
+            store_status = self._store.status(sim.run_id)
+            record = build_global_record(
+                sim, events, status=self._state, identity=self._identity,
+                commit_seq=sim.knowledge_seq,
+                durable_seq=store_status.get('durable_seq'),
+                mirrored_seq=store_status.get('mirrored_seq'),
+                writer_errors=health.get('errors', 0),
+                writer_dropped=health.get('dropped', 0))
+            if not self._global_writer.record(record):
+                self._global_writer_error = 'global writer queue full; intermediate stat dropped'
+        except Exception as exc:
+            # Global graph persistence is optional and must never turn a
+            # durable simulation commit into a failed physical run.
+            self._global_writer_error = type(exc).__name__ + ': ' + str(exc)
+
     def _persist(self):
         sim, store = self._sim, self._store
         start_ns = time.time_ns()
@@ -573,12 +619,14 @@ class WarehouseLiveRuntime:
         checkpoint = sim.checkpoint()
         checkpoint['experiment'] = {'disturbance_sha256': digest(self._disturbances), 'applied': deepcopy(self._applied)}
         lap('checkpoint_build_ms')
-        store.append(checkpoint, sim.pending_events)
+        events = deepcopy(sim.pending_events)
+        store.append(checkpoint, events)
         lap('store_append_ms')
         journal_ms = round((getattr(store, 'timings', {}).get('journal_seconds', 0.) - journal_before) * 1e3, 3)
         phases['of_which_journal_ms'] = journal_ms
         phases['of_which_graph_mirror_ms'] = round(phases['store_append_ms'] - journal_ms, 3)
-        self._events.extend(deepcopy(sim.pending_events))
+        self._events.extend(events)
+        self._record_global(sim, events)
         sim.pending_events = []
         self._core.persistence.write_checkpoint(self._output / 'checkpoint.json', checkpoint)
         lap('checkpoint_file_ms')
@@ -757,6 +805,17 @@ class WarehouseLiveRuntime:
                 'coordinatorPid':os.getpid(),'coordination':'central-physics-independent-robot-http-io',
                 'process_count_scope':'registered independent robot I/O processes; coordinator additional',
                 'agent_io_failed':fleet.failed}
+        if self.global_writer_enabled:
+            writer = self._global_writer.health() if self._global_writer is not None else {
+                'enabled': True, 'processAlive': False, 'pid': None, 'errors': 0,
+                'dropped': 0, 'lastTick': -1, 'queueSize': 0, 'processCount': 1}
+            if self._global_writer_error:
+                writer['error'] = self._global_writer_error
+            snap['runtime']['globalWriter'] = writer
+            if writer.get('processAlive') and writer.get('pid'):
+                snap['runtime']['workerProcessCount'] = int(snap['runtime'].get('workerProcessCount', 1)) + 1
+                snap['runtime']['workerPids'] = list(snap['runtime'].get('workerPids', [os.getpid()])) + [int(writer['pid'])]
+                snap['runtime']['coordination'] = 'central-physics + plain-global-writer-process'
         point = None
         if getattr(self, 'query_point_path', None) is not None:
             seq = self._sim.knowledge_seq
@@ -836,6 +895,12 @@ class WarehouseLiveRuntime:
         os.replace(temporary, self._output / 'results.json')
 
     def _close(self):
+        try:
+            if self._global_writer is not None:
+                self._global_writer.close()
+                self._global_writer = None
+        except Exception:
+            traceback.print_exc()
         try:
             if self._provider is not None:
                 self._provider.close()

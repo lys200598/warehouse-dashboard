@@ -42,6 +42,13 @@
       <div class="kg-result" id="runtimeTraceResult">输入 Run ID 后查询；结果会明确显示请求 tick 与实际采样 tick。</div>
       <div class="kg-runtime-records" id="runtimeTraceRecords"></div>
     </section>
+    <section class="kg-replay" aria-labelledby="globalTitle">
+      <div class="kg-replay-head"><div><span class="section-kicker">GLOBAL RUN</span><h2 id="globalTitle">全局统计与跨机协助</h2></div><span>RunStat / Assist / global RuntimeEvent</span></div>
+      <p>查询由全局 writer 写入的知识图谱记录：每个提交 tick 的 RunStat、跨机协助 Assist，以及 robot_id 为空的全局事件。</p>
+      <div class="kg-trace kg-runtime-trace"><input id="globalRun" placeholder="运行批次 Run ID" aria-label="运行批次 ID"><button id="globalTrace" type="button">查询全局记录</button></div>
+      <div class="kg-result" id="globalResult">输入 Run ID 后查询全局 RunStat / Assist / 事件。</div>
+      <div class="kg-runtime-records" id="globalRecords"></div>
+    </section>
     <section class="kg-query-grid">
       <article class="kg-panel kg-query-panel"><span class="section-kicker">TASK TRACE</span><h2>按任务追溯：货物、起终点、执行和事件</h2><div class="kg-trace"><input id="task" placeholder="从下方选择任务，或输入任务 ID" aria-label="任务 ID"><button id="trace" type="button">查询任务</button></div><div class="kg-task-list" id="tasks">加载任务列表…</div><div class="kg-result" id="taskResult">选择一条任务，查看图谱中已关联的静态关系和运行态记录。</div><div class="kg-timeline" id="taskTimeline"></div></article>
       <article class="kg-panel kg-query-panel"><span class="section-kicker">ROBOT TRACE</span><h2>按机器人追溯：状态轨迹与执行事件</h2><div class="kg-trace"><input id="run" placeholder="运行批次 Run ID" aria-label="运行批次 ID"><input id="robot" type="number" min="1" value="1" aria-label="机器人编号"><button id="robotTrace" type="button">查询机器人</button></div><div class="kg-result" id="robotResult">运行态写入后，输入当前 Run ID 与机器人编号，即可查看从 Neo4j 读取的状态和事件数。</div><div class="kg-timeline" id="robotTimeline"></div></article>
@@ -83,6 +90,39 @@
         const records = result.states.map(state => `HR-${String(state.robot_id).padStart(3, '0')}｜${stageLabel(state.stage)}｜位置 (${Number(state.x).toFixed(2)}, ${Number(state.y).toFixed(2)})｜电量 ${state.battery ?? '—'}%｜任务 ${state.task_id || '无'}｜货物 ${state.cargo_id || '无'}`);
         renderTimeline($('#runtimeTraceRecords'), records, '该采样 tick 没有机器人状态。');
       } catch (error) { text($('#runtimeTraceResult'), `查询失败：${error.message}`); }
+    }
+    function parseJson(value) {
+      if (typeof value !== 'string') return value;
+      try { return JSON.parse(value); } catch (_) { return value; }
+    }
+    async function traceGlobal() {
+      const runId = $('#globalRun').value.trim() || $('#run').value.trim() || latestRunId;
+      if (!runId) { text($('#globalResult'), '请填写运行批次 Run ID。'); return; }
+      text($('#globalResult'), `正在查询 Run ${runId} 的全局记录…`); $('#globalRecords').replaceChildren();
+      try {
+        const [statsResult, assists, events, dispatch] = await Promise.all([
+          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/stats?limit=100`),
+          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/assists?limit=100`),
+          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/global-events?limit=100`),
+          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/dispatch`).catch(() => null),
+        ]);
+        const stats = statsResult.stats || [];
+        if (!stats.length) {
+          text($('#globalResult'), `Run ${runId}：尚未找到 RunStat。请确认启动时开启了 --global-writer 且已产生提交。`);
+          return;
+        }
+        const latest = stats[0] || {}, counts = parseJson(latest.counts_json) || {}, tasks = parseJson(latest.tasks_json) || {}, metrics = parseJson(latest.metrics_json) || {};
+        const dispatchInfo = dispatch ? `DispatchState #${dispatch.commit_seq}：active ${dispatch.active_job_count ?? '—'}，pending ${dispatch.pending_count ?? '—'}，ports ${JSON.stringify(parseJson(dispatch.ports_json) || {})}` : 'DispatchState：暂无';
+        text($('#globalResult'), `Run ${runId}：${stats.length} 个 RunStat，最新 tick ${latest.tick}，commit_seq ${latest.commit_seq}，状态 ${latest.status}；机器人阶段 ${JSON.stringify(counts)}；任务 ${JSON.stringify(tasks)}；完成 ${metrics.completed ?? '—'}；协助 ${assists.length}，全局事件 ${events.length}；${dispatchInfo}`);
+        const statLines = stats.slice(0, 12).map(stat => {
+          const c = parseJson(stat.counts_json) || {}, t = parseJson(stat.tasks_json) || {}, m = parseJson(stat.metrics_json) || {};
+          return `RunStat #${stat.commit_seq} · tick ${stat.tick} · ${stat.status} · 阶段 ${JSON.stringify(c)} · 任务 ${JSON.stringify(t)} · 完成 ${m.completed ?? '—'} · durable ${stat.durable_seq ?? '—'}/mirrored ${stat.mirrored_seq ?? '—'}`;
+        });
+        const assistLines = assists.map(item => `Assist ${item.donor_id}→${item.receiver_id ?? '?'} · ${item.task_id ?? '无任务'} · ${item.status} · tick ${item.start_tick}–${item.end_tick ?? '—'} · ${item.reason ?? ''}`);
+        const dispatchLines = dispatch ? [`Dispatch #${dispatch.commit_seq} · tick ${dispatch.tick} · active ${dispatch.active_job_count ?? '—'} · pending ${dispatch.pending_count ?? '—'} · ${JSON.stringify(parseJson(dispatch.robots_json) || {})} · ${JSON.stringify(parseJson(dispatch.tasks_json) || {})}`] : [];
+        const eventLines = events.map(event => `Event tick ${event.tick ?? '-'} · ${event.type} · ${event.text ?? ''} · ${event.task_id ?? ''}`);
+        renderTimeline($('#globalRecords'), [...statLines, ...dispatchLines, ...assistLines, ...eventLines], '没有全局记录。');
+      } catch (error) { text($('#globalResult'), `查询失败：${error.message}`); }
     }
     async function traceTask(id) {
       if (!id) { text($('#taskResult'), '请先从任务列表选择一条任务，或输入有效任务 ID。'); return; }
@@ -143,9 +183,9 @@
       }
     }
     async function boot() {
-      try { const dashboard = await request('/api/kg/warehouse/dashboard'); const summary = dashboard.summary || {}; const dataset = summary.datasets?.[0]; const warehouse = summary.warehouses?.[0]; text($('#dataset'), dataset ? `任务 ${dataset.task_count} · 初始货物 ${dataset.initial_goods_count} · 货位 ${warehouse?.slot_count ?? 0}` : '尚未导入静态数据'); text($('#write'), dashboard.health?.status === 'ok' ? 'Neo4j 已连接，可查询图谱' : 'Neo4j 未连接或认证失败'); if (dashboard.health?.status !== 'ok') text($('#writeDetail'), dashboard.health?.detail || '请检查 Neo4j 服务、连接地址和后端密码配置。'); try { const health = await request('/api/health'); latestRunId = health.runId || ''; $('#run').value = latestRunId; $('#runtimeRun').value = latestRunId; } catch (_) {} updateClosure(dashboard.health, summary); const tasks = await request('/api/kg/warehouse/tasks?limit=10'); firstTaskId = tasks[0]?.task_id || ''; if (firstTaskId && !$('#task').value.trim()) $('#task').value = firstTaskId; $('#tasks').replaceChildren(...tasks.map(task => { const button = document.createElement('button'); button.textContent = `${task.task_id} · ${task.task_type} · ${task.source_id} → ${task.target_id}`; button.addEventListener('click', () => traceTask(task.task_id)); return button; })); } catch (error) { text($('#dataset'), `读取失败：${error.message}`); text($('#write'), '无法读取后端图谱状态'); updateClosure(null, {}); }
+      try { const dashboard = await request('/api/kg/warehouse/dashboard'); const summary = dashboard.summary || {}; const dataset = summary.datasets?.[0]; const warehouse = summary.warehouses?.[0]; text($('#dataset'), dataset ? `任务 ${dataset.task_count} · 初始货物 ${dataset.initial_goods_count} · 货位 ${warehouse?.slot_count ?? 0}` : '尚未导入静态数据'); text($('#write'), dashboard.health?.status === 'ok' ? 'Neo4j 已连接，可查询图谱' : 'Neo4j 未连接或认证失败'); if (dashboard.health?.status !== 'ok') text($('#writeDetail'), dashboard.health?.detail || '请检查 Neo4j 服务、连接地址和后端密码配置。'); try { const health = await request('/api/health'); latestRunId = health.runId || ''; $('#run').value = latestRunId; $('#runtimeRun').value = latestRunId; $('#globalRun').value = latestRunId; } catch (_) {} updateClosure(dashboard.health, summary); const tasks = await request('/api/kg/warehouse/tasks?limit=10'); firstTaskId = tasks[0]?.task_id || ''; if (firstTaskId && !$('#task').value.trim()) $('#task').value = firstTaskId; $('#tasks').replaceChildren(...tasks.map(task => { const button = document.createElement('button'); button.textContent = `${task.task_id} · ${task.task_type} · ${task.source_id} → ${task.target_id}`; button.addEventListener('click', () => traceTask(task.task_id)); return button; })); } catch (error) { text($('#dataset'), `读取失败：${error.message}`); text($('#write'), '无法读取后端图谱状态'); updateClosure(null, {}); }
     }
-    $('#trace').addEventListener('click', () => traceTask($('#task').value.trim())); $('#robotTrace').addEventListener('click', traceRobot); $('#runtimeTrace').addEventListener('click', traceRuntime); boot();
+    $('#trace').addEventListener('click', () => traceTask($('#task').value.trim())); $('#robotTrace').addEventListener('click', traceRobot); $('#runtimeTrace').addEventListener('click', traceRuntime); $('#globalTrace').addEventListener('click', traceGlobal); boot();
     $('#presetActions').addEventListener('click', event => { const button = event.target.closest('button[data-preset]'); if (button) runPreset(button.dataset.preset); });
     $('#queryExport').addEventListener('click', () => { if (!lastQueryResult) return; const blob = new Blob([JSON.stringify(lastQueryResult, null, 2)], {type:'application/json;charset=utf-8'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `warehouse-graph-query-${Date.now()}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); });
   </script>

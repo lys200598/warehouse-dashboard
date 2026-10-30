@@ -18,9 +18,9 @@ from backend.warehouse_graph import create_schema, import_graph, load_graph_pack
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Import the warehouse100 static knowledge graph.")
-    parser.add_argument("--package-dir", type=Path, default=Path("data/generated/warehouse100-day1"))
-    parser.add_argument("--layout", type=Path, default=Path("data/layouts/warehouse100-wide-v2.json"))
-    parser.add_argument("--locations", type=Path, default=Path("docs/dataset-contract/layout/task-locations.csv"))
+    parser.add_argument("--package-dir", type=Path, default=Path("data/examples/wheeled-medium-peak"))
+    parser.add_argument("--layout", type=Path, default=Path("data/layouts/expansion-candidates/medium/layout.json"))
+    parser.add_argument("--locations", type=Path, default=Path("data/layouts/expansion-candidates/medium/task-locations.csv"))
     parser.add_argument("--uri", default=os.environ.get("WAREHOUSE_NEO4J_URI", "bolt://127.0.0.1:47687"))
     parser.add_argument("--user", default=os.environ.get("WAREHOUSE_NEO4J_USER", "neo4j"))
     parser.add_argument("--database", default=os.environ.get("WAREHOUSE_NEO4J_DATABASE", "neo4j"))

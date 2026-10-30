@@ -18,6 +18,10 @@
 - 明确：机器人写自己的图谱已实现；主进程只派单、机器人维护位置/电量/任务队列、全局记录进程、`KG_STATE_SOURCE=neo4j` 仍待实现。
 - 新增 0.5 节“前端布局协作者：独立 Ray 测试”，给出独立端口 27380/14590、worker 27400–27599，并明确不要占用共享 26380/4173/14185/47687。
 - 明确 `ray stop` 会停止本机所有 head，前端协作者只停自己的 live 进程，不要执行全局 `ray stop`。
+- 新增 0.6 节“当前协作分工”，说明当前 Ray 只做运动段+图谱写入，位置/电量/任务队列/派单仍在主进程；前端/调度协作者下一步把状态剥离到有状态 RobotActor。
+- 新增独立交接文档 `docs/codex_notes/10/30-Ray分工与协作说明.md`。
+- 交接文档补充全局记录写入进程建议：独立普通子进程，不放进主进程同步写路径；不需要单独 Web 服务，只有跨机/独立重启/故障隔离才提升为常驻进程。
+- 已实现 `backend/global_writer.py` 和 `--global-writer`：普通 `multiprocessing.Process`，写 RunStat/全局事件；主进程通过有界队列异步发送，`/api/snapshot` 显示 writer PID/errors/dropped/lastTick。
 
 ## 执行过的操作
 
