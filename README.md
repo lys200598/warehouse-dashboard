@@ -12,6 +12,8 @@
 
 旧版说明：本分支最初提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口 **`python -m backend.warehouse`** 仍是这一版，由中央V5协调器推进100个仿真机器人，保留能量、交通、库存和恢复门禁。
 
+当前 lys 合并基准：120 medium 是唯一主基准；旧 1728 仅历史参考，旧 1728 静态图谱已从当前 Neo4j 清理，新数据/新实验不要再走 legacy 1728 入口。
+
 ## 会议后增量
 
 **2026-10-29轮式扩仓与独立进程交付**：[对接总览](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md)说明120×90米、48架2304位、1.5m/s、有限换电与自由进出货口；[机器人进程读写](docs/ROBOT_AGENT_IO_GUIDE.md)说明每台机器人独立HTTP写查；[压测指南](docs/LOAD_TEST_GUIDE.md)及[百万查询A/B](docs/QUERY_AB_REGRESSION_20261029.md)提供真实进程、冷热/错峰/突发及完整源验真。默认legacy入口保留，新run显式选择 `--mobility wheeled --robot-agents`。完整七天参考数据已在 [`data/examples/seven-patterns-20261028/`](data/examples/seven-patterns-20261028/README.md)。
@@ -90,6 +92,8 @@ python -m backend.warehouse run \
 当前 4173 已经是 120×90 medium 的 V5 Ray 实时页；14185 只读回放已落盘的批量 frames，14183 保留旧 V5 单 run 回放。三者不要混用 runId。medium 的 0 晚点结论只适用于其 1728 任务峰值输入，不能外推到任意负载。
 
 Ray 版是同一个 V5 medium 运行：派单、库存、SIPP 交通预留、换电和知识写入仍由中央协调器负责；100 个 Ray Actor（`--ray-actor-cpus 0.1`）执行每台机器人每个 tick 的运动段。加 `--robot-graph` 后，每个 actor 用本地 Neo4j writer 只写自己的 `Robot/AgentState/Execution/RuntimeEvent` 子图；共享 `Run` 节点由主进程启动时创建一次，避免 100 个 actor 争抢同一个 Run 写锁。它不能替换成 legacy `backend.server` 的 32×22 Ray 控制台。
+
+加 `--global-writer` 会另起普通子进程，写 `RunStat`、`Assist`、`DispatchState` 和全局 `RuntimeEvent`；kg.html 通过 `/api/kg/warehouse/runs/{runId}/stats|assists|global-events|dispatch` 查询。当前统一前端入口是 `dist/live.html`，不再使用已删除的 `dist/medium`。
 
 ## 真实图谱与历史控制
 

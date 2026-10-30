@@ -12,6 +12,16 @@ RUNTIME_SCHEMA = (
     "CREATE CONSTRAINT warehouse_runtime_execution_id IF NOT EXISTS FOR (n:Execution) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_state_id IF NOT EXISTS FOR (n:AgentState) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_event_id IF NOT EXISTS FOR (n:RuntimeEvent) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_runstat_id IF NOT EXISTS FOR (n:RunStat) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_assist_id IF NOT EXISTS FOR (n:Assist) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_dispatch_id IF NOT EXISTS FOR (n:DispatchState) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_step_id IF NOT EXISTS FOR (n:Step) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_handoff_id IF NOT EXISTS FOR (n:Handoff) REQUIRE n.id IS UNIQUE",
+    "CREATE INDEX warehouse_runtime_runstat_run_tick IF NOT EXISTS FOR (n:RunStat) ON (n.run_id, n.tick)",
+    "CREATE INDEX warehouse_runtime_assist_run IF NOT EXISTS FOR (n:Assist) ON (n.run_id, n.donor_id)",
+    "CREATE INDEX warehouse_runtime_dispatch_run_seq IF NOT EXISTS FOR (n:DispatchState) ON (n.run_id, n.commit_seq)",
+    "CREATE INDEX warehouse_runtime_step_run_tick IF NOT EXISTS FOR (n:Step) ON (n.run_id, n.tick)",
+    "CREATE INDEX warehouse_runtime_handoff_run_tick IF NOT EXISTS FOR (n:Handoff) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_state_run_tick IF NOT EXISTS FOR (n:AgentState) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_state_robot_tick IF NOT EXISTS FOR (n:AgentState) ON (n.robot_node_id, n.tick)",
     "CREATE INDEX warehouse_runtime_execution_run_task IF NOT EXISTS FOR (n:Execution) ON (n.run_id, n.task_id)",
@@ -83,6 +93,7 @@ class Neo4jRuntimeGraphWriter:
         self.schema_ready = False
         self.last_run_id = ""
         self.exported_events: set[str] = set()
+        self._registered_robots: set[tuple[str, str]] = set()
 
     @property
     def configured(self) -> bool:
@@ -132,6 +143,7 @@ class Neo4jRuntimeGraphWriter:
         run_id, tick = str(snapshot["runId"]), int(snapshot["tick"])
         if run_id != self.last_run_id:
             self.last_run_id, self.exported_events = run_id, set()
+            self._registered_robots = set()
         driver = self._get_driver()
         try:
             with driver.session(database=self.database) as session:
@@ -144,7 +156,13 @@ class Neo4jRuntimeGraphWriter:
                 robots = self._robot_rows(snapshot, run_id) if write_state else []
                 execution_rows = self._execution_rows(robots, event_rows, tick)
                 if write_state:
-                    session.run(_WRITE_ROBOTS_ONLY, robots=robots).consume()
+                    new_robots = [row for row in robots if (run_id, row['id']) not in self._registered_robots]
+                    if new_robots:
+                        session.run(_WRITE_ROBOTS_ONLY, robots=new_robots).consume()
+                        self._registered_robots.update((run_id, row['id']) for row in new_robots)
+                    existing_robots = [row for row in robots if (run_id, row['id']) in self._registered_robots]
+                    if existing_robots:
+                        session.run(_UPDATE_ROBOTS_ONLY, robots=existing_robots).consume()
                     session.run(_WRITE_AGENT_STATES, run_id=run_id, states=self._state_rows(robots, tick)).consume()
                 if execution_rows:
                     session.run(_WRITE_EXECUTIONS, run_id=run_id, dataset_id=self.dataset_id, executions=execution_rows).consume()
@@ -281,6 +299,10 @@ UNWIND $robots AS row
 MATCH (run:Run {id: row.run_id})
 MERGE (robot:Robot {id: row.id}) SET robot += row
 MERGE (robot)-[:IN_RUN]->(run)
+"""
+_UPDATE_ROBOTS_ONLY = """
+UNWIND $robots AS row
+MATCH (robot:Robot {id: row.id}) SET robot += row
 """
 _WRITE_RUN_AND_ROBOTS = """
 MERGE (run:Run {id: $run.id}) SET run += $run

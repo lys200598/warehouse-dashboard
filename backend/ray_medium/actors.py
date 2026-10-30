@@ -1,6 +1,8 @@
 """Ray actors that compute one robot motion segment per simulation tick."""
 from __future__ import annotations
 
+import time
+
 import ray
 
 from ..scheduling_v3.sim import position
@@ -32,11 +34,18 @@ class MotionActor:
     def write_graph(self, snapshot: dict):
         if self.writer is None:
             return None
-        try:
-            self.writer.record_robot_snapshot(snapshot)
-            self.last_graph_error = None
-        except Exception as exc:
-            self.last_graph_error = str(exc)
+        for attempt in range(5):
+            try:
+                self.writer.record_robot_snapshot(snapshot)
+                self.last_graph_error = None
+                break
+            except Exception as exc:
+                transient = 'TransientError' in type(exc).__name__ or 'DeadlockDetected' in str(exc)
+                if transient and attempt < 4:
+                    time.sleep(0.02 * (attempt + 1))
+                    continue
+                self.last_graph_error = str(exc)
+                break
         return self.last_graph_error
 
     def close(self):
