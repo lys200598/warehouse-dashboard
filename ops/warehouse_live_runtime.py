@@ -573,7 +573,7 @@ class WarehouseLiveRuntime:
             raise RuntimeError('live producer boundary failed: ' + str(exc)) from exc
 
     def _ensure_global_writer(self):
-        if not self.global_writer_enabled or self._global_writer is not None:
+        if not getattr(self, "global_writer_enabled", False) or self._global_writer is not None:
             return
         from backend.global_writer import GlobalWriterProcess
         config = {
@@ -585,7 +585,7 @@ class WarehouseLiveRuntime:
         self._global_writer = GlobalWriterProcess(config, max_queue=self.global_writer_queue)
 
     def _record_global(self, sim, events):
-        if not self.global_writer_enabled:
+        if not getattr(self, "global_writer_enabled", False):
             return
         try:
             self._ensure_global_writer()
@@ -809,7 +809,7 @@ class WarehouseLiveRuntime:
                 'coordinatorPid':os.getpid(),'coordination':'central-physics-independent-robot-http-io',
                 'process_count_scope':'registered independent robot I/O processes; coordinator additional',
                 'agent_io_failed':fleet.failed}
-        if self.global_writer_enabled:
+        if getattr(self, "global_writer_enabled", False):
             writer = self._global_writer.health() if self._global_writer is not None else {
                 'enabled': True, 'processAlive': False, 'pid': None, 'errors': 0,
                 'dropped': 0, 'lastTick': -1, 'queueSize': 0, 'processCount': 1}
