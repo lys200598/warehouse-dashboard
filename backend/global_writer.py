@@ -131,7 +131,19 @@ def build_global_record(sim, events, *, status: str, identity: dict[str, Any] | 
         row['status'] = 'active'
         assists[str(owner)] = row
     global_events = []
+    handoffs = []
     for event in events:
+        if event.get('kind') == 'cargo_handoff':
+            donor = event.get('donor_robot_id', event.get('donor_id'))
+            receiver = event.get('receiver_robot_id', event.get('receiver_id'))
+            if donor is not None and receiver is not None:
+                handoffs.append({
+                    'event_id': event.get('event_id', event.get('event_seq')),
+                    'tick': int(event.get('tick', sim.tick)),
+                    'task_id': event.get('task_id'), 'goods_id': event.get('goods_id'),
+                    'donor_id': int(donor), 'receiver_id': int(receiver),
+                    'reason': event.get('reason'), 'location_id': event.get('location_id'),
+                })
         if event.get('robot_id') is not None or event.get('kind') in GLOBAL_EVENT_SKIP:
             continue
         global_events.append({
@@ -183,6 +195,11 @@ def build_global_record(sim, events, *, status: str, identity: dict[str, Any] | 
         'inside': int(getattr(sim, 'inside', 0)),
         'dispatch': build_dispatch_state(sim, commit_seq=effective_commit, identity=identity),
         'events': global_events,
+        # A Step is deliberately not inferred here.  Only the future
+        # stateful-actor coordinator knows which StepResult acknowledgements
+        # arrived for this tick, so it must add the explicit ``step`` payload
+        # before calling the HTTP service.
+        'handoffs': handoffs,
     }
 
 
@@ -287,7 +304,9 @@ class GlobalWriter:
                 'MERGE (stat)-[:IN_RUN]->(run)',
                 run_id=run_id, stat=stat).consume()
             self._write_dispatch(session, run_id, record.get('dispatch') or {}, status)
+            self._write_step(session, run_id, record.get('step') or {}, now)
             self._write_assists(session, run_id, tick, now, record.get('assists') or {}, status)
+            self._write_handoffs(session, run_id, record.get('handoffs') or [], now)
             events = record.get('events') or []
             if events:
                 rows = [{**event, 'id': f'{run_id}:global-event:{event["id"]}', 'run_id': run_id}
@@ -297,6 +316,58 @@ class GlobalWriter:
                     'MERGE (event:RuntimeEvent {id: row.id}) SET event += row '
                     'MERGE (event)-[:IN_RUN]->(run)',
                     run_id=run_id, events=rows).consume()
+
+    def _write_step(self, session, run_id: str, step: dict[str, Any], now: int):
+        """Write a monotonic complete-frame marker for bounded graph reads."""
+        if not step:
+            return
+        tick = int(step.get('tick', 0)); expected = int(step.get('expected_robot_count', 0))
+        received = sorted({int(value) for value in step.get('received_robot_ids', [])})
+        complete = bool(step.get('complete')) and expected > 0 and len(received) >= expected
+        if not complete:
+            return
+        node = {'id': f'{run_id}:step:{tick}', 'run_id': run_id, 'tick': tick,
+                'commit_seq': int(step.get('commit_seq', tick)), 'expected_robot_count': expected,
+                'received_robot_ids_json': _json(received), 'received_robot_count': len(received),
+                'complete': True, 'source': str(step.get('source', 'main-coordinator')),
+                'updated_at_ms': now}
+        session.run(
+            'MATCH (run:Run {id:$run_id}) '
+            'MERGE (step:Step {id:$step.id}) SET step += $step '
+            'MERGE (step)-[:IN_RUN]->(run) '
+            'SET run.latest_step = CASE WHEN coalesce(run.latest_step,-1) < $step.tick THEN $step.tick ELSE run.latest_step END',
+            run_id=run_id, step=node).consume()
+
+    def _write_handoffs(self, session, run_id: str, handoffs: list[dict[str, Any]], now: int):
+        """Persist the immutable cross-robot cargo transfer fact."""
+        for row in handoffs:
+            event_id = row.get('event_id')
+            if event_id is None:
+                continue
+            node = {'id': f'{run_id}:handoff:{event_id}', 'run_id': run_id,
+                    'event_id': str(event_id), 'tick': int(row.get('tick', 0)),
+                    'task_id': row.get('task_id'), 'goods_id': row.get('goods_id'),
+                    'donor_id': int(row['donor_id']), 'receiver_id': int(row['receiver_id']),
+                    'reason': row.get('reason'), 'location_id': row.get('location_id'),
+                    'recorded_at_ms': now}
+            session.run(
+                'MATCH (run:Run {id:$run_id}) '
+                'MERGE (donor:Robot {id:$donor_id}) '
+                'ON CREATE SET donor.run_id=$run_id, donor.robot_id=$donor_number '
+                'MERGE (receiver:Robot {id:$receiver_id}) '
+                'ON CREATE SET receiver.run_id=$run_id, receiver.robot_id=$receiver_number '
+                'MERGE (handoff:Handoff {id:$handoff.id}) SET handoff += $handoff '
+                'MERGE (handoff)-[:IN_RUN]->(run) '
+                'MERGE (handoff)-[:DONOR]->(donor) '
+                'MERGE (handoff)-[:RECEIVER]->(receiver)',
+                run_id=run_id, donor_id=f"{run_id}:robot:{node['donor_id']}",
+                receiver_id=f"{run_id}:robot:{node['receiver_id']}", donor_number=node['donor_id'],
+                receiver_number=node['receiver_id'], handoff=node).consume()
+            if node['task_id']:
+                session.run(
+                    'MATCH (handoff:Handoff {id:$id}), (execution:Execution {id:$execution_id}) '
+                    'MERGE (handoff)-[:ABOUT_EXECUTION]->(execution)',
+                    id=node['id'], execution_id=f"{run_id}:execution:{node['task_id']}").consume()
 
     def _write_dispatch(self, session, run_id: str, dispatch: dict[str, Any], status: str):
         if not dispatch:
