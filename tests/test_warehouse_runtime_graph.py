@@ -54,6 +54,26 @@ def snapshot():
 
 
 class RuntimeGraphWriterTests(unittest.TestCase):
+    def test_actor_current_state_registers_robot_once_per_run(self):
+        from backend.warehouse_runtime_graph import _WRITE_ROBOTS_ONLY, _UPDATE_ROBOTS_ONLY
+        driver = FakeDriver()
+        writer = Neo4jRuntimeGraphWriter(uri='bolt://test', user='neo4j', password=None, driver=driver)
+        writer.schema_ready = True
+        sample = snapshot()
+        sample['events'] = []
+        robot = {'robot_id': 1, 'battery': 88.0}
+        for tick in range(1, 6):
+            sample['tick'] = tick
+            writer.record_robot_snapshot(sample)
+            writer.record_robot_current_state(sample, robot)
+        queries = [query for query, _ in driver.session_instance.calls]
+        self.assertEqual(queries.count(_WRITE_ROBOTS_ONLY), 1)
+        self.assertGreaterEqual(queries.count(_UPDATE_ROBOTS_ONLY), 5)
+        sample['runId'] = 'another-run'
+        writer.record_robot_snapshot(sample)
+        writer.record_robot_current_state(sample, robot)
+        self.assertEqual(sum(query == _WRITE_ROBOTS_ONLY for query, _ in driver.session_instance.calls), 2)
+
     def test_conditional_relationship_queries_avoid_foreach_case_syntax(self):
         for query in (_WRITE_RUN_AND_ROBOTS, _WRITE_EXECUTIONS, _WRITE_EVENTS):
             self.assertNotIn("FOREACH (_ IN CASE", query)
@@ -124,7 +144,7 @@ class RuntimeGraphWriterTests(unittest.TestCase):
         payload["tick"] = 2
         payload["events"] = [{**payload["events"][0], "id": "2:1:task_completed:TK-000001", "tick": 2, "type": "task_completed"}]
         writer.record_snapshot(payload)
-        execution_calls = [parameters for query, parameters in driver.session_instance.calls if "UNWIND $executions" in query]
+        execution_calls = [parameters for query, parameters in driver.session_instance.calls if query == _WRITE_EXECUTIONS]
         self.assertEqual(len(execution_calls), 2)
         self.assertEqual(execution_calls[-1]["executions"][0]["status"], "task_completed")
 

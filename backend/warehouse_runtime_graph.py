@@ -381,18 +381,22 @@ UNWIND range(0, size($states) - 1) AS __row_index
 WITH run, $states[__row_index] AS row, __row_index
 MATCH (robot:Robot {id: row.robot_node_id})
 MERGE (state:AgentState {id: row.id})
-ON CREATE SET state.__wz_in_run_new = __row_index
+ON CREATE SET state.__in_run_new = __row_index
 SET state += row
-WITH *, CASE WHEN state.__wz_in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
-FOREACH (__link IN __new_links | CREATE (state)-[:IN_RUN]->(run) REMOVE state.__wz_in_run_new)
+WITH *, CASE WHEN state.__in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (state)-[:IN_RUN]->(run) REMOVE state.__in_run_new)
 MERGE (state)-[:OF_ROBOT]->(robot)
 """
 _WRITE_EXECUTIONS = """
 MATCH (run:Run {id: $run_id})
-UNWIND $executions AS row
+UNWIND range(0, size($executions) - 1) AS __row_index
+WITH run, $executions[__row_index] AS row, __row_index
 MATCH (robot:Robot {id: row.robot_node_id})
-MERGE (execution:Execution {id: row.id}) SET execution += row, execution.dataset_id = $dataset_id
-MERGE (execution)-[:IN_RUN]->(run)
+MERGE (execution:Execution {id: row.id})
+ON CREATE SET execution.__in_run_new = __row_index
+SET execution += row, execution.dataset_id = $dataset_id
+WITH *, CASE WHEN execution.__in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (execution)-[:IN_RUN]->(run) REMOVE execution.__in_run_new)
 MERGE (execution)-[:ASSIGNED_TO]->(robot)
 """
 _WRITE_EXECUTION_STATES = """
@@ -401,10 +405,10 @@ UNWIND range(0, size($states) - 1) AS __row_index
 WITH run, $states[__row_index] AS row, __row_index
 MATCH (execution:Execution {id: row.execution_id}), (robot:Robot {id: row.robot_node_id})
 MERGE (state:ExecutionState {id: row.id})
-ON CREATE SET state.__wz_in_run_new = __row_index
+ON CREATE SET state.__in_run_new = __row_index
 SET state += row
-WITH *, CASE WHEN state.__wz_in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
-FOREACH (__link IN __new_links | CREATE (state)-[:IN_RUN]->(run) REMOVE state.__wz_in_run_new)
+WITH *, CASE WHEN state.__in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (state)-[:IN_RUN]->(run) REMOVE state.__in_run_new)
 MERGE (state)-[:OF_EXECUTION]->(execution)
 MERGE (state)-[:ASSIGNED_TO]->(robot)
 """
@@ -419,10 +423,10 @@ MATCH (run:Run {id: $run_id})
 UNWIND range(0, size($events) - 1) AS __row_index
 WITH run, $events[__row_index] AS row, __row_index
 MERGE (event:RuntimeEvent {id: row.id})
-ON CREATE SET event.__wz_in_run_new = __row_index
+ON CREATE SET event.__in_run_new = __row_index
 SET event += row
-WITH *, CASE WHEN event.__wz_in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
-FOREACH (__link IN __new_links | CREATE (event)-[:IN_RUN]->(run) REMOVE event.__wz_in_run_new)
+WITH *, CASE WHEN event.__in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (event)-[:IN_RUN]->(run) REMOVE event.__in_run_new)
 """
 _LINK_EVENTS_TO_ROBOTS = """
 UNWIND $events AS row

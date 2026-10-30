@@ -193,11 +193,24 @@ class KGGoldenTests(unittest.TestCase):
                             run=run_id).data()
                         self.assertTrue(rows)
                         self.assertTrue(all(row['nodes'] == row['edges'] == 1 for row in rows), rows)
-                        self.assertEqual(session.run('MATCH (n {run_id:$run}) WHERE n.__wz_in_run_new IS NOT NULL '
+                        self.assertEqual(session.run('MATCH (n {run_id:$run}) WHERE n.__in_run_new IS NOT NULL '
                             'RETURN count(n) AS n',run=run_id).single()['n'], 0)
                     if previous is not None:
                         self.assertEqual(rows, previous)
                     previous = rows
+                # Duplicate Execution rows must create one run edge, then remain stable on replay.
+                from backend.warehouse_runtime_graph import _WRITE_EXECUTIONS
+                execution = {'id': run_id + ':execution:duplicate-query', 'run_id': run_id,
+                    'task_id': 'duplicate-query', 'robot_node_id': run_id + ':robot:1',
+                    'robot_id': 1, 'status': 'assigned', 'updated_tick': 4}
+                with driver.session(database=config['database']) as session:
+                    for _ in range(3):
+                        session.run(_WRITE_EXECUTIONS, run_id=run_id, dataset_id=None,
+                                    executions=[execution, execution]).consume()
+                    row = session.run('MATCH (e:Execution {id:$id}) OPTIONAL MATCH (e)-[r:IN_RUN]->(:Run {id:$run}) '
+                        'RETURN count(DISTINCT e) AS nodes,count(r) AS edges,max(e.__in_run_new) AS marker',
+                        id=execution['id'],run=run_id).single()
+                    self.assertEqual(dict(row), {'nodes':1,'edges':1,'marker':None})
             finally:
                 with urlopen(Request(URL + '/v1/runs/' + run_id, method='DELETE',
                     data=json.dumps({'confirm_run_id':run_id}).encode(),
