@@ -120,7 +120,14 @@ class WarehouseLiveRuntime:
                  ray=False, ray_address=None, ray_actor_cpus=0.1, robot_processes='off',
                  robot_graph=False, graph_state_interval=4,
                  global_writer=False, global_writer_queue=256, global_writer_url=None,
-                 kg_state_source='memory', legacy_a_graph=False, robot_context_interval=10):
+                 kg_state_source='memory', legacy_a_graph=False, robot_context_interval=10,
+                 robot_graph_async=True, robot_graph_backlog=8):
+        if type(robot_graph_async) is not bool:
+            raise ValueError('robot_graph_async must be boolean')
+        if type(robot_graph_backlog) is not int or not 1 <= robot_graph_backlog <= 128:
+            raise ValueError('robot_graph_backlog must be within 1..128')
+        self.robot_graph_async = robot_graph_async
+        self.robot_graph_backlog = robot_graph_backlog
         if type(robot_context_interval) is not int or not 0 <= robot_context_interval <= 3600:
             raise ValueError('robot_context_interval must be within 0..3600')
         self.robot_context_interval = robot_context_interval
@@ -307,6 +314,10 @@ class WarehouseLiveRuntime:
             return future
         try:
             self._commands.put_nowait((action, deepcopy(value), expected_run_id, future))
+            if action in ('pause', 'shutdown'):
+                cancel = getattr(getattr(self, '_sim', None), 'graph_wait_cancel_event', None)
+                if cancel is not None:
+                    cancel.set()  # yield only the owner wait; queued graph writes keep running
         except queue.Full:
             future.set_exception(RuntimeError('control queue full; no command was applied'))
         return future
@@ -448,6 +459,8 @@ class WarehouseLiveRuntime:
                     'robot_processes':getattr(self,'robot_processes','off'),
                     'kg_state_source':self.kg_state_source,
                     'ray_address':self.ray_address, 'robot_graph':self.robot_graph,
+                    'robot_graph_async':self.robot_graph_async,
+                    'robot_graph_backlog':self.robot_graph_backlog,
                     'graph_state_interval':self.graph_state_interval,
                     'global_writer':self.global_writer_enabled, 'global_writer_queue':self.global_writer_queue,
                     'robot_agents':self.robot_agents,
@@ -491,6 +504,7 @@ class WarehouseLiveRuntime:
         elif getattr(self,'robot_processes','off')=='ray':
             sim_kwargs.update(robot_graph=self.robot_graph, graph_state_interval=self.graph_state_interval,
                               kg_state_source=self.kg_state_source, global_writer_url=self.global_writer_url,
+                              robot_graph_async=self.robot_graph_async, robot_graph_backlog=self.robot_graph_backlog,
                               robot_context_interval=self.robot_context_interval)
         sim = simulation_class(spec['scene'], spec['dataset'], run_id,
             physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode,
@@ -498,6 +512,9 @@ class WarehouseLiveRuntime:
         sim.run_metadata['kg_state_source'] = self.kg_state_source
         sim.global_record_identity = identity
         sim.context_log_path = str(output / 'robot-context.jsonl')
+        sim.graph_timing_log_path = str(output / 'robot-graph-timing.jsonl')
+        sim.graph_wait_cancel_event = threading.Event()
+        sim.graph_backpressure_callback = lambda stats: self._publish_graph_wait(sim.run_id, stats)
         layout = self._core.layout.audit_roadmap(sim.roadmap, circle_probes=False)
         if not layout['initial_roadmap_usable']:
             raise ValueError('layout static safety gate failed')
@@ -560,6 +577,9 @@ class WarehouseLiveRuntime:
         self._publish()
 
     def _control(self, action, value, expected):
+        cancel = getattr(self._sim, 'graph_wait_cancel_event', None)
+        if cancel is not None:
+            cancel.clear()
         if expected is not None and expected != self._sim.run_id:
             raise ValueError('stale run control rejected; refresh current run_id')
         if action in ('new_run', 'newrun'):
@@ -815,7 +835,14 @@ class WarehouseLiveRuntime:
         if sim.knowledge_boundary_due() and sim.elapsed != self._last_commit:
             self._persist()
         began = time.perf_counter_ns()
-        sim.step()
+        try:
+            sim.step()
+        except Exception as exc:
+            from backend.robot_actor.graph_async import GraphWaitCancelled
+            if not isinstance(exc, GraphWaitCancelled):
+                raise
+            sim.graph_wait_cancel_event.clear()
+            return  # no physical step was started; let the owner process its control queue
         self._note_loop('sim_step', began)
         if force_persist or sim.elapsed - self._last_commit >= self.commit_seconds:
             if not force_persist:
@@ -842,6 +869,20 @@ class WarehouseLiveRuntime:
         began = time.perf_counter_ns()
         self._publish()
         self._note_loop('publish', began)
+
+    def _publish_graph_wait(self, run_id, stats):
+        """Expose backpressure without publishing or persisting a partial physical step."""
+        with self._changed:
+            if self._latest is None or self._latest.get('runId') != run_id:
+                return
+            frame = deepcopy(self._latest)
+            frame.setdefault('robotGraph', {}).update(
+                pendingSteps=stats.get('pending', 0), pauseCount=stats.get('pause_count', 0),
+                pauseSeconds=stats.get('pause_seconds', 0.), backpressurePaused=stats.get('waiting', False))
+            frame['generatedAtMs'] = int(time.time() * 1000)
+            self._latest = frame
+            self._revision += 1
+            self._changed.notify_all()
 
     def _publish(self):
         lap = time.perf_counter_ns()
@@ -885,6 +926,8 @@ class WarehouseLiveRuntime:
         snap['metadata']['mobility']=getattr(self,'mobility','legacy')
         snap['metadata']['robot_processes']=getattr(self,'robot_processes','off')
         snap['metadata']['kg_state_source']=getattr(self, 'kg_state_source', 'memory')
+        snap['metadata']['robot_graph_async']=bool(getattr(self._sim, 'robot_graph_async', False))
+        snap['metadata']['robot_graph_backlog']=getattr(self, 'robot_graph_backlog', 8)
         snap['metadata']['robot_agents_enabled']=getattr(self,'robot_agents',False)
         snap['metadata']['legacy_a_graph']=getattr(self, 'legacy_a_graph', False)
         fleet=getattr(self._store.mirror,'agent_fleet',None) if self._store.mirror else None

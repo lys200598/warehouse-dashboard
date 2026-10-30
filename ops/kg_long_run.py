@@ -12,7 +12,7 @@ import signal
 import statistics
 import time
 
-PHASES = ('advance_ms', 'write_ms', 'wait_step_ms', 'read_ms', 'dispatch_ms', 'context_ms', 'total_ms')
+PHASES = ('advance_ms', 'write_ms', 'wait_step_ms', 'read_ms', 'dispatch_ms', 'context_ms', 'backpressure_ms', 'total_ms')
 
 
 def write_report(path, report):
@@ -108,12 +108,15 @@ def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     sim, owned_run, failure = None, False, None
     buckets = {}
+    graph_windows, previous_pauses, previous_pause_seconds = {}, 0, 0.
     began = time.monotonic()
     limit = args.max_ticks or 86400
     last_successful_tick = 0
     report = {'run_id': args.run_id, 'tick': 0, 'last_successful_tick': 0, 'status': 'starting',
               'dataset_duration_seconds': 86400, 'all_day_executed': False, 'windows': {},
               'robot_context_interval': args.robot_context_interval, 'requested_ticks': limit,
+              'kg_state_source': args.kg_state_source, 'robot_graph_async': args.robot_graph_async,
+              'robot_graph_backlog': args.robot_graph_backlog,
               'started_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
               'last_successful_tick_definition': 'last returned sim.step(); not a durable Neo4j watermark'}
     write_report(args.output / 'report.json', report)
@@ -121,6 +124,7 @@ def run(args):
     def progress(status):
         write_report(args.output / 'progress.json', {'run_id': args.run_id, 'status': status,
                      'tick': getattr(sim, 'tick', 0), 'last_successful_tick': last_successful_tick,
+                     'graph': sim.frame().get('robotGraph', {}) if sim is not None else {},
                      'wall_seconds': time.monotonic() - began,
                      'updated_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
 
@@ -134,6 +138,17 @@ def run(args):
                       windows={str(k * 7200) + '-' + str((k + 1) * 7200):
                                {name: distribution(samples) for name, samples in group.items()}
                                for k, group in sorted(buckets.items())})
+        if sim is not None:
+            report['graph'] = sim.frame().get('robotGraph', {})
+            report['robot_graph_async'] = sim.robot_graph_async
+            report['async_context_windows'] = {str(k * 7200) + '-' + str((k + 1) * 7200): distribution(values)
+                for k, values in sim.async_context_windows().items()}
+            report['graph_windows'] = graph_windows
+            report['worker_graph_windows'] = {str(k * 7200) + '-' + str((k + 1) * 7200):
+                {name: distribution(values) for name, values in phases.items()}
+                for k, phases in sim.async_graph_timing_windows().items()}
+            report['graph_pause_events'] = sim.graph_pause_events()
+            report['graph_window_definition'] = 'pause episode attributed to next physical tick blocked by capacity; duration uses queue pause_seconds deltas'
         write_report(args.output / 'report.json', report)
         progress(status)
 
@@ -152,9 +167,11 @@ def run(args):
         owned_run = True
         config = WheeledConfig(**json.loads(args.config.read_text()))
         sim = Engine(args.scene, args.dataset, args.run_id, config, robot_graph=True,
-                     kg_state_source='neo4j', global_writer_url=args.global_writer_url,
-                     robot_context_interval=args.robot_context_interval)
+                     kg_state_source=args.kg_state_source, global_writer_url=args.global_writer_url,
+                     robot_context_interval=args.robot_context_interval,
+                     robot_graph_async=args.robot_graph_async, robot_graph_backlog=args.robot_graph_backlog)
         sim.context_log_path = str(args.output / 'robot-context.jsonl')
+        sim.graph_timing_log_path = str(args.output / 'robot-graph-timing.jsonl')
         # Ray.init installs its own SIGTERM handler. Restore the finally/cleanup
         # handler after initialization, before the first physical step.
         make_pool = getattr(sim, '_robot_pool', None)
@@ -170,21 +187,39 @@ def run(args):
                 timing = {key: float(sim.kg_timing.get(key, 0.)) for key in PHASES}
                 timing['total_ms'] = (time.perf_counter() - mark) * 1000
                 bucket = (sim.tick - 1) // 7200
+                graph = sim.graph_backpressure_status()
+                window = graph_windows.setdefault(f'{bucket * 7200}-{(bucket + 1) * 7200}',
+                    {'pause_count': 0, 'pause_seconds': 0., 'max_observed_pending_steps': 0})
+                current_pauses = graph.get('pause_count', 0)
+                window['pause_count'] += current_pauses - previous_pauses
+                previous_pauses = current_pauses
+                current_pause_seconds = graph.get('pause_seconds', 0.)
+                window['pause_seconds'] += current_pause_seconds - previous_pause_seconds
+                previous_pause_seconds = current_pause_seconds
+                window['max_observed_pending_steps'] = max(window['max_observed_pending_steps'], graph.get('pending', 0))
+                current_graph = sim.frame().get('robotGraph', {})
+                window['max_lag_steps'] = max(window.get('max_lag_steps', 0), current_graph.get('lag') or 0)
                 values = buckets.setdefault(bucket, {})
                 for key, value in timing.items():
                     values.setdefault(key, []).append(value)
-                stream.write(json.dumps({'tick': sim.tick, 'window': bucket, **timing}) + '\n')
+                stream.write(json.dumps({'tick': sim.tick, 'window': bucket,
+                    'observed_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), **timing}) + '\n')
                 if sim.tick % 60 == 0:
                     stream.flush()
                     progress('running')
                 if sim.tick % 7200 == 0 or sim.tick == limit:
                     stream.flush()
+                    sim.flush_robot_graph()
                     if sim._step_client is not None:
                         sim._step_client.flush(15.)
                     checkpoint(f'checkpoint-{sim.tick:07d}.json')
                     checkpoint('checkpoint.json')
                     update_report('running')
                     print(json.dumps(report), flush=True)
+        # Audit the complete run before cleanup, including every Step receipt.
+        # This runner is an acceptance harness and shares the golden auditor.
+        from tests.test_robot_process_kg import audit
+        report['graph_audit'] = audit(sim)
         update_report('complete' if last_successful_tick >= 86400 else 'bounded_complete')
     except BaseException as exc:
         failure = exc
@@ -198,18 +233,25 @@ def run(args):
         raise
     finally:
         final_errors = []
+        close_error = None
         if sim is not None:
             try:
                 sim.close()
             except BaseException as exc:
+                close_error = exc
                 report['close_error'] = f'{type(exc).__name__}: {exc}'
                 final_errors.append(exc)
         if args.cleanup and owned_run:
-            try:
-                report['cleanup'] = cleanup_run(args, graph_config(sim))
-            except BaseException as exc:
-                report['cleanup'] = {'status': 'failed', 'error': f'{type(exc).__name__}: {exc}'}
-                final_errors.append(exc)
+            from backend.robot_actor.graph_async import inflight_cleanup_status
+            blocked = inflight_cleanup_status(sim, close_error)
+            if blocked is not None:
+                report['cleanup'] = blocked
+            else:
+                try:
+                    report['cleanup'] = cleanup_run(args, graph_config(sim))
+                except BaseException as exc:
+                    report['cleanup'] = {'status': 'failed', 'error': f'{type(exc).__name__}: {exc}'}
+                    final_errors.append(exc)
         else:
             report['cleanup'] = {'status': 'not_requested' if not args.cleanup else 'run_not_created'}
         if final_errors and failure is None:
@@ -240,6 +282,9 @@ def main():
     execute.add_argument('--actor-cpus', type=float, default=.02)
     execute.add_argument('--global-writer-url', default='http://127.0.0.1:14591')
     execute.add_argument('--robot-context-interval', type=int, default=10)
+    execute.add_argument('--kg-state-source', choices=('memory', 'neo4j'), default='memory')
+    execute.add_argument('--robot-graph-sync', dest='robot_graph_async', action='store_false', default=True)
+    execute.add_argument('--robot-graph-backlog', type=int, default=8)
     execute.add_argument('--max-ticks', type=int)
     execute.add_argument('--cleanup', action='store_true')
     stop = commands.add_parser('stop-writer')
@@ -263,6 +308,8 @@ def main():
     else:
         if args.max_ticks is not None and args.max_ticks < 1:
             parser.error('--max-ticks must be positive')
+        if not 1 <= args.robot_graph_backlog <= 128:
+            parser.error('--robot-graph-backlog must be within 1..128')
         run(args)
 
 

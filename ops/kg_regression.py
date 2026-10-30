@@ -2,7 +2,7 @@
 import unittest
 
 MODULES = (
-    'test_live_published_point', 'test_robot_process_quick', 'test_robot_process_split', 'test_dispatch_golden',
+    'test_robot_graph_async', 'test_async_graph_wiring', 'test_live_published_point', 'test_robot_process_quick', 'test_robot_process_split', 'test_dispatch_golden',
     'test_robot_process_wiring', 'test_warehouse_live_runtime', 'test_global_writer',
     'test_global_record_client', 'test_warehouse_runtime_graph', 'test_kg_state',
     'test_robot_context', 'test_query_c_catalog', 'test_warehouse_graph_query',
