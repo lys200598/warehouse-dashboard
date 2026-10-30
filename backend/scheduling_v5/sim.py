@@ -258,7 +258,6 @@ class CandidateSimulation(EngineSimulation):
         if self.config.port_relief_policy == 'deadline':
             pool = self._port_relief_pool(ready)
         for attempt in range(self.config.matching_rounds):
-            candidates = [r for r in candidates if self.activation_available(r)]
             if not pool or not candidates:
                 break
             costs, pair_times = [], []
@@ -280,10 +279,6 @@ class CandidateSimulation(EngineSimulation):
                 if col >= len(candidates) or costs[row][col] >= 1e8:
                     continue
                 r, task = candidates[col], pool[row]
-                # Ordinary fleet throttling is not a failed route or a reason
-                # to put this task/robot pair into the traffic retry backoff.
-                if not self.activation_available(r):
-                    continue
                 if self.schedule_task(r, task):
                     successes.append((r, task))
                     self.blocked.pop(task['task_id'], None)
