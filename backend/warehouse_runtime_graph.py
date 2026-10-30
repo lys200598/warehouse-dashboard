@@ -10,6 +10,7 @@ RUNTIME_SCHEMA = (
     "CREATE CONSTRAINT warehouse_runtime_run_id IF NOT EXISTS FOR (n:Run) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_robot_id IF NOT EXISTS FOR (n:Robot) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_execution_id IF NOT EXISTS FOR (n:Execution) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_execution_state_id IF NOT EXISTS FOR (n:ExecutionState) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_state_id IF NOT EXISTS FOR (n:AgentState) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_event_id IF NOT EXISTS FOR (n:RuntimeEvent) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_runstat_id IF NOT EXISTS FOR (n:RunStat) REQUIRE n.id IS UNIQUE",
@@ -25,6 +26,7 @@ RUNTIME_SCHEMA = (
     "CREATE INDEX warehouse_runtime_state_run_tick IF NOT EXISTS FOR (n:AgentState) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_state_robot_tick IF NOT EXISTS FOR (n:AgentState) ON (n.robot_node_id, n.tick)",
     "CREATE INDEX warehouse_runtime_execution_run_task IF NOT EXISTS FOR (n:Execution) ON (n.run_id, n.task_id)",
+    "CREATE INDEX warehouse_runtime_execution_state_run_task_tick IF NOT EXISTS FOR (n:ExecutionState) ON (n.run_id, n.task_id, n.tick)",
     "CREATE INDEX warehouse_runtime_event_run_task IF NOT EXISTS FOR (n:RuntimeEvent) ON (n.run_id, n.task_id)",
 )
 
@@ -155,6 +157,7 @@ class Neo4jRuntimeGraphWriter:
                 write_state = tick % self.state_interval_ticks == 0 or tick == 1
                 robots = self._robot_rows(snapshot, run_id) if write_state else []
                 execution_rows = self._execution_rows(robots, event_rows, tick)
+                execution_states = self._execution_state_rows(execution_rows)
                 if write_state:
                     new_robots = [row for row in robots if (run_id, row['id']) not in self._registered_robots]
                     if new_robots:
@@ -166,6 +169,7 @@ class Neo4jRuntimeGraphWriter:
                     session.run(_WRITE_AGENT_STATES, run_id=run_id, states=self._state_rows(robots, tick)).consume()
                 if execution_rows:
                     session.run(_WRITE_EXECUTIONS, run_id=run_id, dataset_id=self.dataset_id, executions=execution_rows).consume()
+                    session.run(_WRITE_EXECUTION_STATES, run_id=run_id, states=execution_states).consume()
                     if self.dataset_id:
                         session.run(_LINK_EXECUTIONS_TO_TASKS, dataset_id=self.dataset_id, executions=execution_rows).consume()
                 if event_rows:
@@ -202,6 +206,7 @@ class Neo4jRuntimeGraphWriter:
                 write_state = tick % self.state_interval_ticks == 0 or tick == 1
                 robots = self._robot_rows(snapshot, run_id) if write_state else []
                 execution_rows = self._execution_rows(robots, event_rows, tick)
+                execution_states = self._execution_state_rows(execution_rows)
                 if write_state:
                     session.run(_WRITE_RUN_AND_ROBOTS, run=self._run_row(snapshot), robots=robots).consume()
                     if self.dataset_id:
@@ -209,6 +214,7 @@ class Neo4jRuntimeGraphWriter:
                     session.run(_WRITE_AGENT_STATES, run_id=run_id, states=self._state_rows(robots, tick)).consume()
                 if execution_rows:
                     session.run(_WRITE_EXECUTIONS, run_id=run_id, dataset_id=self.dataset_id, executions=execution_rows).consume()
+                    session.run(_WRITE_EXECUTION_STATES, run_id=run_id, states=execution_states).consume()
                     if self.dataset_id:
                         session.run(_LINK_EXECUTIONS_TO_TASKS, dataset_id=self.dataset_id, executions=execution_rows).consume()
                 if event_rows:
@@ -286,12 +292,30 @@ class Neo4jRuntimeGraphWriter:
         for row in robots:
             if row["task_id"]:
                 key = f"{row['run_id']}:execution:{row['task_id']}"
-                rows[key] = {"id": key, "task_id": row["task_id"], "run_id": row["run_id"], "robot_node_id": row["id"], "cargo_id": row["cargo_id"], "status": row["stage"], "updated_tick": tick}
+                rows[key] = {"id": key, "task_id": row["task_id"], "run_id": row["run_id"], "robot_node_id": row["id"], "robot_id": row["robot_id"], "cargo_id": row["cargo_id"], "status": row["stage"], "updated_tick": tick}
         for event in events:
             if event.get("task_id") and event.get("robot_node_id"):
                 key = f"{event['run_id']}:execution:{event['task_id']}"
-                rows[key] = {"id": key, "task_id": event["task_id"], "run_id": event["run_id"], "robot_node_id": event["robot_node_id"], "cargo_id": event.get("cargo_id"), "status": event["type"], "updated_tick": event.get("tick")}
+                rows[key] = {"id": key, "task_id": event["task_id"], "run_id": event["run_id"], "robot_node_id": event["robot_node_id"], "robot_id": int(event["robot_node_id"].rsplit(':', 1)[-1]), "cargo_id": event.get("cargo_id"), "status": event["type"], "updated_tick": event.get("tick")}
         return list(rows.values())
+
+    @staticmethod
+    def _execution_state_rows(executions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Immutable task state samples; retries MERGE the same run/task/tick."""
+        aliases = {
+            'task_assigned': 'assigned', 'dataset_task_assigned': 'assigned',
+            'task_picked_up': 'carrying', 'picked': 'carrying',
+            'task_completed': 'completed', 'placed': 'completed', 'shipped': 'completed',
+        }
+        result = []
+        for row in executions:
+            tick = int(row.get('updated_tick') or 0)
+            result.append({'id': f"{row['id']}:state:{tick}", 'run_id': row['run_id'],
+                           'execution_id': row['id'], 'task_id': row['task_id'],
+                           'robot_node_id': row['robot_node_id'], 'robot_id': row['robot_id'],
+                           'cargo_id': row.get('cargo_id'), 'tick': tick,
+                           'status': aliases.get(str(row.get('status')), row.get('status'))})
+        return result
 
 
 _WRITE_ROBOTS_ONLY = """
@@ -326,9 +350,19 @@ _WRITE_EXECUTIONS = """
 MATCH (run:Run {id: $run_id})
 UNWIND $executions AS row
 MATCH (robot:Robot {id: row.robot_node_id})
-MERGE (execution:Execution {id: row.id}) SET execution += row, execution.dataset_id = $dataset_id
+MERGE (execution:Execution {id: row.id}) SET execution += row, execution.dataset_id = $dataset_id,
+    execution.current_robot_node_id = row.robot_node_id, execution.current_robot_id = row.robot_id
 MERGE (execution)-[:IN_RUN]->(run)
 MERGE (execution)-[:ASSIGNED_TO]->(robot)
+"""
+_WRITE_EXECUTION_STATES = """
+MATCH (run:Run {id: $run_id})
+UNWIND $states AS row
+MATCH (execution:Execution {id: row.execution_id}), (robot:Robot {id: row.robot_node_id})
+MERGE (state:ExecutionState {id: row.id}) SET state += row
+MERGE (state)-[:IN_RUN]->(run)
+MERGE (state)-[:OF_EXECUTION]->(execution)
+MERGE (state)-[:ASSIGNED_TO]->(robot)
 """
 _LINK_EXECUTIONS_TO_TASKS = """
 UNWIND $executions AS row

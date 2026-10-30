@@ -181,9 +181,9 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
         except Exception as exc:return kg_unavailable(exc)
 
     @app.get('/api/kg/warehouse/tasks/{task_id}/trace')
-    async def kg_task_trace(task_id: str, dataset_id: str | None = None, run_id: str | None = None):
+    async def kg_task_trace(task_id: str, dataset_id: str | None = None, run_id: str | None = None, tick: int | None = None):
         if kg_graph is None:return kg_unavailable()
-        try:return await asyncio.to_thread(kg_graph.task_execution_trace,task_id,dataset_id,run_id)
+        try:return await asyncio.to_thread(kg_graph.task_execution_trace,task_id,dataset_id,run_id,tick)
         except Exception as exc:return kg_unavailable(exc)
 
     @app.get('/api/kg/warehouse/query-presets')
@@ -228,6 +228,22 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
     async def kg_assists(run_id: str, limit: int = 200):
         if kg_graph is None:return kg_unavailable()
         try:return await asyncio.to_thread(kg_graph.assists,run_id,limit)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/handoffs')
+    async def kg_handoffs(run_id: str, task_id: str | None = None, goods_id: str | None = None,
+                          robot_id: int | None = None, limit: int = 200):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.handoffs,run_id,task_id=task_id,goods_id=goods_id,robot_id=robot_id,limit=limit)
+        except ValueError as exc:return JSONResponse({'detail':str(exc)},status_code=400)
+        except Exception as exc:return kg_unavailable(exc)
+
+    @app.get('/api/kg/warehouse/runs/{run_id}/steps/latest')
+    async def kg_latest_step(run_id: str, states: bool = True, limit: int = 200):
+        if kg_graph is None:return kg_unavailable()
+        try:
+            value=await asyncio.to_thread(kg_graph.latest_complete_step,run_id,include_states=states,limit=limit)
+            return value if value is not None else JSONResponse({'detail':'complete Step not found'},status_code=404)
         except Exception as exc:return kg_unavailable(exc)
 
     @app.get('/api/kg/warehouse/runs/{run_id}/robots/{robot_id}/trace')

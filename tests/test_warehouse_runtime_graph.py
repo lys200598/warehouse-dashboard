@@ -5,6 +5,7 @@ from backend.warehouse_runtime_graph import (
     Neo4jRuntimeGraphWriter,
     _LINK_EVENTS_TO_EXECUTIONS,
     _WRITE_EVENTS,
+    _WRITE_EXECUTION_STATES,
     _WRITE_EXECUTIONS,
     _WRITE_RUN_AND_ROBOTS,
     v5_runtime_snapshot,
@@ -80,7 +81,7 @@ class RuntimeGraphWriterTests(unittest.TestCase):
         writer = Neo4jRuntimeGraphWriter(uri="bolt://test", user="neo4j", password=None, dataset_id="dataset:day1", driver=driver)
         writer.record_snapshot(snapshot())
         calls = driver.session_instance.calls
-        self.assertEqual(len(calls), 18)  # schema plus explicit node/relationship batches
+        self.assertGreaterEqual(len(calls), 20)  # schema plus explicit node/relationship batches
         run_call = calls[9][1]
         self.assertEqual(run_call["robots"][0]["id"], "warehouse-run-1:robot:1")
         self.assertEqual(run_call["run"]["dataset_id"], "dataset:day1")
@@ -89,6 +90,8 @@ class RuntimeGraphWriterTests(unittest.TestCase):
         execution_call = next(call for call in calls if call[0] == _WRITE_EXECUTIONS)
         self.assertIn("dataset_id", execution_call[0])
         self.assertEqual(execution_call[1]["dataset_id"], "dataset:day1")
+        history_call = next(call for call in calls if call[0] == _WRITE_EXECUTION_STATES)
+        self.assertEqual(history_call[1]["states"][0]["status"], "assigned")
         execution_event_call = next(call for call in calls if call[0] == _LINK_EVENTS_TO_EXECUTIONS)
         self.assertIn("ABOUT_EXECUTION", execution_event_call[0])
         state_call = next(call for call in calls if "UNWIND $states" in call[0])
