@@ -181,9 +181,9 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
         except Exception as exc:return kg_unavailable(exc)
 
     @app.get('/api/kg/warehouse/tasks/{task_id}/trace')
-    async def kg_task_trace(task_id: str, dataset_id: str | None = None):
+    async def kg_task_trace(task_id: str, dataset_id: str | None = None, run_id: str | None = None):
         if kg_graph is None:return kg_unavailable()
-        try:return await asyncio.to_thread(kg_graph.task_execution_trace,task_id,dataset_id)
+        try:return await asyncio.to_thread(kg_graph.task_execution_trace,task_id,dataset_id,run_id)
         except Exception as exc:return kg_unavailable(exc)
 
     @app.get('/api/kg/warehouse/query-presets')

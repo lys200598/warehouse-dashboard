@@ -425,6 +425,10 @@ class WarehouseLiveRuntime:
                     'disturbance_sha256': digest(disturbances)}
         if self.query_summary_root is not None:
             identity['query_summary']='source-journal-derived-exact-cutoff-v1'
+        # Ray actor graph writers read this environment variable in
+        # backend/ray_medium/sim.py.  Use the canonical Dataset id so their
+        # Execution/RuntimeEvent rows join the static medium task graph.
+        os.environ['WAREHOUSE_NEO4J_DATASET_ID'] = str(identity['graph_dataset_id'])
         checkpoint = None
         if resume:
             if any(output.glob('failure-*.json')):
