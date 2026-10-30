@@ -94,6 +94,20 @@ class RobotProcess:
         out['robot'] = dict(robot)
         return out
 
+    def step(self, now, persistent_fault, robot=None, plan=None, clear_plan=False):
+        """Apply the main process's changes, then advance one second (one call per tick)."""
+        self.sync(robot=robot, plan=plan, clear_plan=clear_plan)
+        return self.advance(now, persistent_fault)
+
+    def snapshot(self):
+        return dict(self.robot)
+
+    def checkpoint(self):
+        return {'robot': dict(self.robot), 'plan': deepcopy(self.plan)}
+
+    def restore(self, state):
+        self.robot, self.plan, self._before = dict(state['robot']), deepcopy(state['plan']), None
+
     def redo(self, now, robot, plan, clear_plan, persistent_fault):
         """Undo this second and advance again from the state the main process now
         holds for this robot (used when an earlier robot's marker changed it)."""
@@ -103,6 +117,22 @@ class RobotProcess:
             self.plan['phase_index'], self.plan['charge_started'] = saved_plan
         self.sync(robot=robot, plan=plan, clear_plan=clear_plan)
         return self.advance(now, persistent_fault)
+
+
+class LocalRobotPool:
+    """Robot processes as plain objects in the main process (phase 1, and the fallback)."""
+
+    def __init__(self, robots, energy, charge_target_soc):
+        self.processes = {i: RobotProcess(i, r, energy, charge_target_soc) for i, r in robots.items()}
+
+    def step_all(self, now, calls):
+        return {owner: self.processes[owner].step(now, *args) for owner, args in calls.items()}
+
+    def redo(self, owner, now, robot, plan, clear_plan, persistent_fault):
+        return self.processes[owner].redo(now, robot, plan, clear_plan, persistent_fault)
+
+    def close(self):
+        self.processes = {}
 
 
 class RobotProcessSplit:
@@ -117,15 +147,20 @@ class RobotProcessSplit:
     used.
     """
 
-    def _robot_processes(self):
-        procs = getattr(self, '_procs', None)
-        if procs is None or set(procs) != set(self.robots):
-            procs = self._procs = {i: RobotProcess(i, r, self.energy, self.config.charge_target_soc)
-                                   for i, r in self.robots.items()}
+    def _make_robot_pool(self):
+        return LocalRobotPool(self.robots, self.energy, self.config.charge_target_soc)
+
+    def _robot_pool(self):
+        pool = getattr(self, '_pool', None)
+        if pool is None or getattr(self, '_pool_ids', None) != set(self.robots):
+            if pool is not None:
+                pool.close()
+            pool = self._pool = self._make_robot_pool()
+            self._pool_ids = set(self.robots)
             self._mirror = {i: dict(r) for i, r in self.robots.items()}  # state each process holds
             self._sent_job = {i: None for i in self.robots}               # main job whose plan it holds
             self.split_stats = {'ticks': 0, 'robot_syncs': 0, 'plans_sent': 0, 'redo': 0}
-        return procs
+        return pool
 
     def _changes_for(self, owner):
         robot, job = self.robots[owner], self.jobs.get(owner)
@@ -148,21 +183,22 @@ class RobotProcessSplit:
         return bool(self.faults.get(owner, {}).get('persistent'))
 
     def _advance_robots(self, now):
-        procs = self._robot_processes()
+        pool = self._robot_pool()
         order = list(self.robots)  # the sequential engine's iteration order
+        calls = {}
         for owner in order:
             robot_arg, plan, clear = self._changes_for(owner)
-            if robot_arg is not None or plan is not None or clear:
-                procs[owner].sync(robot=robot_arg, plan=plan, clear_plan=clear)
-        # The parallel section: every robot advances from its own state.
-        results = {owner: procs[owner].advance(now, self._persistent_fault(owner)) for owner in order}
+            calls[owner] = (self._persistent_fault(owner), robot_arg, plan, clear)
+        # The parallel section: every robot applies its changes and advances one
+        # second from its own state (one call per robot per tick).
+        results = pool.step_all(now, calls)
         position_of = {owner: i for i, owner in enumerate(order)}
         redo = set()
         for owner in order:
             robot = self.robots[owner]
             if owner in redo:
                 _, plan, clear = self._changes_for(owner)
-                results[owner] = procs[owner].redo(now, robot, plan, clear, self._persistent_fault(owner))
+                results[owner] = pool.redo(owner, now, robot, plan, clear, self._persistent_fault(owner))
                 self.split_stats['redo'] += 1
             r = results[owner]
             robot.clear()
@@ -202,4 +238,11 @@ class RobotProcessSplit:
 
     def restore(self, state):
         super().restore(state)
-        self._procs = None  # rebuild robot processes from the restored state
+        if getattr(self, '_pool', None) is not None:
+            self._pool.close()
+        self._pool = None  # rebuild robot processes from the restored state
+
+    def close_robot_pool(self):
+        if getattr(self, '_pool', None) is not None:
+            self._pool.close()
+            self._pool = None
