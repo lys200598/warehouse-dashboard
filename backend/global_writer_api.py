@@ -19,8 +19,8 @@ from .global_writer import GlobalWriter
 
 
 def _body(raw: bytes) -> dict[str, Any]:
-    if len(raw) > 1_048_576:
-        raise ValueError('request exceeds 1 MiB')
+    if len(raw) > 8 * 1_048_576:
+        raise ValueError('request exceeds 8 MiB')
     value = json.loads(raw)
     if not isinstance(value, dict):
         raise ValueError('JSON object required')
@@ -49,6 +49,27 @@ def _validate_record(record: dict[str, Any]) -> None:
     for name in ('events', 'handoffs'):
         if not isinstance(record[name], list):
             raise ValueError(f'{name} must be an array')
+    ownership_changes = record.get('ownership_changes', [])
+    if not isinstance(ownership_changes, list):
+        raise ValueError('ownership_changes must be an array')
+    for index, change in enumerate(ownership_changes):
+        if not isinstance(change, dict):
+            raise ValueError(f'ownership_changes[{index}] must be an object')
+        for name in ('task_id', 'tick', 'to_robot_id', 'reason'):
+            if name not in change:
+                raise ValueError(f'ownership_changes[{index}].{name} is required')
+        _ident(change['task_id'], f'ownership_changes[{index}].task_id')
+        if not isinstance(change['tick'], int) or change['tick'] < 0:
+            raise ValueError(f'ownership_changes[{index}].tick must be a non-negative integer')
+        for name in ('to_robot_id', 'from_robot_id'):
+            if name in change and change[name] is not None and (
+                not isinstance(change[name], int) or change[name] < 1
+            ):
+                raise ValueError(f'ownership_changes[{index}].{name} must be a positive integer')
+        if not isinstance(change['to_robot_id'], int) or change['to_robot_id'] < 1:
+            raise ValueError(f'ownership_changes[{index}].to_robot_id must be a positive integer')
+        if not isinstance(change['reason'], str) or not change['reason']:
+            raise ValueError(f'ownership_changes[{index}].reason must be a non-empty string')
     step = record.get('step')
     if step is not None:
         if not isinstance(step, dict):
@@ -66,22 +87,54 @@ def _validate_record(record: dict[str, Any]) -> None:
             raise ValueError('complete Step has fewer receipt ids than expected_robot_count')
 
 
+def _validate_batch(records: Any) -> list[dict[str, Any]]:
+    if not isinstance(records, list) or not records or len(records) > 128:
+        raise ValueError('records must contain 1..128 global records')
+    if any(not isinstance(record, dict) for record in records):
+        raise ValueError('records must contain JSON objects')
+    for record in records:
+        _validate_record(record)
+    run_ids = {str(record['run_id']) for record in records}
+    if len(run_ids) != 1:
+        raise ValueError('a batch must contain records for exactly one run_id')
+    ticks = [int(record['tick']) for record in records]
+    if any(later <= earlier for earlier, later in zip(ticks, ticks[1:])):
+        raise ValueError('batch ticks must be strictly increasing')
+    ownership_keys = [
+        (str(record['run_id']), str(change['task_id']), int(change['tick']))
+        for record in records for change in record.get('ownership_changes', [])
+    ]
+    if len(set(ownership_keys)) != len(ownership_keys):
+        raise ValueError('a batch cannot contain multiple ownership changes for one task at one tick')
+    return records
+
+
 class RecordQueue:
     """14284-owned bounded queue.  HTTP handlers never wait for Neo4j I/O."""
     def __init__(self, writer: GlobalWriter, size: int):
         self.writer, self.records = writer, queue.Queue(maxsize=size)
         self.errors = 0; self.last_tick = -1; self.closed = False
+        self._submit_lock = threading.Lock()
         self.thread = threading.Thread(target=self._run, name='global-writer-neo4j', daemon=True)
         self.thread.start()
 
     def submit(self, record: dict[str, Any]) -> bool:
+        return self.submit_many([record])
+
+    def submit_many(self, items: list[dict[str, Any]]) -> bool:
         if self.closed:
             return False
-        try:
-            self.records.put_nowait(record)
-            return True
-        except queue.Full:
-            return False
+        # Keep a batch adjacent in the queue.  This preserves the caller's
+        # tick ordering while still leaving Neo4j I/O to the worker thread.
+        with self._submit_lock:
+            if self.closed or self.records.maxsize - self.records.qsize() < len(items):
+                return False
+            try:
+                for item in items:
+                    self.records.put_nowait(item)
+                return True
+            except queue.Full:  # defensive; capacity was checked under lock
+                return False
 
     def _run(self):
         while True:
@@ -125,6 +178,19 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
 
     app = FastAPI(title='Warehouse global record writer', version='v1', lifespan=lifespan)
 
+    def _complete_step_states(run_id: str, tick: int, limit: int) -> list[dict[str, Any]]:
+        limit = max(1, min(limit, 500))
+        with writer.driver.session(database=writer.database) as session:
+            rows = session.run('MATCH (step:Step {run_id:$run_id}) WHERE step.tick=$tick AND step.complete=true '
+                               'MATCH (run:Run {id:$run_id})<-[:IN_RUN]-(robot:Robot) '
+                               'CALL { WITH robot, $tick AS cutoff '
+                               'MATCH (state:AgentState)-[:OF_ROBOT]->(robot) WHERE state.tick <= cutoff '
+                               'RETURN state ORDER BY state.tick DESC LIMIT 1 } '
+                               'RETURN robot.robot_id AS robot_id, '
+                               'state { .tick,.stage,.battery,.x,.y,.task_id,.cargo_id } AS state '
+                               'ORDER BY robot_id LIMIT $limit', run_id=run_id, tick=tick, limit=limit).data()
+        return [{**row['state'], 'robot_id': row['robot_id'], 'sampled_tick': row['state']['tick']} for row in rows]
+
     @app.get('/v1/health')
     async def health():
         return {'status': 'ok', 'writer': 'global-record', 'database': writer.database,
@@ -133,11 +199,12 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
     @app.post('/v1/records', status_code=202)
     async def write_record(request: Request):
         try:
-            record = _body(await request.body())
-            _validate_record(record)
-            if not records.submit(record):
+            body = _body(await request.body())
+            batch = _validate_batch(body['records']) if 'records' in body else [_validate_record(body) or body]
+            if not records.submit_many(batch):
                 return JSONResponse({'detail': 'global writer queue is full or closed'}, status_code=503)
-            return {'accepted': True, 'run_id': record['run_id'], 'tick': record['tick'],
+            return {'accepted': True, 'run_id': batch[0]['run_id'],
+                    'ticks': [record['tick'] for record in batch], 'record_count': len(batch),
                     'queue': records.health()}
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return JSONResponse({'detail': str(exc)}, status_code=400)
@@ -205,13 +272,16 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
             return JSONResponse({'detail': str(exc)}, status_code=400)
 
     @app.get('/v1/runs/{run_id}/steps/latest')
-    async def get_latest_step(run_id: str):
+    async def get_latest_step(run_id: str, states: bool = False, limit: int = 200):
         with writer.driver.session(database=writer.database) as session:
             rows = session.run('MATCH (run:Run {id:$run_id}) '
                                'MATCH (step:Step {run_id:$run_id}) '
                                'WHERE step.tick=run.latest_step AND step.complete=true '
                                'RETURN step {.*} AS step', run_id=run_id).data()
-        return rows[0]['step'] if rows else JSONResponse({'detail': 'complete Step not found'}, status_code=404)
+        if not rows:
+            return JSONResponse({'detail': 'complete Step not found'}, status_code=404)
+        step = rows[0]['step']
+        return {'step': step, 'states': _complete_step_states(run_id, int(step['tick']), limit)} if states else step
 
     @app.get('/v1/runs/{run_id}/steps/{tick}')
     async def get_step(run_id: str, tick: int):
@@ -221,18 +291,8 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
 
     @app.get('/v1/runs/{run_id}/steps/{tick}/states')
     async def get_step_states(run_id: str, tick: int, limit: int = 200):
-        limit = max(1, min(limit, 500))
-        with writer.driver.session(database=writer.database) as session:
-            rows = session.run('MATCH (step:Step {run_id:$run_id}) WHERE step.tick=$tick AND step.complete=true '
-                               'MATCH (run:Run {id:$run_id})<-[:IN_RUN]-(robot:Robot) '
-                               'CALL { WITH robot, $tick AS cutoff '
-                               'MATCH (state:AgentState)-[:OF_ROBOT]->(robot) WHERE state.tick <= cutoff '
-                               'RETURN state ORDER BY state.tick DESC LIMIT 1 } '
-                               'RETURN robot.robot_id AS robot_id, '
-                               'state { .tick,.stage,.battery,.x,.y,.task_id,.cargo_id } AS state '
-                               'ORDER BY robot_id LIMIT $limit', run_id=run_id, tick=tick, limit=limit).data()
         return {'run_id': run_id, 'tick': tick,
-                'states': [{**row['state'], 'robot_id': row['robot_id'], 'sampled_tick': row['state']['tick']} for row in rows]}
+                'states': _complete_step_states(run_id, tick, limit)}
 
     @app.get('/v1/runs/{run_id}/handoffs')
     async def list_handoffs(run_id: str, task_id: str | None = None, goods_id: str | None = None,

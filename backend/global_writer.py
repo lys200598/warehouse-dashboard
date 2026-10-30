@@ -200,6 +200,10 @@ def build_global_record(sim, events, *, status: str, identity: dict[str, Any] | 
         # arrived for this tick, so it must add the explicit ``step`` payload
         # before calling the HTTP service.
         'handoffs': handoffs,
+        # The main coordinator is the authority for task ownership.  It adds
+        # assignment/handoff changes here; robot actors never infer the
+        # mutable ``Execution.current_robot_id`` field themselves.
+        'ownership_changes': [],
     }
 
 
@@ -253,8 +257,6 @@ class GlobalWriter:
             'manifest_sha256': record.get('manifest_sha256'),
             'config_json': record.get('config_json'),
             'status': status,
-            'latest_dispatch_seq': commit_seq,
-            'latest_dispatch_tick': tick,
             'global_stats_json': _json({key: record[key] for key in
                                         ('counts', 'tasks', 'assists', 'metrics', 'inside')}),
         }
@@ -307,6 +309,7 @@ class GlobalWriter:
             self._write_step(session, run_id, record.get('step') or {}, now)
             self._write_assists(session, run_id, tick, now, record.get('assists') or {}, status)
             self._write_handoffs(session, run_id, record.get('handoffs') or [], now)
+            self._write_ownership_changes(session, run_id, record.get('ownership_changes') or [], now)
             events = record.get('events') or []
             if events:
                 rows = [{**event, 'id': f'{run_id}:global-event:{event["id"]}', 'run_id': run_id}
@@ -369,6 +372,65 @@ class GlobalWriter:
                     'MERGE (handoff)-[:ABOUT_EXECUTION]->(execution)',
                     id=node['id'], execution_id=f"{run_id}:execution:{node['task_id']}").consume()
 
+    def _write_ownership_changes(self, session, run_id: str,
+                                 changes: list[dict[str, Any]], now: int):
+        """Apply coordinator-authoritative task ownership in tick order.
+
+        Actor graph writes may add historical ``ASSIGNED_TO`` participants,
+        but must not update ``current_robot_id``.  This method is called by
+        the single global writer worker, so task handoff ordering is stable.
+        """
+        if not changes:
+            return
+        rows = []
+        for index, raw in enumerate(changes):
+            task_id = str(raw['task_id'])
+            tick = int(raw['tick'])
+            to_robot_id = int(raw['to_robot_id'])
+            from_robot_id = raw.get('from_robot_id')
+            change_id = str(raw.get('change_id') or f'{task_id}:{tick}:{to_robot_id}:{index}')
+            rows.append({
+                'id': f'{run_id}:ownership:{change_id}', 'run_id': run_id,
+                'change_id': change_id, 'task_id': task_id, 'tick': tick,
+                'from_robot_id': int(from_robot_id) if from_robot_id is not None else None,
+                'to_robot_id': to_robot_id, 'reason': str(raw.get('reason', 'assigned')),
+                'recorded_at_ms': now,
+                'execution_id': f'{run_id}:execution:{task_id}',
+                'to_robot_node_id': f'{run_id}:robot:{to_robot_id}',
+                'from_robot_node_id': f'{run_id}:robot:{int(from_robot_id)}' if from_robot_id is not None else None,
+            })
+        session.run(
+            'MATCH (run:Run {id:$run_id}) UNWIND $changes AS row '
+            'MERGE (execution:Execution {id:row.execution_id}) '
+            'ON CREATE SET execution.run_id=row.run_id,execution.task_id=row.task_id '
+            'MERGE (execution)-[:IN_RUN]->(run) '
+            'MERGE (target:Robot {id:row.to_robot_node_id}) '
+            'ON CREATE SET target.run_id=row.run_id,target.robot_id=row.to_robot_id '
+            'MERGE (target)-[:IN_RUN]->(run) '
+            'MERGE (change:OwnershipChange {id:row.id}) SET change += row '
+            'MERGE (change)-[:IN_RUN]->(run) '
+            'MERGE (change)-[:ABOUT_EXECUTION]->(execution) '
+            'MERGE (change)-[:TO_ROBOT]->(target) '
+            'WITH execution,target,row '
+            'OPTIONAL MATCH (execution)-[previous:ASSIGNED_TO]->(prior:Robot) '
+            'WHERE prior.id <> target.id AND previous.until_tick IS NULL '
+            'SET previous.until_tick=row.tick '
+            'WITH DISTINCT execution,target,row '
+            'MERGE (execution)-[assignment:ASSIGNED_TO]->(target) '
+            'SET assignment.since_tick=coalesce(assignment.since_tick,row.tick),assignment.until_tick=null, '
+            'execution.current_robot_id=CASE WHEN coalesce(execution.current_owner_tick,-1) <= row.tick THEN row.to_robot_id ELSE execution.current_robot_id END, '
+            'execution.current_robot_node_id=CASE WHEN coalesce(execution.current_owner_tick,-1) <= row.tick THEN row.to_robot_node_id ELSE execution.current_robot_node_id END, '
+            'execution.current_owner_tick=CASE WHEN coalesce(execution.current_owner_tick,-1) <= row.tick THEN row.tick ELSE execution.current_owner_tick END',
+            run_id=run_id, changes=rows).consume()
+        session.run(
+            'UNWIND $changes AS row WITH row WHERE row.from_robot_id IS NOT NULL '
+            'MERGE (source:Robot {id:row.from_robot_node_id}) '
+            'ON CREATE SET source.run_id=row.run_id,source.robot_id=row.from_robot_id '
+            'MATCH (run:Run {id:row.run_id}) MERGE (source)-[:IN_RUN]->(run) '
+            'MERGE (change:OwnershipChange {id:row.id}) '
+            'MERGE (change)-[:FROM_ROBOT]->(source)',
+            changes=rows).consume()
+
     def _write_dispatch(self, session, run_id: str, dispatch: dict[str, Any], status: str):
         if not dispatch:
             return
@@ -395,7 +457,8 @@ class GlobalWriter:
         session.run(
             'MATCH (run:Run {id: $run_id}) '
             'MERGE (state:DispatchState {id: $state.id}) SET state += $state '
-            'MERGE (state)-[:IN_RUN]->(run)',
+            'MERGE (state)-[:IN_RUN]->(run) '
+            'SET run.latest_dispatch_seq=$state.commit_seq,run.latest_dispatch_tick=$state.tick',
             run_id=run_id, state=node).consume()
 
     def _write_assists(self, session, run_id: str, tick: int, now: int, assists: dict[str, Any], status: str):

@@ -1,6 +1,7 @@
 import unittest
 
 from backend.global_writer import GlobalWriter, build_dispatch_state, build_global_record
+from backend.global_writer_api import _validate_batch
 
 
 class _Config:
@@ -61,6 +62,10 @@ class GlobalWriterRecordTests(unittest.TestCase):
         ], status='ready')
         self.assertEqual(record['events'], [])
 
+    def test_global_record_reserves_ownership_changes_for_coordinator(self):
+        record = build_global_record(_Sim(), [], status='running')
+        self.assertEqual(record['ownership_changes'], [])
+
 
 class _Session:
     def __init__(self):
@@ -91,6 +96,48 @@ class GlobalWriterAssistTests(unittest.TestCase):
         self.assertTrue(any('DONOR' in query for query in queries))
         self.assertTrue(any('RECEIVER' in query for query in queries))
         self.assertIn('run-test:assist:1:T-1:7', writer._active_assists['run-test'])
+
+    def test_ownership_changes_write_current_owner_and_close_history(self):
+        writer = object.__new__(GlobalWriter)
+        session = _Session()
+        writer._write_ownership_changes(session, 'run-test', [{
+            'change_id': 'handoff-7', 'task_id': 'T-1', 'tick': 7,
+            'from_robot_id': 1, 'to_robot_id': 2, 'reason': 'cargo_handoff',
+        }], 1000)
+        query = session.calls[0][0]
+        self.assertIn('current_robot_id', query)
+        self.assertIn('previous.until_tick', query)
+        self.assertIn('OwnershipChange', query)
+        self.assertIn('FROM_ROBOT', session.calls[1][0])
+
+
+class GlobalWriterApiValidationTests(unittest.TestCase):
+    @staticmethod
+    def _record(tick):
+        return {'run_id': 'run-test', 'tick': tick, 'elapsed': tick, 'status': 'running',
+                'backend': 'warehouse-v5', 'robot_count': 2, 'max_active_robots': 2,
+                'counts': {}, 'tasks': {}, 'assists': {}, 'metrics': {}, 'inside': 0,
+                'dispatch': {}, 'events': [], 'handoffs': [], 'ownership_changes': []}
+
+    def test_batch_requires_one_run_and_ascending_ticks(self):
+        self.assertEqual(len(_validate_batch([self._record(1), self._record(2)])), 2)
+        with self.assertRaisesRegex(ValueError, 'strictly increasing'):
+            _validate_batch([self._record(2), self._record(2)])
+
+    def test_ownership_change_requires_a_destination_robot(self):
+        record = self._record(1)
+        record['ownership_changes'] = [{'task_id': 'T-1', 'tick': 1, 'reason': 'assigned'}]
+        with self.assertRaisesRegex(ValueError, 'to_robot_id'):
+            _validate_batch([record])
+
+    def test_batch_rejects_two_owner_changes_for_one_task_and_tick(self):
+        record = self._record(1)
+        record['ownership_changes'] = [
+            {'task_id': 'T-1', 'tick': 1, 'to_robot_id': 1, 'reason': 'assigned'},
+            {'task_id': 'T-1', 'tick': 1, 'to_robot_id': 2, 'reason': 'reassigned'},
+        ]
+        with self.assertRaisesRegex(ValueError, 'multiple ownership changes'):
+            _validate_batch([record])
 
 
 if __name__ == '__main__':

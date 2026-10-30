@@ -18,11 +18,13 @@ RUNTIME_SCHEMA = (
     "CREATE CONSTRAINT warehouse_runtime_dispatch_id IF NOT EXISTS FOR (n:DispatchState) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_step_id IF NOT EXISTS FOR (n:Step) REQUIRE n.id IS UNIQUE",
     "CREATE CONSTRAINT warehouse_runtime_handoff_id IF NOT EXISTS FOR (n:Handoff) REQUIRE n.id IS UNIQUE",
+    "CREATE CONSTRAINT warehouse_runtime_ownership_change_id IF NOT EXISTS FOR (n:OwnershipChange) REQUIRE n.id IS UNIQUE",
     "CREATE INDEX warehouse_runtime_runstat_run_tick IF NOT EXISTS FOR (n:RunStat) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_assist_run IF NOT EXISTS FOR (n:Assist) ON (n.run_id, n.donor_id)",
     "CREATE INDEX warehouse_runtime_dispatch_run_seq IF NOT EXISTS FOR (n:DispatchState) ON (n.run_id, n.commit_seq)",
     "CREATE INDEX warehouse_runtime_step_run_tick IF NOT EXISTS FOR (n:Step) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_handoff_run_tick IF NOT EXISTS FOR (n:Handoff) ON (n.run_id, n.tick)",
+    "CREATE INDEX warehouse_runtime_ownership_run_task_tick IF NOT EXISTS FOR (n:OwnershipChange) ON (n.run_id, n.task_id, n.tick)",
     "CREATE INDEX warehouse_runtime_state_run_tick IF NOT EXISTS FOR (n:AgentState) ON (n.run_id, n.tick)",
     "CREATE INDEX warehouse_runtime_state_robot_tick IF NOT EXISTS FOR (n:AgentState) ON (n.robot_node_id, n.tick)",
     "CREATE INDEX warehouse_runtime_execution_run_task IF NOT EXISTS FOR (n:Execution) ON (n.run_id, n.task_id)",
@@ -350,8 +352,7 @@ _WRITE_EXECUTIONS = """
 MATCH (run:Run {id: $run_id})
 UNWIND $executions AS row
 MATCH (robot:Robot {id: row.robot_node_id})
-MERGE (execution:Execution {id: row.id}) SET execution += row, execution.dataset_id = $dataset_id,
-    execution.current_robot_node_id = row.robot_node_id, execution.current_robot_id = row.robot_id
+MERGE (execution:Execution {id: row.id}) SET execution += row, execution.dataset_id = $dataset_id
 MERGE (execution)-[:IN_RUN]->(run)
 MERGE (execution)-[:ASSIGNED_TO]->(robot)
 """
