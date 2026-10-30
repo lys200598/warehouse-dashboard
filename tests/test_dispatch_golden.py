@@ -33,9 +33,9 @@ CONFIG = ROOT / 'config/wheeled-medium-100.json'
 MAX_TICKS = 4000
 
 
-def record():
+def record(sim_class=WheeledSimulation):
     config = WheeledConfig(**json.loads(CONFIG.read_text(encoding='utf-8')))
-    sim = WheeledSimulation(SCENE, DATASET, 'dispatch-golden', config)
+    sim = sim_class(SCENE, DATASET, 'dispatch-golden', config)
     # Release the first task at t=0; relative release times are unchanged.
     shift = min(task['release_second'] for task in sim.tasks.values())
     for task in sim.tasks.values():
@@ -57,9 +57,9 @@ def record():
             'completed_at': {task_id: task.get('completed_at') for task_id, task in sorted(sim.tasks.items())}}
 
 
-def record_relay(report_at=250, report_soc=24):
+def record_relay(report_at=250, report_soc=24, sim_class=WheeledSimulation, pick=min, with_sim=False):
     config = WheeledConfig(**json.loads(CONFIG.read_text(encoding='utf-8')))
-    sim = WheeledSimulation(SCENE, DATASET, 'dispatch-golden-relay', config)
+    sim = sim_class(SCENE, DATASET, 'dispatch-golden-relay', config)
     handoffs, original = [], sim.event
 
     def capture(kind, robot_id=None, task_id=None, **fields):
@@ -75,8 +75,8 @@ def record_relay(report_at=250, report_soc=24):
             owners = [i for i, r in sim.robots.items()
                       if r['carrying'] and r['stage'] == 'to_target' and i not in sim.assists]
             if owners:
-                reported = {'tick': sim.elapsed, 'robot_id': min(owners), 'soc': report_soc}
-                sim.report_soc(min(owners), report_soc)
+                reported = {'tick': sim.elapsed, 'robot_id': pick(owners), 'soc': report_soc}
+                sim.report_soc(pick(owners), report_soc)
         sim.step()
         for task_id, task in sorted(sim.tasks.items()):
             key = (task.get('robot_id'), task.get('assigned_at'))
@@ -86,10 +86,11 @@ def record_relay(report_at=250, report_soc=24):
                                     'assigned_at': task.get('assigned_at')})
         if all(task['status'] == 'completed' for task in sim.tasks.values()):
             break
-    return {'version': 'dispatch-golden-relay-v1', 'scene': str(SCENE.relative_to(ROOT)),
+    result = {'version': 'dispatch-golden-relay-v1', 'scene': str(SCENE.relative_to(ROOT)),
             'dataset': str(DATASET.relative_to(ROOT)), 'config': str(CONFIG.relative_to(ROOT)),
             'disturbance': reported, 'ticks': tick, 'handoffs': handoffs, 'assignments': assignments,
             'completed_at': {task_id: task.get('completed_at') for task_id, task in sorted(sim.tasks.items())}}
+    return (result, sim) if with_sim else result
 
 
 class DispatchGoldenTests(unittest.TestCase):

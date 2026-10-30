@@ -873,6 +873,37 @@ class Simulation(V2Simulation):
         self.release_and_dispatch()
         now = self.elapsed
         before = {i: self._point(r) for i, r in self.robots.items()}
+        self._advance_robots(now)
+        self.elapsed += 1
+        self.tick = self.elapsed
+        pairs, separation = audit_actual_motion(before, {i: self._point(r) for i, r in self.robots.items()},
+                                                cells=self.reservations.cells)
+        self.metrics['motion_audit_pairs'] += pairs
+        self.metrics['min_separation_m'] = min(self.metrics['min_separation_m'], separation)
+        self.metrics['max_inside'] = max(self.metrics['max_inside'], self.inside)
+        self.metrics['min_inside'] = min(self.metrics['min_inside'], self.inside)
+        self.metrics['min_soc'] = min(self.metrics['min_soc'], min(r['battery'] for r in self.robots.values()))
+        for key, value in self.counts().items():
+            if key in {'moving', 'working', 'queued', 'charging'}:
+                self.metrics['max_' + key] = max(self.metrics['max_' + key], value)
+        self.metrics['max_active_business'] = max(self.metrics['max_active_business'],
+            sum(r['stage'] in {'to_source','to_target','picking','placing','to_handoff','handoff_receive'}
+                for r in self.robots.values()))
+        if self.metrics['min_soc'] < self.config.emergency_reserve_soc - 1e-6:
+            raise AssertionError('v3 hard emergency SOC reserve violated')
+        if not 0 <= self.inside <= len(self.slots) or any(not 0 <= n <= 6 for n in self.ports.values()):
+            raise AssertionError('v3 capacity invariant violated')
+        if sum(self.counts()[k] for k in ['moving', 'handling', 'queued', 'charging', 'standby']) != 100:
+            raise AssertionError('v3 robot accounting mismatch')
+        if self.elapsed % 60 == 0:
+            self.reservations.prune(self.elapsed)
+            self.assert_inventory()
+            self._diagnostics()
+
+    def _advance_robots(self, now):
+        """Advance every robot one second along its plan, in robot order, handling
+        markers and completion in between (sequential engine; see
+        backend/robot_actor/local.py for the split version)."""
         for owner, robot in self.robots.items():
             job = self.jobs.get(owner)
             if not job:
@@ -925,31 +956,6 @@ class Simulation(V2Simulation):
                 self.dispatch_dirty = True
             self.progress.record_progress(owner, now+1, point=self._point(robot),
                                           task_id=robot.get('task_id'), token=robot['completed'])
-        self.elapsed += 1
-        self.tick = self.elapsed
-        pairs, separation = audit_actual_motion(before, {i: self._point(r) for i, r in self.robots.items()},
-                                                cells=self.reservations.cells)
-        self.metrics['motion_audit_pairs'] += pairs
-        self.metrics['min_separation_m'] = min(self.metrics['min_separation_m'], separation)
-        self.metrics['max_inside'] = max(self.metrics['max_inside'], self.inside)
-        self.metrics['min_inside'] = min(self.metrics['min_inside'], self.inside)
-        self.metrics['min_soc'] = min(self.metrics['min_soc'], min(r['battery'] for r in self.robots.values()))
-        for key, value in self.counts().items():
-            if key in {'moving', 'working', 'queued', 'charging'}:
-                self.metrics['max_' + key] = max(self.metrics['max_' + key], value)
-        self.metrics['max_active_business'] = max(self.metrics['max_active_business'],
-            sum(r['stage'] in {'to_source','to_target','picking','placing','to_handoff','handoff_receive'}
-                for r in self.robots.values()))
-        if self.metrics['min_soc'] < self.config.emergency_reserve_soc - 1e-6:
-            raise AssertionError('v3 hard emergency SOC reserve violated')
-        if not 0 <= self.inside <= len(self.slots) or any(not 0 <= n <= 6 for n in self.ports.values()):
-            raise AssertionError('v3 capacity invariant violated')
-        if sum(self.counts()[k] for k in ['moving', 'handling', 'queued', 'charging', 'standby']) != 100:
-            raise AssertionError('v3 robot accounting mismatch')
-        if self.elapsed % 60 == 0:
-            self.reservations.prune(self.elapsed)
-            self.assert_inventory()
-            self._diagnostics()
 
     def counts(self):
         c = Counter(r['stage'] for r in self.robots.values())
