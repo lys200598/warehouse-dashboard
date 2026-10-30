@@ -16,8 +16,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   const rackSprites=new Map();
   const portraitCanvas = $("#robotPortrait");
   const portraitCtx = portraitCanvas.getContext("2d");
-  const LEGACY_WORLD = { width: 32, height: 22 };
-  const WORLD = { width: 100, height: 90 };
+  const WORLD = { width: 32, height: 22 };
 
   const COLORS = {
     lime: "#c9f46c",
@@ -81,10 +80,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
 
   let robots = [];
   let racks = [];
-  let dashboardLayout = null;
   let backendScene = null;
   let backendMetrics = null;
-  let backendRuntime = null;
   let renderWidth = 0;
   let renderHeight = 0;
   let frameCount = 0;
@@ -136,21 +133,6 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   const backendFrameOrigin = (previous, payload, continuous) => continuous && previous ? {x: previous.renderTargetX ?? previous.x, y: previous.renderTargetY ?? previous.y} : {x: payload.x, y: payload.y};
   const shelfRowName = (depthRow = 0) => depthRow === 0 ? "后排" : "前排";
 
-  function layoutStations(kind) {
-    return (dashboardLayout?.stations || []).filter((station) => station.kind === kind);
-  }
-
-  function mapLegacyPoint(point) {
-    if (!dashboardLayout) return point;
-    // 4173's coordinator is still the legacy 32×22 control simulation.  Its
-    // positions are displayed in the expanded map's working envelope only;
-    // they are not represented as V5 physical trajectories.
-    return {
-      x: 9 + clamp(point.x, 0, LEGACY_WORLD.width) * 82 / LEGACY_WORLD.width,
-      y: 7 + clamp(point.y, 0, LEGACY_WORLD.height) * 76 / LEGACY_WORLD.height,
-    };
-  }
-
   function robotTypeFor(id) {
     const group = id % 10;
     if (group < 4) return ROBOT_TYPES[0];
@@ -185,41 +167,6 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   }
 
   function createRacks() {
-    if (dashboardLayout) {
-      return dashboardLayout.racks.map((source) => {
-        const rackId = Number(String(source.id).replace(/^R/, ""));
-        const slots = [];
-        for (let level = 1; level <= dashboardLayout.spec.levels; level += 1) {
-          for (let face = 1; face <= dashboardLayout.spec.faces; face += 1) {
-            for (let bay = 1; bay <= dashboardLayout.spec.baysPerFace; bay += 1) {
-              slots.push({
-                slotId: `${source.id}-L${level}-C${bay}-F${face}`,
-                rackId,
-                level,
-                bay: bay - 1,
-                depthRow: face - 1,
-                occupied: false,
-                reservedBy: null,
-                cargoId: null,
-                colorIndex: 0,
-                placedAt: null,
-              });
-            }
-          }
-        }
-        return {
-          id: rackId,
-          zone: source.zone,
-          x: source.x,
-          y: source.y,
-          width: source.w,
-          depth: source.d,
-          column: source.column,
-          row: source.row,
-          slots,
-        };
-      });
-    }
     const result = [];
     let rackId = 1;
     [8, 13, 18, 23, 28].forEach((x, column) => {
@@ -261,20 +208,10 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   }
 
   function pickupPoint(id) {
-    const stations = layoutStations("inbound");
-    if (stations.length) return stations[(id - 1) % stations.length];
     return { x: 2.2 + (id % 4) * 0.9, y: 19.7 + (id % 2) * 0.45 };
   }
 
-  function inboundPoint(id) {
-    const stations = layoutStations("inbound");
-    if (stations.length) return stations[(id - 1) % stations.length];
-    return { x: 1.55 + ((id - 1) % 20) * 1.48, y: 18.9 + Math.floor((id - 1) / 20) * 0.46 };
-  }
-
   function outboundPoint(id) {
-    const stations = layoutStations("outbound");
-    if (stations.length) return stations[(id - 1) % stations.length];
     return { x: 2.2 + (id % 3) * 1.1, y: 2.15 + (id % 2) * 0.5 };
   }
 
@@ -282,32 +219,6 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     const rack = robot.rack;
     const geometry = slotGeometry(rack, robot.slot);
     return { x: geometry.x + geometry.width / 2, y: rack.y + 1.72 };
-  }
-
-  function visualTaskPoint(payload, rack, slot, previous) {
-    const stage = payload.stage;
-    const taskType = payload.taskType || payload.task_type || "INBOUND";
-    if (!dashboardLayout) return payload;
-    let destination = null;
-    let transit = false;
-    if (stage === "toPick") {
-      destination = taskType === "OUTBOUND" ? rackTarget({ ...payload, rack, slot }) : inboundPoint(payload.id);
-      transit = true;
-    } else if (stage === "toRack") {
-      destination = taskType === "OUTBOUND" ? outboundPoint(payload.id) : rackTarget({ ...payload, rack, slot });
-      transit = true;
-    } else if (stage === "picking") {
-      destination = taskType === "OUTBOUND" ? rackTarget({ ...payload, rack, slot }) : inboundPoint(payload.id);
-    } else if (stage === "placing") {
-      destination = taskType === "OUTBOUND" ? outboundPoint(payload.id) : rackTarget({ ...payload, rack, slot });
-    }
-    if (!destination) return mapLegacyPoint(payload);
-    if (!transit) return destination;
-    const start = previous
-      ? { x: previous.renderTargetX ?? previous.x, y: previous.renderTargetY ?? previous.y }
-      : mapLegacyPoint(payload);
-    const progress = clamp((payload.distanceTravelled || 0) / Math.max(0.001, payload.stageDistance || 0), 0, 1);
-    return { x: lerp(start.x, destination.x, progress), y: lerp(start.y, destination.y, progress) };
   }
 
   function slotGeometry(rack, slot) {
@@ -344,20 +255,17 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   function buildRoute(from, destination, kind, id) {
     const laneOffset = (id % 5) * 0.16;
     const path = [{ x: from.x, y: from.y }];
-    const transitX = dashboardLayout ? 15 : 5.5;
-    const inboundY = dashboardLayout ? Math.max(...layoutStations("inbound").map((point) => point.y), 80) : 19.4;
-    const outboundY = dashboardLayout ? Math.min(...layoutStations("outbound").map((point) => point.y), 10) : 2.8;
     if (kind === "pickup") {
-      path.push({ x: transitX + laneOffset, y: from.y });
-      path.push({ x: transitX + laneOffset, y: inboundY + laneOffset });
-      path.push({ x: destination.x, y: inboundY + laneOffset });
+      path.push({ x: 5.5 + laneOffset, y: from.y });
+      path.push({ x: 5.5 + laneOffset, y: 19.4 + laneOffset });
+      path.push({ x: destination.x, y: 19.4 + laneOffset });
     } else if (kind === "rack") {
-      path.push({ x: transitX + laneOffset, y: from.y });
-      path.push({ x: transitX + laneOffset, y: destination.y });
+      path.push({ x: 5.6 + laneOffset, y: from.y });
+      path.push({ x: 5.6 + laneOffset, y: destination.y });
       path.push({ x: destination.x, y: destination.y });
     } else {
-      path.push({ x: from.x, y: outboundY + laneOffset });
-      path.push({ x: destination.x, y: outboundY + laneOffset });
+      path.push({ x: from.x, y: 2.8 + laneOffset });
+      path.push({ x: destination.x, y: 2.8 + laneOffset });
       path.push({ x: destination.x, y: destination.y });
     }
     return compactPath(path);
@@ -760,40 +668,18 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       for(const point of platformScene.stations||[])drawFloorZone(point.x-.2,point.y-.2,.4,.4,"rgba(201,244,108,.25)","#91a86b");
       return;
     }
-    if (dashboardLayout) {
-      // Draw the declared inbound/outbound/handover areas before the small
-      // station and dock squares.  drawFloor previously never read
-      // dashboardLayout.zones, so all three 716.8m²/35m² zones were invisible.
-      for (const zone of dashboardLayout.zones || []) {
-        const fill = zone.id === "inbound"
-          ? "rgba(201,244,108,0.055)"
-          : zone.id === "outbound"
-            ? "rgba(240,166,90,0.05)"
-            : "rgba(104,199,255,0.045)";
-        drawFloorZone(zone.x, zone.y, zone.w, zone.d, fill, "#3f5852");
-      }
-      for (const point of layoutStations("inbound")) {
-        drawFloorZone(point.x - .55, point.y - .55, 1.1, 1.1, "rgba(201,244,108,0.12)", "#91a86b");
-      }
-      for (const point of layoutStations("outbound")) {
-        drawFloorZone(point.x - .55, point.y - .55, 1.1, 1.1, "rgba(240,166,90,0.11)", "#b27b4c");
-      }
-      const docks = dashboardLayout.docks || [];
-      docks.forEach((dock) => drawFloorZone(dock.x, dock.y, dock.w, dock.d, "rgba(104,199,255,0.045)", "#456c7b"));
-    } else {
-      const intake = backendScene?.inbound || {x:0.6,y:18.55,width:5.2,depth:2.7};
-      drawFloorZone(intake.x, intake.y, intake.width, intake.depth, "rgba(201,244,108,0.075)", "#617449");
-      for (const point of backendScene?.stations || []) {
-        drawFloorZone(point.x-.12,point.y-.12,.24,.24,"rgba(201,244,108,0.15)","#91a86b");
-      }
-      if (backendScene?.queueArea) {
-        const q=backendScene.queueArea;
-        drawFloorZone(q.x,q.y,q.width,q.depth,"rgba(104,199,255,0.045)","#456c7b");
-        for(const point of backendScene.queuePoints || []) drawFloorZone(point.x-.09,point.y-.09,.18,.18,"rgba(104,199,255,0.04)","#456c7b");
-      }
-      drawFloorZone(0.6, 0.5, 30.8, 2.7, "rgba(240,166,90,0.07)", "#7f5c3e");
-      if (!backendAuthoritative) drawFloorZone(27.3, 18.2, 4.0, 2.8, "rgba(104,199,255,0.07)", "#456c7b");
+    const intake = backendScene?.inbound || {x:0.6,y:18.55,width:5.2,depth:2.7};
+    drawFloorZone(intake.x, intake.y, intake.width, intake.depth, "rgba(201,244,108,0.075)", "#617449");
+    for (const point of backendScene?.stations || []) {
+      drawFloorZone(point.x-.12,point.y-.12,.24,.24,"rgba(201,244,108,0.15)","#91a86b");
     }
+    if (backendScene?.queueArea) {
+      const q=backendScene.queueArea;
+      drawFloorZone(q.x,q.y,q.width,q.depth,"rgba(104,199,255,0.045)","#456c7b");
+      for(const point of backendScene.queuePoints || []) drawFloorZone(point.x-.09,point.y-.09,.18,.18,"rgba(104,199,255,0.04)","#456c7b");
+    }
+    drawFloorZone(0.6, 0.5, 30.8, 2.7, "rgba(240,166,90,0.07)", "#7f5c3e");
+    if (!backendAuthoritative) drawFloorZone(27.3, 18.2, 4.0, 2.8, "rgba(104,199,255,0.07)", "#456c7b");
   }
 
   function drawFloorZone(x, y, width, depth, fill, stroke) {
@@ -878,23 +764,21 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     if (state.view === "top") {
       const p1 = project(rack.x, rack.y);
       const p2 = project(rack.x + rack.width, rack.y + rack.depth);
-      const columns = Math.max(1, Number(dashboardLayout?.spec?.baysPerFace) || SHELF_COLUMNS);
-      const rows = Math.max(1, Number(dashboardLayout?.spec?.faces) || SHELF_DEPTH_ROWS);
       ctx.save();
       ctx.fillStyle = "#26342f";
       ctx.strokeStyle = "#60716a";
       ctx.lineWidth = 0.8;
       ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
       ctx.strokeRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-      for (let bay = 1; bay < columns; bay += 1) {
-        const bx = p1.x + ((p2.x - p1.x) * bay) / columns;
+      for (let bay = 1; bay < SHELF_COLUMNS; bay += 1) {
+        const bx = p1.x + ((p2.x - p1.x) * bay) / SHELF_COLUMNS;
         ctx.beginPath();
         ctx.moveTo(bx, p1.y);
         ctx.lineTo(bx, p2.y);
         ctx.stroke();
       }
-      for (let depthRow = 1; depthRow < rows; depthRow += 1) {
-        const rowY = p1.y + ((p2.y - p1.y) * depthRow) / rows;
+      for (let depthRow = 1; depthRow < SHELF_DEPTH_ROWS; depthRow += 1) {
+        const rowY = p1.y + ((p2.y - p1.y) * depthRow) / SHELF_DEPTH_ROWS;
         ctx.beginPath();
         ctx.moveTo(p1.x, rowY);
         ctx.lineTo(p2.x, rowY);
@@ -905,8 +789,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
         const isTarget = slot.reservedBy === state.selectedId;
         const isFresh = slot.placedAt !== null && state.elapsed - slot.placedAt < 12;
         if (!slot.occupied && !isTarget) return;
-        const bayWidth = (p2.x - p1.x) / columns;
-        const rowHeight = (p2.y - p1.y) / rows;
+        const bayWidth = (p2.x - p1.x) / SHELF_COLUMNS;
+        const rowHeight = (p2.y - p1.y) / SHELF_DEPTH_ROWS;
         const inset = 2;
         const x = p1.x + slot.bay * bayWidth + inset;
         const y = p1.y + (slot.depthRow || 0) * rowHeight + inset;
@@ -966,9 +850,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     });
     ctx.globalAlpha = state.level === "all" ? 0.32 : 0.18;
     ctx.lineWidth = 0.45;
-    const bayColumns = Math.max(1, Number(dashboardLayout?.spec?.baysPerFace) || SHELF_COLUMNS);
-    for (let bay = 1; bay < bayColumns; bay += 1) {
-      const x = rack.x + (rack.width * bay) / bayColumns;
+    for (let bay = 1; bay < SHELF_COLUMNS; bay += 1) {
+      const x = rack.x + (rack.width * bay) / SHELF_COLUMNS;
       const bottom = project(x, rack.y + rack.depth, 0);
       const top = project(x, rack.y + rack.depth, RACK_HEIGHT);
       ctx.beginPath();
@@ -976,8 +859,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       ctx.lineTo(top.x, top.y);
       ctx.stroke();
     }
-    const levelCount = Math.max(1, Number(dashboardLayout?.spec?.levels) || 3);
-    for (let level = 0; level <= levelCount; level += 1) {
+    for (let level = 0; level <= 3; level += 1) {
       const z = 0.03 + level * SHELF_GAP;
       const points = [
         project(rack.x, rack.y, z),
@@ -1051,12 +933,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   }
 
   function placementPose(robot) {
-    // The legacy coordinator has no physical rack pose in the expanded map.
-    // Moving the body to a rack just to shorten the arm produced the earlier
-    // 34.94-unit cross-rack line.  Show no fake placement when the display is
-    // the legacy control envelope.
-    if (dashboardLayout) return null;
-    if (robot.stage !== "placing" || !robot.slot || robot.taskType === "OUTBOUND") return null;
+    if (robot.stage !== "placing" || !robot.slot) return null;
     const geometry = slotGeometry(robot.rack, robot.slot);
     const progress = clamp(robot.actionTimer / Math.max(0.1, robot.actionDuration), 0, 1);
     const frontY = robot.rack.y + robot.rack.depth + 0.1;
@@ -1245,11 +1122,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
 
     unique.forEach((robot) => {
       if (!robot.path || robot.pathIndex >= robot.path.length) return;
-      // Body and committed path are both legacy control coordinates.  Map the
-      // route vertices through the same transform as the body so the line
-      // cannot end 38..77 display units away in a different coordinate space.
-      const path = robot.path.slice(robot.pathIndex).map((point) => dashboardLayout ? mapLegacyPoint(point) : point);
-      const points = [{ x: robot.x, y: robot.y }, ...path].map((point) => project(point.x, point.y, 0.03));
+      const points = [{ x: robot.x, y: robot.y }, ...robot.path.slice(robot.pathIndex)].map((point) => project(point.x, point.y, 0.03));
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
@@ -1316,7 +1189,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       ctx.moveTo(point.x, point.y);
       ctx.lineTo(point.x + hx, point.y + hy);
       ctx.stroke();
-      if (robot.stage === "placing" && robot.taskType !== "OUTBOUND") drawTelescopicArms(robot, point, scale, true);
+      if (robot.stage === "placing") drawTelescopicArms(robot, point, scale, true);
     } else {
       const s = 0.78 * scale;
       ctx.beginPath();
@@ -1348,7 +1221,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
 
       const armY = point.y - 25 * s;
       const armRaise = lift * 4 * s;
-      if (robot.stage === "placing" && robot.taskType !== "OUTBOUND") {
+      if (robot.stage === "placing") {
         drawTelescopicArms(robot, point, scale);
       } else {
         ctx.strokeStyle = "#96a39e";
@@ -1446,8 +1319,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     }
     const inboundLabel = $(".inbound-label");
     if (inboundLabel) inboundLabel.textContent = backendScene?.inboundLayout === "edge" ? "INBOUND / 分布式取货工位" : "INBOUND / 集中入库区";
-    $(".outbound-label").textContent = "OUTBOUND / 出库";
-    $(".charge-label").style.display = "";
+    $(".outbound-label").textContent = backendAuthoritative ? "DISPATCH / 调度停靠区" : "OUTBOUND / 出库";
+    $(".charge-label").style.display = backendAuthoritative ? "none" : "";
     [
       [".inbound-label", backendScene?.inboundLayout === "edge" ? 15.9 : 3.2, 21.25],
       [".outbound-label", 3.2, 2.35],
@@ -1691,8 +1564,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     const lowBattery = robots.filter(r=>r.platform ? r.category==="warning"&&!r.blocked : r.battery<28 && r.stage!=="charging").length;
     const otherWarning = robots.filter(r=>r.stage==="warning" && !r.blocked).length;
     $("#attentionDetail").textContent = `${platformFrame?'故障/阻塞':'路径阻塞'} ${blocked} · 低电量 ${lowBattery} · 其他 ${otherWarning}`;
-    const sourceLabel = backendRuntime?.taskSource === "csv-dataset" ? "CSV 测试数据集" : "演示任务";
-    $("#sceneCapacity").textContent = backendMetrics ? (platformFrame ? `空闲格位 ${backendMetrics.freeSlots} · 已占用 ${backendMetrics.occupiedSlots}（不自动清空）` : `${sourceLabel} · 空闲格位 ${backendMetrics.freeSlots} · 已占用 ${backendMetrics.occupiedSlots}`) : "离线演示，无真实任务队列";
+    $("#sceneCapacity").textContent = backendMetrics ? `空闲格位 ${backendMetrics.freeSlots} · 已占用 ${backendMetrics.occupiedSlots}（不自动清空）` : "离线演示，无真实任务队列";
     $("#filterAll").textContent = robots.length;
     $("#filterMoving").textContent = counts.moving;
     $("#filterHandling").textContent = counts.handling;
@@ -1790,10 +1662,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     $("#inspectorPanel").setAttribute("aria-busy","false");
     backendScene = snapshot.scene || null;
     backendMetrics = snapshot.metrics || null;
-    backendRuntime = snapshot.runtime || null;
-    $("#sceneName").textContent = dashboardLayout
-      ? "1920 布局背景 · 32×22 控制状态映射"
-      : (backendScene?.name || "WAREHOUSE CONTROL / 后端连接");
+    $("#sceneName").textContent = backendScene?.name || "WAREHOUSE CONTROL / 后端连接";
     const receivedAt = performance.now();
     const previousById = new Map(robots.map((robot) => [robot.id, robot]));
     if (lastBackendRun !== snapshot.runId) frameIntervalSamples = [];
@@ -1803,58 +1672,27 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     if(!physicalRepeat)backendSnapshotAt = receivedAt;
     backendFrameReceivedAt = receivedAt;
     const rackById = new Map();
-    if (dashboardLayout) {
-      // Keep the expanded layout authoritative for geometry.  The old control
-      // service supplies only the occupancy/reservation overlay for its first
-      // fifteen logical racks; remaining layout racks stay visible and empty.
-      racks = createRacks();
-      const sourceRacks = new Map(snapshot.racks.map((rack) => [Number(rack.id), rack]));
-      racks.forEach((rack) => {
-        const source = sourceRacks.get(Number(rack.id));
-        if (source) {
-          source.slots.forEach((slot) => {
-            const targetId = `R${pad(rack.id)}-L${slot.level}-C${slot.bay + 1}-F${slot.depthRow + 1}`;
-            const target = rack.slots.find((item) => item.slotId === targetId);
-            if (target) Object.assign(target, {
-              occupied: slot.occupied,
-              reservedBy: slot.reservedBy,
-              cargoId: slot.cargoId,
-              colorIndex: slot.colorIndex,
-              placedAt: slot.placedAt,
-            });
-          });
-        }
-        rackById.set(rack.id, rack);
-      });
-    } else {
-      racks = snapshot.racks.map((rack) => {
-        const hydrated = { ...rack, slots: rack.slots.map((slot) => ({ ...slot })) };
-        rackById.set(hydrated.id, hydrated);
-        return hydrated;
-      });
-    }
+    racks = snapshot.racks.map((rack) => {
+      const hydrated = { ...rack, slots: rack.slots.map((slot) => ({ ...slot })) };
+      rackById.set(hydrated.id, hydrated);
+      return hydrated;
+    });
     robots = snapshot.robots.map((payload) => {
       const previous = previousById.get(payload.id);
       // Only interpolate an actual consecutive committed segment. Reconnecting,
       // dropping frames, or changing run must not invent a chord through a rack.
       const continuous=backendAuthoritative&&lastBackendRun===snapshot.runId&&snapshot.tick===lastBackendTick+1;
-      // V5 frames already use the scene coordinates of the same run; only the legacy
-      // console (dashboardLayout mode) is mapped onto the new layout.
-      const mapped = (!payload.platform && dashboardLayout) ? mapLegacyPoint(payload) : payload;
-      const origin=payload.platform?platformMotionOrigin(previous,payload,continuous&&snapshot.continuousFrame):backendFrameOrigin(previous,mapped,continuous);
+      const origin=payload.platform?platformMotionOrigin(previous,payload,continuous&&snapshot.continuousFrame):backendFrameOrigin(previous,payload,continuous);
       const rack = rackById.get(payload.rackId) || (payload.platform?null:racks[0]);
-      const expandedSlotId = (!payload.platform && dashboardLayout && payload.slotId)
-        ? payload.slotId.replace(/-D([12])$/, "-F$1")
-        : payload.slotId;
-      const slot = rack?.slots.find((item) => item.slotId === expandedSlotId) || (payload.platform?null:rack?.slots[0]);
+      const slot = rack?.slots.find((item) => item.slotId === payload.slotId) || (payload.platform?null:rack?.slots[0]);
       return {
         ...payload,
         x: origin.x,
         y: origin.y,
         renderFromX: origin.x,
         renderFromY: origin.y,
-        renderTargetX: mapped.x,
-        renderTargetY: mapped.y,
+        renderTargetX: payload.x,
+        renderTargetY: payload.y,
         ...(payload.platform&&physicalRepeat&&previous?{x:previous.x,y:previous.y,renderFromX:previous.renderFromX,
           renderFromY:previous.renderFromY,renderTargetX:previous.renderTargetX,renderTargetY:previous.renderTargetY,renderMotion:previous.renderMotion}:{}),
         rack,
@@ -1885,10 +1723,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     $$("#speedControl button").forEach((item) => item.classList.toggle("active", Number(item.dataset.speed) === state.speed));
     $("#flowRange").value = String(state.flowRate);
     const runtimeMode = $("#runtimeMode");
-    if (runtimeMode) {
-      const source = snapshot.runtime?.taskSource === "csv-dataset" ? "CSV DATASET" : "DEMO TASKS";
-      runtimeMode.textContent = `SIMULATION / ${snapshot.backend.toUpperCase()} · ${source} · ${snapshot.runtime.workerProcessCount} PROCESSES`;
-    }
+    if (runtimeMode) runtimeMode.textContent = `SIMULATION / ${snapshot.backend.toUpperCase()} · ${snapshot.runtime.workerProcessCount} PROCESSES`;
     updateAllDom(true);
     renderLatestEvent();
   }
@@ -2270,21 +2105,7 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     window.addEventListener("resize", resizeCanvas);
   }
 
-  async function loadDashboardLayout() {
-    try {
-      const response = await fetch("/api/layout", { cache: "no-store" });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = await response.json();
-      const layout = payload.layout;
-      if (!layout?.spec || !Array.isArray(layout.racks) || !Array.isArray(layout.stations)) throw new Error("invalid layout payload");
-      dashboardLayout = layout;
-      WORLD.width = Number(layout.spec.width);
-      WORLD.height = Number(layout.spec.depth);
-    } catch (error) {
-      console.warn("expanded warehouse layout unavailable; using legacy visual map", error);
-    }
-  }
-
+  // Replay service link (lys replay service, default port 14185; ?replayPort= overrides).
   function configureReplayLink() {
     const link = document.getElementById("replayLink");
     if (!link) return;
@@ -2295,9 +2116,8 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     link.href = target.toString();
   }
 
-  async function boot() {
+  function boot() {
     configureReplayLink();
-    await loadDashboardLayout();
     resizeCanvas();
     if(window.location.protocol==="file:")initializeSimulation();
     knowledgePanel=createKnowledgePanel({getFrame:()=>platformFrame,getSelected:()=>robots.find(r=>r.id===state.selectedId),control:sendBackendControl,toast:showToast});
@@ -2311,5 +2131,5 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
     requestAnimationFrame(animate);
   }
 
-  void boot();
+  boot();
 })();
