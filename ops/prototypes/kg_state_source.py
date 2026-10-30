@@ -84,7 +84,7 @@ def _job_write(params):
         session.execute_write(lambda tx: tx.run(WRITE_ROBOT, **params).consume())
 
 
-def context_for(graph, run_tag, robot_id):
+def context_for(graph, run_tag, robot_id, tick=None):
     params = {'run': run_tag, 'rid': f'{run_tag}:{robot_id}', 'robot_id': robot_id, 't': 0}
     timings, began = {}, time.perf_counter()
     with graph.session(database=DATABASE, default_access_mode='READ') as session:
@@ -94,11 +94,11 @@ def context_for(graph, run_tag, robot_id):
             if name == 'latest_step':
                 params['t'] = rows[0]['t'] if rows else 0
             timings[name] = (time.perf_counter() - t0) * 1000
-    return {'total_ms': (time.perf_counter() - began) * 1000, **timings}
+    return {'tick': tick, 'total_ms': (time.perf_counter() - began) * 1000, **timings}
 
 
-def _job_context(run_tag, robot_id):
-    return context_for(_worker_driver, run_tag, robot_id)
+def _job_context(run_tag, robot_id, tick=None):
+    return context_for(_worker_driver, run_tag, robot_id, tick)
 
 
 class KGSimulation(WheeledSimulation):
@@ -178,7 +178,7 @@ class KGSimulation(WheeledSimulation):
             session.execute_write(lambda tx: tx.run(WRITE_STEP, **summary).consume())
         self.timing['step_write_ms'].append((time.perf_counter() - began) * 1000)
         if self.context_every and tick and tick % self.context_every == 0:
-            job = (lambda i: self.readers.submit(_job_context, self.run_tag, i)) if self.procs else (lambda i: self.readers.submit(context_for, self.graph, self.run_tag, i))
+            job = (lambda i: self.readers.submit(_job_context, self.run_tag, i, tick)) if self.procs else (lambda i: self.readers.submit(context_for, self.graph, self.run_tag, i, tick))
             self.contexts.extend(job(i) for i in sorted(self.robots))
 
     def _read_states(self):
@@ -213,7 +213,7 @@ def summary(values):
             'p99': pick(.99), 'max': round(ordered[-1], 2), 'over_500': sum(v > 500 for v in values)}
 
 
-def run(mode, dataset, max_ticks, graph=None, run_tag=None, *, shift=True, read_state=True, context_every=0, batched=False, procs=False):
+def run(mode, dataset, max_ticks, graph=None, run_tag=None, *, shift=True, read_state=True, context_every=0, batched=False, procs=False, bucket_seconds=7200):
     config = WheeledConfig(**json.loads(CONFIG.read_text(encoding='utf-8')))
     cls = KGSimulation if mode == 'neo4j' else WheeledSimulation
     sim = cls(SCENE, ROOT / dataset, run_tag or 'kgproto-memory', config)
@@ -245,6 +245,20 @@ def run(mode, dataset, max_ticks, graph=None, run_tag=None, *, shift=True, read_
         result['context_failures'] = sum(f.exception() is not None for f in sim.contexts)
         result['context_total_ms'] = summary([d['total_ms'] for d in done])
         result['context_query_ms'] = {name: summary([d[name] for d in done]) for name in CONTEXT}
+        # Per time window (sim seconds), to see whether anything slows down as the run grows.
+        span = max(1, bucket_seconds)
+        buckets = {}
+        for name, values in sim.timing.items():
+            for i, v in enumerate(values):
+                buckets.setdefault(i // span, {}).setdefault(name, []).append(v)
+        for d in done:
+            b = buckets.setdefault((d['tick'] or 0) // span, {})
+            b.setdefault('context_total_ms', []).append(d['total_ms'])
+            for name in CONTEXT:
+                b.setdefault(name, []).append(d[name])
+        result['by_window'] = {f'{k * span}-{(k + 1) * span}': {n: {x: v[x] for x in ('mean', 'p99', 'max')}
+                               for n, vals in sorted(b.items()) for v in [summary(vals)]}
+                               for k, b in sorted(buckets.items())}
         sim.writers.shutdown(); sim.readers.shutdown()
     return result
 
