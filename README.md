@@ -8,7 +8,7 @@
 | 运行方式 | `python -m backend.warehouse live ... --mobility wheeled --robot-agents` | 不加这两个参数时的默认 legacy 入口 |
 | 说明文档 | [轮式扩仓对接总览](docs/WAREHOUSE_WHEELED_HANDOFF_20261029.md) | [旧版对接说明](docs/LYS_DATASET_HANDOFF.md)、[旧实时控制台指南](docs/LIVE_CONSOLE_GUIDE.md) |
 
-与李姚舜分支的合并：使用 `wz/integration-on-lys` 分支，接口边界见[对接约定草案](docs/INTEGRATION_CONTRACT_DRAFT.md)；Ray 执行层现状见 [Ray 差异说明](docs/RAY_EXECUTION_GAP_20261029.md)。
+与lys分支的合并：使用 `wz/integration-on-lys` 分支，接口边界见[对接约定草案](docs/INTEGRATION_CONTRACT_DRAFT.md)；Ray 执行层现状见 [Ray 差异说明](docs/RAY_EXECUTION_GAP_20261029.md)。
 
 旧版说明：本分支最初提供90×76米仓库、36架1728货位、100个充电兼待命泊位、入库出库仿真、低电接力、时序图谱写入和查询。默认入口 **`python -m backend.warehouse`** 仍是这一版，由中央V5协调器推进100个仿真机器人，保留能量、交通、库存和恢复门禁。
 
