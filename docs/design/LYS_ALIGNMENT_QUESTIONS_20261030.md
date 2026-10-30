@@ -28,7 +28,7 @@ lys 已同意本文中"告知"的部分（问题 1、5、9）。他负责全局�
 |---|---|
 | 1 标记处理 | 留在主进程 |
 | 2 绿线的含义 | **主进程默认从图谱读机器人状态派单**（`KG_STATE_SOURCE=neo4j`），测试也默认按此进行；读内存保留为开关，只用于一致性对照。注：LaDe 的规则调度读内存，只有 LLM 区域调度才从图谱取"近期表现和事件"作为上下文；派单直接查图谱是本项目按架构图做的选择。"100 个 Agent 并发取回决策上下文"是原始指标，另行实现 |
-| 3 交接记录 | 字段：交货方、接收方、货物、任务、交接地点、时刻、原因；**通过 lys 开放的接口交给全局写入进程**。数据清单和调用样例见 [`GLOBAL_WRITER_INTERFACE_DRAFT_20261030.md`](GLOBAL_WRITER_INTERFACE_DRAFT_20261030.md) |
+| 3 交接记录 | 字段：交货方、接收方、货物、任务、交接地点、时刻、原因；**通过 lys 开放的 HTTP + JSON 接口交给全局写入进程**。数据清单和调用样例见 [`GLOBAL_WRITER_INTERFACE_DRAFT_20261030.md`](GLOBAL_WRITER_INTERFACE_DRAFT_20261030.md) |
 | 4 当前负责机器人 | `ASSIGNED_TO` 表示历史参与；新增 `current_robot_id` 表示当前负责人，交接时更新（由全局写入根据接口里的 `ownership_changes` 维护）；`warehouse_graph_query.py` 的历史口径由 lys 修改 |
 | 5 改写 `ray_medium` | 由 wz 改 |
 | 6 实验隔离 | 开发测试时各用各的 Neo4j 实例和 Ray（wz 用专用实例和隔离的本地 Ray）；联调时再共用 |
