@@ -33,6 +33,39 @@ def _ident(value: object, name: str) -> str:
     return value
 
 
+def _validate_record(record: dict[str, Any]) -> None:
+    required = ('run_id', 'tick', 'elapsed', 'status', 'backend', 'robot_count',
+                'max_active_robots', 'counts', 'tasks', 'assists', 'metrics', 'inside',
+                'dispatch', 'events', 'handoffs')
+    missing = [name for name in required if name not in record]
+    if missing:
+        raise ValueError('missing required fields: ' + ', '.join(missing))
+    _ident(record['run_id'], 'run_id')
+    if not isinstance(record['tick'], int) or record['tick'] < 0:
+        raise ValueError('tick must be a non-negative integer')
+    for name in ('counts', 'tasks', 'assists', 'metrics', 'dispatch'):
+        if not isinstance(record[name], dict):
+            raise ValueError(f'{name} must be an object')
+    for name in ('events', 'handoffs'):
+        if not isinstance(record[name], list):
+            raise ValueError(f'{name} must be an array')
+    step = record.get('step')
+    if step is not None:
+        if not isinstance(step, dict):
+            raise ValueError('step must be an object')
+        for name in ('tick', 'expected_robot_count', 'received_robot_ids', 'complete'):
+            if name not in step:
+                raise ValueError(f'step.{name} is required')
+        if not isinstance(step['expected_robot_count'], int) or step['expected_robot_count'] < 1:
+            raise ValueError('step.expected_robot_count must be a positive integer')
+        if not isinstance(step['received_robot_ids'], list) or any(not isinstance(value, int) or value < 1 for value in step['received_robot_ids']):
+            raise ValueError('step.received_robot_ids must contain positive integers')
+        if not isinstance(step['complete'], bool):
+            raise ValueError('step.complete must be boolean')
+        if step['complete'] and len(set(step['received_robot_ids'])) < step['expected_robot_count']:
+            raise ValueError('complete Step has fewer receipt ids than expected_robot_count')
+
+
 class RecordQueue:
     """14284-owned bounded queue.  HTTP handlers never wait for Neo4j I/O."""
     def __init__(self, writer: GlobalWriter, size: int):
@@ -101,9 +134,7 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
     async def write_record(request: Request):
         try:
             record = _body(await request.body())
-            for name in ('run_id', 'tick', 'elapsed', 'status', 'backend', 'robot_count', 'max_active_robots'):
-                if name not in record:
-                    raise ValueError(f'{name} is required')
+            _validate_record(record)
             if not records.submit(record):
                 return JSONResponse({'detail': 'global writer queue is full or closed'}, status_code=503)
             return {'accepted': True, 'run_id': record['run_id'], 'tick': record['tick'],
@@ -162,6 +193,7 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
                 if not isinstance(record, dict):
                     raise ValueError('records must be JSON objects')
                 record = dict(record); record['dataset_id'] = dataset_id
+                _validate_record(record)
                 writer.write(record)
             with writer.driver.session(database=writer.database) as session:
                 session.run('MERGE (i:GlobalRecordImport {id:$id}) '
@@ -172,11 +204,51 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return JSONResponse({'detail': str(exc)}, status_code=400)
 
+    @app.get('/v1/runs/{run_id}/steps/latest')
+    async def get_latest_step(run_id: str):
+        with writer.driver.session(database=writer.database) as session:
+            rows = session.run('MATCH (run:Run {id:$run_id}) '
+                               'MATCH (step:Step {run_id:$run_id}) '
+                               'WHERE step.tick=run.latest_step AND step.complete=true '
+                               'RETURN step {.*} AS step', run_id=run_id).data()
+        return rows[0]['step'] if rows else JSONResponse({'detail': 'complete Step not found'}, status_code=404)
+
     @app.get('/v1/runs/{run_id}/steps/{tick}')
     async def get_step(run_id: str, tick: int):
         with writer.driver.session(database=writer.database) as session:
             rows = session.run('MATCH (s:Step {id:$id}) RETURN s {.*} AS step', id=f'{run_id}:step:{tick}').data()
         return rows[0]['step'] if rows else JSONResponse({'detail': 'Step not found'}, status_code=404)
+
+    @app.get('/v1/runs/{run_id}/steps/{tick}/states')
+    async def get_step_states(run_id: str, tick: int, limit: int = 200):
+        limit = max(1, min(limit, 500))
+        with writer.driver.session(database=writer.database) as session:
+            rows = session.run('MATCH (step:Step {run_id:$run_id}) WHERE step.tick=$tick AND step.complete=true '
+                               'MATCH (run:Run {id:$run_id})<-[:IN_RUN]-(robot:Robot) '
+                               'CALL { WITH robot, $tick AS cutoff '
+                               'MATCH (state:AgentState)-[:OF_ROBOT]->(robot) WHERE state.tick <= cutoff '
+                               'RETURN state ORDER BY state.tick DESC LIMIT 1 } '
+                               'RETURN robot.robot_id AS robot_id, '
+                               'state { .tick,.stage,.battery,.x,.y,.task_id,.cargo_id } AS state '
+                               'ORDER BY robot_id LIMIT $limit', run_id=run_id, tick=tick, limit=limit).data()
+        return {'run_id': run_id, 'tick': tick,
+                'states': [{**row['state'], 'robot_id': row['robot_id'], 'sampled_tick': row['state']['tick']} for row in rows]}
+
+    @app.get('/v1/runs/{run_id}/handoffs')
+    async def list_handoffs(run_id: str, task_id: str | None = None, goods_id: str | None = None,
+                            robot_id: int | None = None, limit: int = 200):
+        if robot_id is not None and robot_id < 1:
+            return JSONResponse({'detail': 'robot_id must be positive'}, status_code=400)
+        limit = max(1, min(limit, 500))
+        with writer.driver.session(database=writer.database) as session:
+            rows = session.run('MATCH (h:Handoff {run_id:$run_id}) '
+                               'WHERE ($task_id IS NULL OR h.task_id=$task_id) '
+                               'AND ($goods_id IS NULL OR h.goods_id=$goods_id) '
+                               'AND ($robot_id IS NULL OR h.donor_id=$robot_id OR h.receiver_id=$robot_id) '
+                               'RETURN h {.*} AS handoff ORDER BY h.tick DESC,h.id DESC LIMIT $limit',
+                               run_id=run_id, task_id=task_id, goods_id=goods_id,
+                               robot_id=robot_id, limit=limit).data()
+        return {'run_id': run_id, 'handoffs': [row['handoff'] for row in rows]}
 
     @app.get('/v1/runs/{run_id}/handoffs/{event_id}')
     async def get_handoff(run_id: str, event_id: str):

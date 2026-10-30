@@ -102,6 +102,27 @@ class WarehouseGraphQueryTests(unittest.TestCase):
         self.assertIn("head(collect(", query)
         self.assertIn("ORDER BY coalesce(e.updated_tick,-1) DESC", query)
 
+    def test_latest_complete_step_reads_run_pointer_then_nearest_prior_states(self):
+        driver = FakeDriver([
+            [{"step": {"tick": 40, "complete": True}}],
+            [{"robot_id": 1, "state": {"tick": 40, "stage": "idle"}}],
+        ])
+        graph = Neo4jWarehouseGraph(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        result = graph.latest_complete_step("run-a", include_states=True)
+        self.assertEqual(result["step"]["tick"], 40)
+        self.assertEqual(result["states"][0]["sampled_tick"], 40)
+        self.assertIn("run.latest_step", driver.session_instance.queries[0][0])
+        self.assertIn("state.tick <= cutoff", driver.session_instance.queries[1][0])
+
+    def test_handoffs_filter_by_task_and_robot(self):
+        driver = FakeDriver([[{"handoff": {"id": "run-a:handoff:e-1", "donor_id": 1, "receiver_id": 2}}]])
+        graph = Neo4jWarehouseGraph(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        result = graph.handoffs("run-a", task_id="T-1", robot_id=1)
+        self.assertEqual(result[0]["receiver_id"], 2)
+        query, parameters = driver.session_instance.queries[0]
+        self.assertIn("handoff.donor_id=$robot_id", query)
+        self.assertEqual(parameters["task_id"], "T-1")
+
     def test_runtime_state_trace_derives_robot_id_from_node_id_for_old_states(self):
         driver = FakeDriver([
             [{"sampled_tick": 16}],

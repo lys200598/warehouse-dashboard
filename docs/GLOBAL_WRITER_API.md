@@ -30,7 +30,10 @@ export WAREHOUSE_NEO4J_DATABASE='neo4j'
 | POST | `/v1/records` | 主进程写入/更新全局记录（幂等） |
 | GET / POST / DELETE | `/v1/datasets` | 管理逻辑数据集命名空间 |
 | POST | `/v1/datasets/{dataset_id}/imports` | 按 `import_id` 一次性导入记录 |
+| GET | `/v1/runs/{run_id}/steps/latest` | 读取 `Run.latest_step` 指向的最新完整步骤 |
 | GET | `/v1/runs/{run_id}/steps/{tick}` | 单点查询完整步骤 |
+| GET | `/v1/runs/{run_id}/steps/{tick}/states` | 读取该完整步骤中每台机器人的最近采样状态 |
+| GET | `/v1/runs/{run_id}/handoffs` | 按任务、货物或机器人筛选交接事实 |
 | GET | `/v1/runs/{run_id}/handoffs/{event_id}` | 单点查询交接事实 |
 | DELETE | `/v1/runs/{run_id}` | 删除一个运行的全局记录，需确认字段 |
 
