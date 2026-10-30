@@ -45,7 +45,7 @@ class RayRobotProcessTests(unittest.TestCase):
         self.assert_same(actual, expected)
 
     def test_redo_on_ray_actors(self):
-        sequential = golden.record_relay(report_at=300)
+        sequential = json.loads(golden.REDO_FIXTURE.read_text(encoding='utf-8'))
         began = time.perf_counter()
         actual, sim = golden.record_relay(sim_class=self.Engine, report_at=300, with_sim=True)
         seconds = time.perf_counter() - began

@@ -32,7 +32,7 @@ class RobotProcessSplitTests(unittest.TestCase):
         # At t=300 robot 9 reports low battery and hands its goods to robot 6 at
         # t=366: the donor comes after the receiver in the sequential order, so the
         # receiver's marker changes a robot that has not advanced yet -> redo.
-        sequential = golden.record_relay(report_at=300)
+        sequential = json.loads(golden.REDO_FIXTURE.read_text(encoding='utf-8'))
         split, sim = golden.record_relay(sim_class=SplitWheeledSimulation, report_at=300, with_sim=True)
         self.assertTrue(sequential['handoffs'], 'scenario must contain a handoff')
         self.assertTrue(any(h['donor_id'] > h['receiver_id'] for h in sequential['handoffs']),

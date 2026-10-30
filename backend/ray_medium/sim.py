@@ -7,6 +7,7 @@ only its own Robot/AgentState/Execution/RuntimeEvent subgraph.
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 import time
@@ -14,6 +15,88 @@ import time
 from ..knowledge_runtime.sim import KnowledgeSimulation
 from ..wheeled.sim import WheeledConfig, WheeledMixin
 from .actors import MotionActor, RayMotionPool
+
+
+
+def robot_graph_snapshots(sim, fresh, backend):
+    """One graph snapshot per robot for this tick (shared by MotionActor and RobotActor)."""
+    now_ms = int(time.time() * 1000)
+    snapshots = {}
+    by_robot = {}
+    for event in fresh:
+        robot_id = event.get('robot_id')
+        if robot_id is not None:
+            by_robot.setdefault(int(robot_id), []).append(event)
+    for robot_id, robot in sorted(sim.robots.items()):
+        events = []
+        for event in by_robot.get(robot_id, []):
+            events.append({
+                'id': event.get('event_seq', event.get('event_id')),
+                'tick': event.get('tick', sim.tick),
+                'type': event.get('kind', 'runtime_event'),
+                'robot_id': robot_id,
+                'task_id': event.get('task_id'),
+                'cargo_id': event.get('goods_id'),
+                'rack_id': event.get('rack_id'),
+                'slot_id': event.get('location_id'),
+                'text': str(event.get('kind', 'runtime_event')),
+                'time': event.get('sim_time', sim.elapsed),
+                # Full event as written by the simulation (donor/receiver/reason for
+                # handoffs etc.); stored on RuntimeEvent.payload.
+                'payload': json.dumps(event, sort_keys=True, default=str),
+            })
+        snapshot = {
+            'runId': str(sim.run_id),
+            'backend': backend,
+            'tick': int(sim.tick),
+            'generatedAtMs': now_ms,
+            'robotCount': len(sim.robots),
+            'maxActiveRobots': int(sim.config.max_active_robots),
+            'robots': [{
+                'id': int(robot_id),
+                'type': {'key': str(robot.get('robot_type_key', 'X3'))},
+                'stage': str(robot.get('stage', 'idle')),
+                'battery': float(robot.get('battery', 0.0)),
+                'x': float(robot.get('x', 0.0)),
+                'y': float(robot.get('y', 0.0)),
+                'taskId': robot.get('task_id'),
+                'cargoId': robot.get('cargo_id'),
+            }],
+            'events': events,
+        }
+        snapshots[robot_id] = snapshot
+    return snapshots
+
+
+def bootstrap_robot_graph(sim, state_interval):
+    """Create schema and the shared Run once; return the per-actor writer config."""
+    from ..warehouse_runtime_graph import Neo4jRuntimeGraphWriter
+    uri = os.environ.get('WAREHOUSE_NEO4J_URI') or os.environ.get('NEO4J_URI') or 'bolt://127.0.0.1:47687'
+    user = os.environ.get('WAREHOUSE_NEO4J_USER') or os.environ.get('NEO4J_USER') or 'neo4j'
+    password = os.environ.get('WAREHOUSE_NEO4J_PASSWORD') or os.environ.get('NEO4J_PASSWORD')
+    database = os.environ.get('WAREHOUSE_NEO4J_DATABASE') or os.environ.get('NEO4J_DATABASE') or 'neo4j'
+    dataset_id = os.environ.get('WAREHOUSE_NEO4J_DATASET_ID') or None
+    if not password:
+        raise ValueError('--robot-graph requires WAREHOUSE_NEO4J_PASSWORD')
+    bootstrap = Neo4jRuntimeGraphWriter(
+        uri=uri, user=user, password=password, database=database,
+        dataset_id=dataset_id, state_interval_ticks=state_interval)
+    try:
+        bootstrap.ensure_schema()
+        bootstrap.ensure_run({
+            'id': str(sim.run_id),
+            'backend': 'warehouse-real-scale-v1-ray',
+            'started_at_ms': int(time.time() * 1000),
+            'robot_count': len(sim.robots),
+            'max_active_robots': int(sim.config.max_active_robots),
+            'dataset_id': dataset_id,
+        })
+    finally:
+        bootstrap.close()
+    return {
+        'uri': uri, 'user': user, 'password': password, 'database': database,
+        'dataset_id': dataset_id, 'state_interval_ticks': state_interval,
+    }
 
 
 class RayWideMixin:
@@ -50,33 +133,7 @@ class RayWideMixin:
             self.run_metadata['robot_graph_interval'] = graph_state_interval
 
     def _bootstrap_robot_graph(self):
-        from ..warehouse_runtime_graph import Neo4jRuntimeGraphWriter
-        uri = os.environ.get('WAREHOUSE_NEO4J_URI') or os.environ.get('NEO4J_URI') or 'bolt://127.0.0.1:47687'
-        user = os.environ.get('WAREHOUSE_NEO4J_USER') or os.environ.get('NEO4J_USER') or 'neo4j'
-        password = os.environ.get('WAREHOUSE_NEO4J_PASSWORD') or os.environ.get('NEO4J_PASSWORD')
-        database = os.environ.get('WAREHOUSE_NEO4J_DATABASE') or os.environ.get('NEO4J_DATABASE') or 'neo4j'
-        dataset_id = os.environ.get('WAREHOUSE_NEO4J_DATASET_ID') or None
-        if not password:
-            raise ValueError('--robot-graph requires WAREHOUSE_NEO4J_PASSWORD')
-        bootstrap = Neo4jRuntimeGraphWriter(
-            uri=uri, user=user, password=password, database=database,
-            dataset_id=dataset_id, state_interval_ticks=self._graph_state_interval)
-        try:
-            bootstrap.ensure_schema()
-            bootstrap.ensure_run({
-                'id': str(self.run_id),
-                'backend': 'warehouse-real-scale-v1-ray',
-                'started_at_ms': int(time.time() * 1000),
-                'robot_count': len(self.robots),
-                'max_active_robots': int(self.config.max_active_robots),
-                'dataset_id': dataset_id,
-            })
-        finally:
-            bootstrap.close()
-        return {
-            'uri': uri, 'user': user, 'password': password, 'database': database,
-            'dataset_id': dataset_id, 'state_interval_ticks': self._graph_state_interval,
-        }
+        return bootstrap_robot_graph(self, self._graph_state_interval)
 
     def step(self):
         super().step()
@@ -90,47 +147,8 @@ class RayWideMixin:
             self._graph_event_cursor = 0
         fresh = pending[self._graph_event_cursor:]
         self._graph_event_cursor = len(pending)
-        by_robot = {}
-        for event in fresh:
-            robot_id = event.get('robot_id')
-            if robot_id is not None:
-                by_robot.setdefault(int(robot_id), []).append(event)
         backend = self.frame().get('backend', 'warehouse-real-scale-v1-ray')
-        now_ms = int(time.time() * 1000)
-        for robot_id, robot in sorted(self.robots.items()):
-            events = []
-            for event in by_robot.get(robot_id, []):
-                events.append({
-                    'id': event.get('event_seq', event.get('event_id')),
-                    'tick': event.get('tick', self.tick),
-                    'type': event.get('kind', 'runtime_event'),
-                    'robot_id': robot_id,
-                    'task_id': event.get('task_id'),
-                    'cargo_id': event.get('goods_id'),
-                    'rack_id': event.get('rack_id'),
-                    'slot_id': event.get('location_id'),
-                    'text': str(event.get('kind', 'runtime_event')),
-                    'time': event.get('sim_time', self.elapsed),
-                })
-            snapshot = {
-                'runId': str(self.run_id),
-                'backend': backend,
-                'tick': int(self.tick),
-                'generatedAtMs': now_ms,
-                'robotCount': len(self.robots),
-                'maxActiveRobots': int(self.config.max_active_robots),
-                'robots': [{
-                    'id': int(robot_id),
-                    'type': {'key': str(robot.get('robot_type_key', 'X3'))},
-                    'stage': str(robot.get('stage', 'idle')),
-                    'battery': float(robot.get('battery', 0.0)),
-                    'x': float(robot.get('x', 0.0)),
-                    'y': float(robot.get('y', 0.0)),
-                    'taskId': robot.get('task_id'),
-                    'cargoId': robot.get('cargo_id'),
-                }],
-                'events': events,
-            }
+        for robot_id, snapshot in robot_graph_snapshots(self, fresh, backend).items():
             self._graph_refs.append(self.motion_executor.write_graph(robot_id, snapshot))
         if len(self._graph_refs) >= 256:
             self._flush_graph_refs()

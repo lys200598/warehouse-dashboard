@@ -1,0 +1,165 @@
+{
+ "version": "dispatch-golden-relay-v1",
+ "scene": "data/layouts/expansion-candidates/medium/layout.json",
+ "dataset": "data/examples/wheeled-medium-sample19",
+ "config": "config/wheeled-medium-100.json",
+ "disturbance": {
+  "tick": 328,
+  "robot_id": 9,
+  "soc": 24
+ },
+ "ticks": 1990,
+ "handoffs": [
+  {
+   "tick": 366,
+   "task_id": "V3-T-0000008",
+   "goods_id": "V3-G-0581-0001",
+   "donor_id": 9,
+   "receiver_id": 6,
+   "reason": "measured_low_energy"
+  }
+ ],
+ "assignments": [
+  {
+   "tick": 211,
+   "task_id": "V3-T-0000013",
+   "robot_id": 29,
+   "assigned_at": 210
+  },
+  {
+   "tick": 231,
+   "task_id": "V3-T-0000012",
+   "robot_id": 5,
+   "assigned_at": 230
+  },
+  {
+   "tick": 291,
+   "task_id": "V3-T-0000008",
+   "robot_id": 9,
+   "assigned_at": 290
+  },
+  {
+   "tick": 354,
+   "task_id": "V3-T-0000015",
+   "robot_id": 31,
+   "assigned_at": 353
+  },
+  {
+   "tick": 366,
+   "task_id": "V3-T-0000008",
+   "robot_id": 6,
+   "assigned_at": 290
+  },
+  {
+   "tick": 563,
+   "task_id": "V3-T-0000007",
+   "robot_id": 16,
+   "assigned_at": 562
+  },
+  {
+   "tick": 663,
+   "task_id": "V3-T-0000014",
+   "robot_id": 3,
+   "assigned_at": 662
+  },
+  {
+   "tick": 737,
+   "task_id": "V3-T-0000010",
+   "robot_id": 58,
+   "assigned_at": 736
+  },
+  {
+   "tick": 737,
+   "task_id": "V3-T-0000019",
+   "robot_id": 44,
+   "assigned_at": 736
+  },
+  {
+   "tick": 747,
+   "task_id": "V3-T-0000002",
+   "robot_id": 12,
+   "assigned_at": 746
+  },
+  {
+   "tick": 875,
+   "task_id": "V3-T-0000016",
+   "robot_id": 78,
+   "assigned_at": 874
+  },
+  {
+   "tick": 1052,
+   "task_id": "V3-T-0000006",
+   "robot_id": 18,
+   "assigned_at": 1051
+  },
+  {
+   "tick": 1122,
+   "task_id": "V3-T-0000004",
+   "robot_id": 59,
+   "assigned_at": 1121
+  },
+  {
+   "tick": 1283,
+   "task_id": "V3-T-0000011",
+   "robot_id": 54,
+   "assigned_at": 1282
+  },
+  {
+   "tick": 1469,
+   "task_id": "V3-T-0000001",
+   "robot_id": 3,
+   "assigned_at": 1468
+  },
+  {
+   "tick": 1479,
+   "task_id": "V3-T-0000005",
+   "robot_id": 56,
+   "assigned_at": 1478
+  },
+  {
+   "tick": 1566,
+   "task_id": "V3-T-0000018",
+   "robot_id": 23,
+   "assigned_at": 1565
+  },
+  {
+   "tick": 1656,
+   "task_id": "V3-T-0000009",
+   "robot_id": 58,
+   "assigned_at": 1655
+  },
+  {
+   "tick": 1656,
+   "task_id": "V3-T-0000017",
+   "robot_id": 36,
+   "assigned_at": 1655
+  },
+  {
+   "tick": 1802,
+   "task_id": "V3-T-0000003",
+   "robot_id": 60,
+   "assigned_at": 1801
+  }
+ ],
+ "completed_at": {
+  "V3-T-0000001": 1520,
+  "V3-T-0000002": 875,
+  "V3-T-0000003": 1990,
+  "V3-T-0000004": 1172,
+  "V3-T-0000005": 1525,
+  "V3-T-0000006": 1137,
+  "V3-T-0000007": 676,
+  "V3-T-0000008": 397,
+  "V3-T-0000009": 1741,
+  "V3-T-0000010": 802,
+  "V3-T-0000011": 1348,
+  "V3-T-0000012": 290,
+  "V3-T-0000013": 303,
+  "V3-T-0000014": 794,
+  "V3-T-0000015": 482,
+  "V3-T-0000016": 941,
+  "V3-T-0000017": 1738,
+  "V3-T-0000018": 1667,
+  "V3-T-0000019": 834
+ }
+}

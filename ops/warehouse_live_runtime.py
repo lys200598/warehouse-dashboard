@@ -119,7 +119,7 @@ class WarehouseLiveRuntime:
                  mobility='legacy', robot_agents=False, agent_options=None, max_active_robots=None,
                  ray=False, ray_address=None, ray_actor_cpus=0.1, robot_processes='off',
                  robot_graph=False, graph_state_interval=4,
-                 global_writer=False, global_writer_queue=256):
+                 global_writer=False, global_writer_queue=256, global_writer_url=None):
         if max_active_robots is not None and (type(max_active_robots) is not int or not 1<=max_active_robots<=100):
             raise ValueError('max_active_robots must be an integer within 1..100, or None')
         self.max_active_robots=max_active_robots
@@ -143,8 +143,8 @@ class WarehouseLiveRuntime:
         self.ray_address=ray_address
         self.ray_actor_cpus=float(ray_actor_cpus)
         self.robot_graph=bool(robot_graph)
-        if self.robot_graph and not self.ray:
-            raise ValueError('robot graph writers require --ray')
+        if self.robot_graph and not (self.ray or robot_processes=='ray'):
+            raise ValueError('robot graph writers require --ray or --robot-processes ray')
         if type(graph_state_interval) is not int or not 1<=graph_state_interval<=300:
             raise ValueError('graph_state_interval must be an integer within 1..300')
         self.graph_state_interval=graph_state_interval
@@ -156,6 +156,11 @@ class WarehouseLiveRuntime:
         self.global_writer_queue=global_writer_queue
         self._global_writer=None
         self._global_writer_error=None
+        # HTTP global record service (lys, e.g. 14284); records are sent in tick order
+        # by backend.global_record_client. Independent of the --global-writer queue path.
+        self.global_writer_url=global_writer_url
+        self._global_client=None
+        self._global_client_run=None
         self.robot_agents=robot_agents
         self.agent_options=deepcopy(agent_options or {})
         if isinstance(startup_timeout,bool) or not isinstance(startup_timeout,(int,float)) or not math.isfinite(startup_timeout) or startup_timeout<=0:
@@ -456,6 +461,8 @@ class WarehouseLiveRuntime:
         if self.ray:
             sim_kwargs.update(ray_address=self.ray_address, ray_actor_cpus=self.ray_actor_cpus,
                               robot_graph=self.robot_graph, graph_state_interval=self.graph_state_interval)
+        elif getattr(self,'robot_processes','off')=='ray' and self.robot_graph:
+            sim_kwargs.update(robot_graph=True, graph_state_interval=self.graph_state_interval)
         sim = simulation_class(spec['scene'], spec['dataset'], run_id,
             physical_config, commit_seconds=self.commit_seconds, knowledge_mode=self.knowledge_mode,
             **sim_kwargs)
@@ -593,7 +600,35 @@ class WarehouseLiveRuntime:
         }
         self._global_writer = GlobalWriterProcess(config, max_queue=self.global_writer_queue)
 
+    def _record_global_http(self, sim, events):
+        """Send this commit's global record to the HTTP global record service.
+
+        Waits for the robot-actor graph writes up to this tick first, so the Step
+        marker lists only robots whose own records are really written."""
+        try:
+            from backend.global_record_client import GlobalRecordClient
+            from backend.global_writer import build_global_record
+            if self._global_client is None or self._global_client_run != sim.run_id:
+                if self._global_client is not None:
+                    self._global_client.close(timeout=5)
+                self._global_client = GlobalRecordClient(self.global_writer_url, sim.run_id)
+                self._global_client_run = sim.run_id
+            receipt = sim.flush_robot_graph() if hasattr(sim, 'flush_robot_graph') else {'tick': None, 'robots': []}
+            store_status = self._store.status(sim.run_id)
+            record = build_global_record(sim, events, status=self._state, identity=self._identity,
+                commit_seq=sim.knowledge_seq, durable_seq=store_status.get('durable_seq'),
+                mirrored_seq=store_status.get('mirrored_seq'))
+            received = receipt.get('robots', []) if receipt.get('tick') == record['tick'] else []
+            record['step'] = {'tick': record['tick'], 'commit_seq': record.get('commit_seq', sim.knowledge_seq),
+                              'expected_robot_count': len(sim.robots), 'received_robot_ids': received,
+                              'complete': len(received) == len(sim.robots), 'source': 'ray-robot-actors'}
+            self._global_client.submit(record)
+        except Exception as exc:
+            self._global_writer_error = type(exc).__name__ + ': ' + str(exc)
+
     def _record_global(self, sim, events):
+        if getattr(self, 'global_writer_url', None):
+            return self._record_global_http(sim, events)
         if not getattr(self, "global_writer_enabled", False):
             return
         try:
@@ -909,6 +944,9 @@ class WarehouseLiveRuntime:
         os.replace(temporary, self._output / 'results.json')
 
     def _close(self):
+        if getattr(self,'_global_client',None) is not None:
+            try:self._global_client.close(timeout=10)
+            except Exception:pass
         try:
             if self._global_writer is not None:
                 self._global_writer.close()

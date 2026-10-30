@@ -283,7 +283,7 @@ class Neo4jRuntimeGraphWriter:
             if event_id in self.exported_events:
                 continue
             robot_id = event.get("robot_id")
-            rows.append({"id": event_id, "event_id": event["id"], "run_id": run_id, "tick": event.get("tick"), "type": event.get("type"), "text": event.get("text"), "time": event.get("time"), "robot_node_id": f"{run_id}:robot:{robot_id}" if robot_id else None, "task_id": event.get("task_id"), "cargo_id": event.get("cargo_id"), "rack_id": event.get("rack_id"), "slot_id": event.get("slot_id")})
+            rows.append({"id": event_id, "event_id": event["id"], "run_id": run_id, "tick": event.get("tick"), "type": event.get("type"), "text": event.get("text"), "payload": event.get("payload"), "time": event.get("time"), "robot_node_id": f"{run_id}:robot:{robot_id}" if robot_id else None, "task_id": event.get("task_id"), "cargo_id": event.get("cargo_id"), "rack_id": event.get("rack_id"), "slot_id": event.get("slot_id")})
         return rows
 
     @staticmethod

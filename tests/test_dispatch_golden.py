@@ -27,6 +27,7 @@ from backend.wheeled.sim import WheeledConfig, WheeledSimulation
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'tests/fixtures/dispatch-golden-medium19.json'
 RELAY_FIXTURE = ROOT / 'tests/fixtures/dispatch-golden-medium19-relay.json'
+REDO_FIXTURE = ROOT / 'tests/fixtures/dispatch-golden-medium19-redo.json'  # robot 9 -> 6 at t=366
 SCENE = ROOT / 'data/layouts/expansion-candidates/medium/layout.json'
 DATASET = ROOT / 'data/examples/wheeled-medium-sample19'
 CONFIG = ROOT / 'config/wheeled-medium-100.json'
@@ -57,7 +58,7 @@ def record(sim_class=WheeledSimulation):
             'completed_at': {task_id: task.get('completed_at') for task_id, task in sorted(sim.tasks.items())}}
 
 
-def record_relay(report_at=250, report_soc=24, sim_class=WheeledSimulation, pick=min, with_sim=False):
+def record_relay(report_at=250, report_soc=24, sim_class=WheeledSimulation, pick=min, with_sim=False, max_ticks=MAX_TICKS):
     config = WheeledConfig(**json.loads(CONFIG.read_text(encoding='utf-8')))
     sim = sim_class(SCENE, DATASET, 'dispatch-golden-relay', config)
     handoffs, original = [], sim.event
@@ -70,7 +71,7 @@ def record_relay(report_at=250, report_soc=24, sim_class=WheeledSimulation, pick
         return original(kind, robot_id, task_id, **fields)
     sim.event = capture
     reported, seen, assignments = None, {}, []
-    for tick in range(1, MAX_TICKS + 1):
+    for tick in range(1, max_ticks + 1):
         if reported is None and sim.elapsed >= report_at:
             owners = [i for i, r in sim.robots.items()
                       if r['carrying'] and r['stage'] == 'to_target' and i not in sim.assists]
@@ -121,6 +122,7 @@ if __name__ == '__main__':
         FIXTURE.parent.mkdir(parents=True, exist_ok=True)
         FIXTURE.write_text(json.dumps(record(), ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
         RELAY_FIXTURE.write_text(json.dumps(record_relay(), ensure_ascii=False, indent=1) + chr(10), encoding="utf-8")
-        print("wrote", FIXTURE, RELAY_FIXTURE)
+        REDO_FIXTURE.write_text(json.dumps(record_relay(report_at=300), ensure_ascii=False, indent=1) + chr(10), encoding="utf-8")
+        print("wrote", FIXTURE, RELAY_FIXTURE, REDO_FIXTURE)
     else:
         unittest.main()
