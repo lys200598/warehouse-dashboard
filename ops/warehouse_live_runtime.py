@@ -846,7 +846,7 @@ class WarehouseLiveRuntime:
     def _publish(self):
         lap = time.perf_counter_ns()
         snap = self._sim.frame()
-        snap['kgStateSource'] = self.kg_state_source
+        snap['kgStateSource'] = getattr(self, 'kg_state_source', 'memory')
         self._note_loop('pub_frame', lap); lap = time.perf_counter_ns()
         if 'robots' in snap and hasattr(self._sim, 'jobs'):
             if not hasattr(self, '_motion_view'):
@@ -884,9 +884,9 @@ class WarehouseLiveRuntime:
             snap['metadata']['boundary_routing']=deepcopy(self._sim.run_metadata['boundary_routing'])
         snap['metadata']['mobility']=getattr(self,'mobility','legacy')
         snap['metadata']['robot_processes']=getattr(self,'robot_processes','off')
-        snap['metadata']['kg_state_source']=self.kg_state_source
+        snap['metadata']['kg_state_source']=getattr(self, 'kg_state_source', 'memory')
         snap['metadata']['robot_agents_enabled']=getattr(self,'robot_agents',False)
-        snap['metadata']['legacy_a_graph']=self.legacy_a_graph
+        snap['metadata']['legacy_a_graph']=getattr(self, 'legacy_a_graph', False)
         fleet=getattr(self._store.mirror,'agent_fleet',None) if self._store.mirror else None
         if fleet is not None:
             pids=sorted(fleet.pids.values())

@@ -90,6 +90,19 @@ class PublishedPointTests(unittest.TestCase):
             self.assertEqual(list(Path(folder).glob('.query-point.json.*.tmp')), [])
             self.assertEqual(sidecar._read_live_query_point(point, 'owner-123'), payload())
 
+    def test_publish_mode_defaults_and_explicit_values(self):
+        for mode in (None, 'memory', 'neo4j'):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory(dir=TEMP) as folder:
+                owner = self.owner(folder)
+                if mode is not None:
+                    owner.kg_state_source = mode
+                    owner.legacy_a_graph = True
+                owner._publish()
+                frame = owner._latest
+                self.assertEqual(frame['kgStateSource'], mode or 'memory')
+                self.assertEqual(frame['metadata']['kg_state_source'], mode or 'memory')
+                self.assertEqual(frame['metadata']['legacy_a_graph'], mode is not None)
+
     def test_writes_only_when_committed_run_or_seq_changes(self):
         with tempfile.TemporaryDirectory(dir=TEMP) as folder:
             owner = self.owner(folder)
@@ -176,7 +189,8 @@ class PublishedPointTests(unittest.TestCase):
             existing = output / 'existing.json'
             existing.write_bytes(b'original owned artifact')
             options = dict(source_root=ROOT, output_root=output, datasets={'sample': {}},
-                dataset_id='sample', knowledge_backend='neo4j', query_summary_root=output)
+                dataset_id='sample', knowledge_backend='neo4j', query_summary_root=output,
+                legacy_a_graph=True)
             with self.assertRaises(FileExistsError):
                 WarehouseLiveRuntime(**options, query_point_path=existing)
             self.assertEqual(existing.read_bytes(), b'original owned artifact')
