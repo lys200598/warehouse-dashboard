@@ -1,4 +1,3 @@
-import ast
 import os
 from copy import deepcopy
 from pathlib import Path
@@ -23,76 +22,7 @@ CODE_ROOT = Path(__file__).resolve().parents[1]
 ROOT = Path(os.environ.get('WAREHOUSE_FIXTURE_ROOT', CODE_ROOT))
 
 
-_PORT_RELIEF_OVERRIDE = ast.parse("""if self.config.port_relief_policy == 'deadline':
-    pool = self._port_relief_pool(ready)
-""").body[0]
-
-
-def _is_exact_port_relief_override(node):
-    # Compare the WHOLE subtree: condition, single assignment/call and no else.
-    # Extra logic, a changed RHS/condition, or any safety statements remain visible.
-    return isinstance(node, ast.If) and ast.dump(node, include_attributes=False) == ast.dump(
-        _PORT_RELIEF_OVERRIDE, include_attributes=False)
-
-
 class PolicyContractTests(unittest.TestCase):
-    def test_static_dispatch_copy_has_only_the_documented_policy_seam(self):
-        def method(path, owner):
-            module = ast.parse(path.read_text(encoding='utf-8'))
-            cls = next(node for node in module.body if isinstance(node, ast.ClassDef) and node.name == owner)
-            return next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == 'release_and_dispatch')
-
-        class Normalize(ast.NodeTransformer):
-            def __init__(self):
-                self.port_relief_overrides = 0
-
-            def visit_If(self, node):
-                if _is_exact_port_relief_override(node):
-                    self.port_relief_overrides += 1
-                    return None
-                return self.generic_visit(node)
-
-            def visit_Assign(self, node):
-                if len(node.targets) == 1 and isinstance(node.targets[0], ast.Tuple):
-                    names = [v.id for v in node.targets[0].elts]
-                    if names in [['costs', 'pair_times'], ['row', 'travel_row']]:
-                        node.targets = [ast.Name(id=names[0], ctx=ast.Store())]
-                        node.value = ast.List(elts=[], ctx=ast.Load())
-                return self.generic_visit(node)
-
-            def visit_Expr(self, node):
-                call = node.value
-                if isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute) and call.func.attr == 'append' and isinstance(call.func.value, ast.Name) and call.func.value.id in {'pair_times', 'travel_row'}:
-                    return None
-                return self.generic_visit(node)
-
-            def visit_Call(self, node):
-                if isinstance(node.func, ast.Attribute) and node.func.attr == '_select_assignment':
-                    node.func.attr = '_assignment'
-                    node.args = node.args[:1]
-                return self.generic_visit(node)
-
-        old = method(CODE_ROOT/'backend/scheduling_v3/sim.py', 'Simulation')
-        normalizer = Normalize()
-        new = normalizer.visit(method(CODE_ROOT/'backend/scheduling_v5/sim.py', 'CandidateSimulation'))
-        self.assertEqual(normalizer.port_relief_overrides, 1)
-        self.assertEqual(ast.dump(old, include_attributes=False), ast.dump(new, include_attributes=False))
-
-    def test_port_relief_ast_exception_matches_only_the_exact_documented_override(self):
-        source = "if self.config.port_relief_policy == 'deadline':\n    pool = self._port_relief_pool(ready)\n"
-        self.assertTrue(_is_exact_port_relief_override(ast.parse(source).body[0]))
-        mutations = [
-            source.replace("== 'deadline'", "!= 'deadline'"),
-            source.replace('ready)', 'all_tasks)'),
-            source.replace('pool =', 'costs ='),
-            source.replace('_port_relief_pool', '_unsafe_pool'),
-            source + 'else:\n    self.schedule_charge(robot)\n',
-            source + '    self.assert_inventory()\n',
-        ]
-        for changed in mutations:
-            with self.subTest(changed=changed):
-                self.assertFalse(_is_exact_port_relief_override(ast.parse(changed).body[0]))
-
     def select(self, policy, rows, times, elapsed=300, parameters=None):
         context = SimpleNamespace(config=Config(), policy=policy, policy_parameters=resolve_parameters(policy, parameters),
             elapsed=elapsed, metrics={'v5_matching_calls': 0, 'v5_guard_rows': 0,

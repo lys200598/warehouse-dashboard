@@ -1,0 +1,145 @@
+{
+ "version": "dispatch-golden-v1",
+ "scene": "data/layouts/expansion-candidates/medium/layout.json",
+ "dataset": "data/examples/wheeled-medium-sample19",
+ "config": "config/wheeled-medium-100.json",
+ "release_shift_seconds": 208,
+ "ticks": 1780,
+ "assignments": [
+  {
+   "tick": 1,
+   "task_id": "V3-T-0000013",
+   "robot_id": 29,
+   "assigned_at": 0
+  },
+  {
+   "tick": 21,
+   "task_id": "V3-T-0000012",
+   "robot_id": 5,
+   "assigned_at": 20
+  },
+  {
+   "tick": 81,
+   "task_id": "V3-T-0000008",
+   "robot_id": 9,
+   "assigned_at": 80
+  },
+  {
+   "tick": 144,
+   "task_id": "V3-T-0000015",
+   "robot_id": 31,
+   "assigned_at": 143
+  },
+  {
+   "tick": 353,
+   "task_id": "V3-T-0000007",
+   "robot_id": 16,
+   "assigned_at": 352
+  },
+  {
+   "tick": 453,
+   "task_id": "V3-T-0000014",
+   "robot_id": 3,
+   "assigned_at": 452
+  },
+  {
+   "tick": 527,
+   "task_id": "V3-T-0000019",
+   "robot_id": 44,
+   "assigned_at": 526
+  },
+  {
+   "tick": 537,
+   "task_id": "V3-T-0000002",
+   "robot_id": 12,
+   "assigned_at": 536
+  },
+  {
+   "tick": 537,
+   "task_id": "V3-T-0000010",
+   "robot_id": 58,
+   "assigned_at": 536
+  },
+  {
+   "tick": 665,
+   "task_id": "V3-T-0000016",
+   "robot_id": 78,
+   "assigned_at": 664
+  },
+  {
+   "tick": 842,
+   "task_id": "V3-T-0000006",
+   "robot_id": 18,
+   "assigned_at": 841
+  },
+  {
+   "tick": 922,
+   "task_id": "V3-T-0000004",
+   "robot_id": 59,
+   "assigned_at": 921
+  },
+  {
+   "tick": 1073,
+   "task_id": "V3-T-0000011",
+   "robot_id": 54,
+   "assigned_at": 1072
+  },
+  {
+   "tick": 1259,
+   "task_id": "V3-T-0000001",
+   "robot_id": 3,
+   "assigned_at": 1258
+  },
+  {
+   "tick": 1269,
+   "task_id": "V3-T-0000005",
+   "robot_id": 56,
+   "assigned_at": 1268
+  },
+  {
+   "tick": 1366,
+   "task_id": "V3-T-0000018",
+   "robot_id": 23,
+   "assigned_at": 1365
+  },
+  {
+   "tick": 1446,
+   "task_id": "V3-T-0000017",
+   "robot_id": 36,
+   "assigned_at": 1445
+  },
+  {
+   "tick": 1456,
+   "task_id": "V3-T-0000009",
+   "robot_id": 58,
+   "assigned_at": 1455
+  },
+  {
+   "tick": 1592,
+   "task_id": "V3-T-0000003",
+   "robot_id": 60,
+   "assigned_at": 1591
+  }
+ ],
+ "completed_at": {
+  "V3-T-0000001": 1310,
+  "V3-T-0000002": 665,
+  "V3-T-0000003": 1780,
+  "V3-T-0000004": 972,
+  "V3-T-0000005": 1315,
+  "V3-T-0000006": 927,
+  "V3-T-0000007": 466,
+  "V3-T-0000008": 150,
+  "V3-T-0000009": 1541,
+  "V3-T-0000010": 602,
+  "V3-T-0000011": 1138,
+  "V3-T-0000012": 80,
+  "V3-T-0000013": 93,
+  "V3-T-0000014": 584,
+  "V3-T-0000015": 272,
+  "V3-T-0000016": 731,
+  "V3-T-0000017": 1528,
+  "V3-T-0000018": 1467,
+  "V3-T-0000019": 624
+ }
+}
