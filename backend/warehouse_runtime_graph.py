@@ -369,12 +369,22 @@ _LINK_RUN_DATASET = """
 MATCH (run:Run {id: $run_id}), (dataset:Dataset {id: $dataset_id})
 MERGE (run)-[:USES_DATASET]->(dataset)
 """
+# History node IDs are unique and their IN_RUN edges are created atomically.
+# Relationship MERGE against the shared Run serializes actor history writes.
+# The ON CREATE marker limits CREATE to a new node and is removed in the same
+# transaction, so a committed retry preserves exactly one edge. Existing valid
+# nodes already have the edge; repairing externally orphaned nodes is separate.
+# Row indices distinguish duplicate inputs even when Cypher inserts an Eager operator.
 _WRITE_AGENT_STATES = """
 MATCH (run:Run {id: $run_id})
-UNWIND $states AS row
+UNWIND range(0, size($states) - 1) AS __row_index
+WITH run, $states[__row_index] AS row, __row_index
 MATCH (robot:Robot {id: row.robot_node_id})
-MERGE (state:AgentState {id: row.id}) SET state += row
-MERGE (state)-[:IN_RUN]->(run)
+MERGE (state:AgentState {id: row.id})
+ON CREATE SET state.__wz_in_run_new = __row_index
+SET state += row
+WITH *, CASE WHEN state.__wz_in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (state)-[:IN_RUN]->(run) REMOVE state.__wz_in_run_new)
 MERGE (state)-[:OF_ROBOT]->(robot)
 """
 _WRITE_EXECUTIONS = """
@@ -387,10 +397,14 @@ MERGE (execution)-[:ASSIGNED_TO]->(robot)
 """
 _WRITE_EXECUTION_STATES = """
 MATCH (run:Run {id: $run_id})
-UNWIND $states AS row
+UNWIND range(0, size($states) - 1) AS __row_index
+WITH run, $states[__row_index] AS row, __row_index
 MATCH (execution:Execution {id: row.execution_id}), (robot:Robot {id: row.robot_node_id})
-MERGE (state:ExecutionState {id: row.id}) SET state += row
-MERGE (state)-[:IN_RUN]->(run)
+MERGE (state:ExecutionState {id: row.id})
+ON CREATE SET state.__wz_in_run_new = __row_index
+SET state += row
+WITH *, CASE WHEN state.__wz_in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (state)-[:IN_RUN]->(run) REMOVE state.__wz_in_run_new)
 MERGE (state)-[:OF_EXECUTION]->(execution)
 MERGE (state)-[:ASSIGNED_TO]->(robot)
 """
@@ -402,9 +416,13 @@ MERGE (execution)-[:EXECUTES]->(task)
 """
 _WRITE_EVENTS = """
 MATCH (run:Run {id: $run_id})
-UNWIND $events AS row
-MERGE (event:RuntimeEvent {id: row.id}) SET event += row
-MERGE (event)-[:IN_RUN]->(run)
+UNWIND range(0, size($events) - 1) AS __row_index
+WITH run, $events[__row_index] AS row, __row_index
+MERGE (event:RuntimeEvent {id: row.id})
+ON CREATE SET event.__wz_in_run_new = __row_index
+SET event += row
+WITH *, CASE WHEN event.__wz_in_run_new = __row_index THEN [1] ELSE [] END AS __new_links
+FOREACH (__link IN __new_links | CREATE (event)-[:IN_RUN]->(run) REMOVE event.__wz_in_run_new)
 """
 _LINK_EVENTS_TO_ROBOTS = """
 UNWIND $events AS row

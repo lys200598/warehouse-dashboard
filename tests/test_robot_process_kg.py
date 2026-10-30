@@ -110,6 +110,18 @@ def _audit_graph(sim, reader):
         payloads = session.run('MATCH (r:Robot {run_id:$run}) RETURN r.robot_id AS id,r.payload AS payload',
                                run=sim.run_id).data()
         assert {r['id']: json.loads(r['payload']) for r in payloads} == sim.robots
+    # Real Cypher + HTTP coverage: mocks cannot detect importing-WITH syntax errors.
+    from backend.warehouse_graph_query import Neo4jWarehouseGraph
+    graph = Neo4jWarehouseGraph(**{k: sim._graph_config[k] for k in ('uri', 'user', 'password', 'database')},
+                               driver=reader.driver)
+    latest = graph.latest_complete_step(sim.run_id, include_states=True)
+    assert latest['step']['tick'] == sim.tick
+    assert sorted(row['robot_id'] for row in latest['states']) == sorted(sim.robots)
+    with urlopen(sim.global_writer_url.rstrip('/') + '/v1/runs/' + sim.run_id +
+                 '/steps/latest?states=true', timeout=15) as response:
+        api_latest = json.load(response)
+    assert api_latest['step']['tick'] == sim.tick
+    assert api_latest['states'] == latest['states']
     return {'step': dict(step), 'owners': owners, 'robot_fields': len(sim._kg_fields),
             'step_audit': step_audit,
             'kg_state_source': sim.kg_state_source, 'robot_graph_async': sim.robot_graph_async,
@@ -154,6 +166,46 @@ class KGGoldenTests(unittest.TestCase):
         finally:
             for sim in instances:
                 cleanup(sim)
+
+    def test_duplicate_history_rows_are_idempotent(self):
+        from neo4j import GraphDatabase
+        from backend.warehouse_runtime_graph import Neo4jRuntimeGraphWriter
+        from ops.kg_long_run import graph_config
+        from tests.test_warehouse_runtime_graph import snapshot
+        config = graph_config()
+        run_id = 'wz-test-kg-retry-' + uuid.uuid4().hex[:12]
+        sample = snapshot()
+        sample.update(runId=run_id, tick=4)
+        sample['events'] = sample['events'] * 2
+        sample['robots'] = sample['robots'] * 2
+        with GraphDatabase.driver(config['uri'], auth=(config['user'], config['password'])) as driver:
+            try:
+                previous = None
+                for _ in range(3):
+                    writer = Neo4jRuntimeGraphWriter(**config)
+                    try:
+                        writer.record_snapshot(sample)
+                    finally:
+                        writer.close()
+                    with driver.session(database=config['database']) as session:
+                        rows = session.run('MATCH (n {run_id:$run}) OPTIONAL MATCH (n)-[r:IN_RUN]->(:Run {id:$run}) '
+                            'RETURN labels(n) AS labels,count(DISTINCT n) AS nodes,count(r) AS edges ORDER BY labels',
+                            run=run_id).data()
+                        self.assertTrue(rows)
+                        self.assertTrue(all(row['nodes'] == row['edges'] == 1 for row in rows), rows)
+                        self.assertEqual(session.run('MATCH (n {run_id:$run}) WHERE n.__wz_in_run_new IS NOT NULL '
+                            'RETURN count(n) AS n',run=run_id).single()['n'], 0)
+                    if previous is not None:
+                        self.assertEqual(rows, previous)
+                    previous = rows
+            finally:
+                with urlopen(Request(URL + '/v1/runs/' + run_id, method='DELETE',
+                    data=json.dumps({'confirm_run_id':run_id}).encode(),
+                    headers={'Content-Type':'application/json'}), timeout=600) as response:
+                    self.assertEqual(response.status, 200)
+                with driver.session(database=config['database']) as session:
+                    self.assertEqual(session.run('MATCH (n) WHERE n.run_id=$run OR (n:Run AND n.id=$run) '
+                        'RETURN count(n) AS n', run=run_id).single()['n'], 0)
 
     def test_ordinary(self):
         self.run_scenario('ordinary')

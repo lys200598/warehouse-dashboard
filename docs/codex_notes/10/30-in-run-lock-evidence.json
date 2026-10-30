@@ -1,0 +1,604 @@
+{
+  "experiments": {
+    "A1": {
+      "path": "1-baseline",
+      "run_id": "wz-test-inrun-1-baseline-20261030",
+      "write": {
+        "n": 380,
+        "mean_ms": 240.9110768355037,
+        "p99_ms": 988.4688537567854,
+        "max_ms": 2480.948151089251,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 95,
+        "mean_ms": 754.6186344600037,
+        "p99_ms": 2480.948151089251,
+        "max_ms": 2480.948151089251,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 285,
+        "mean_ms": 69.67522429400368,
+        "p99_ms": 272.87532668560743,
+        "max_ms": 548.8467728719115,
+        "over_5s": 0
+      },
+      "run_node_internal_id": 2496387,
+      "blocked_on_run_observations": {
+        "NODE_RELATIONSHIP_GROUP_DELETE:EXCLUSIVE": 2595
+      },
+      "unique_blocked_transactions": 2382,
+      "max_simultaneous_blocked": 96,
+      "step_audit": {
+        "complete_steps": 401,
+        "missing_steps": 0,
+        "invalid_steps": 0,
+        "receipt_ids_per_step": 100
+      },
+      "node_count_including_run": 11359,
+      "run_and_flush_seconds": 172.6460576718673,
+      "ray_resources": {
+        "accelerator_type:RTX-PRO-6000": 1.0,
+        "object_store_memory": 49874769100.0,
+        "GPU": 2.0,
+        "CPU": 32.0,
+        "memory": 116374461236.0,
+        "node:__internal_head__": 1.0,
+        "node:192.168.89.41": 1.0
+      },
+      "cleanup_remaining": 0
+    },
+    "B1": {
+      "path": "2-candidate",
+      "run_id": "wz-test-inrun-2-candidate-20261030",
+      "write": {
+        "n": 380,
+        "mean_ms": 79.58174390767358,
+        "p99_ms": 227.53613907843828,
+        "max_ms": 462.9956241697073,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 95,
+        "mean_ms": 113.20510815436903,
+        "p99_ms": 462.9956241697073,
+        "max_ms": 462.9956241697073,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 285,
+        "mean_ms": 68.37395582544177,
+        "p99_ms": 199.61671438068151,
+        "max_ms": 333.0757226794958,
+        "over_5s": 0
+      },
+      "run_node_internal_id": 2350958,
+      "blocked_on_run_observations": {},
+      "unique_blocked_transactions": 0,
+      "max_simultaneous_blocked": 0,
+      "step_audit": {
+        "complete_steps": 401,
+        "missing_steps": 0,
+        "invalid_steps": 0,
+        "receipt_ids_per_step": 100
+      },
+      "node_count_including_run": 11359,
+      "run_and_flush_seconds": 100.663593695499,
+      "ray_resources": {
+        "accelerator_type:RTX-PRO-6000": 1.0,
+        "object_store_memory": 49874769100.0,
+        "CPU": 32.0,
+        "memory": 116374461236.0,
+        "node:__internal_head__": 1.0,
+        "GPU": 2.0,
+        "node:192.168.89.41": 1.0
+      },
+      "cleanup_remaining": 0
+    },
+    "B2": {
+      "path": "3-candidate",
+      "run_id": "wz-test-inrun-3-candidate-20261030",
+      "write": {
+        "n": 380,
+        "mean_ms": 76.98466411644691,
+        "p99_ms": 189.00481518357992,
+        "max_ms": 296.93910107016563,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 95,
+        "mean_ms": 105.39668728842547,
+        "p99_ms": 296.93910107016563,
+        "max_ms": 296.93910107016563,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 285,
+        "mean_ms": 67.51398972578738,
+        "p99_ms": 147.38122560083866,
+        "max_ms": 269.53207701444626,
+        "over_5s": 0
+      },
+      "run_node_internal_id": 2349773,
+      "blocked_on_run_observations": {},
+      "unique_blocked_transactions": 0,
+      "max_simultaneous_blocked": 0,
+      "step_audit": {
+        "complete_steps": 401,
+        "missing_steps": 0,
+        "invalid_steps": 0,
+        "receipt_ids_per_step": 100
+      },
+      "node_count_including_run": 11359,
+      "run_and_flush_seconds": 98.8622585227713,
+      "ray_resources": {
+        "accelerator_type:RTX-PRO-6000": 1.0,
+        "node:__internal_head__": 1.0,
+        "object_store_memory": 49874769100.0,
+        "memory": 116374461236.0,
+        "GPU": 2.0,
+        "CPU": 32.0,
+        "node:192.168.89.41": 1.0
+      },
+      "cleanup_remaining": 0
+    },
+    "A2": {
+      "path": "4-baseline",
+      "run_id": "wz-test-inrun-4-baseline-20261030",
+      "write": {
+        "n": 380,
+        "mean_ms": 244.2976335578255,
+        "p99_ms": 1416.6690288111567,
+        "max_ms": 2340.698281303048,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 95,
+        "mean_ms": 776.9141212791989,
+        "p99_ms": 2340.698281303048,
+        "max_ms": 2340.698281303048,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 285,
+        "mean_ms": 66.7588043173677,
+        "p99_ms": 233.61806012690067,
+        "max_ms": 261.2769966945052,
+        "over_5s": 0
+      },
+      "run_node_internal_id": 2349740,
+      "blocked_on_run_observations": {
+        "NODE_RELATIONSHIP_GROUP_DELETE:EXCLUSIVE": 2127
+      },
+      "unique_blocked_transactions": 2098,
+      "max_simultaneous_blocked": 98,
+      "step_audit": {
+        "complete_steps": 401,
+        "missing_steps": 0,
+        "invalid_steps": 0,
+        "receipt_ids_per_step": 100
+      },
+      "node_count_including_run": 11359,
+      "run_and_flush_seconds": 164.90745341870934,
+      "ray_resources": {
+        "object_store_memory": 49874769100.0,
+        "accelerator_type:RTX-PRO-6000": 1.0,
+        "node:192.168.89.41": 1.0,
+        "GPU": 2.0,
+        "CPU": 32.0,
+        "node:__internal_head__": 1.0,
+        "memory": 116374461236.0
+      },
+      "cleanup_remaining": 0
+    },
+    "C": {
+      "path": "preserve-v2/preserve-400",
+      "run_id": "wz-test-inrun-preserve-400-20261030",
+      "write": {
+        "n": 380,
+        "mean_ms": 81.6681725781803,
+        "p99_ms": 296.4671989902854,
+        "max_ms": 968.1456536054611,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 95,
+        "mean_ms": 117.72533723790394,
+        "p99_ms": 968.1456536054611,
+        "max_ms": 968.1456536054611,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 285,
+        "mean_ms": 69.64911769160577,
+        "p99_ms": 181.5671781077981,
+        "max_ms": 306.99020996689796,
+        "over_5s": 0
+      },
+      "run_node_internal_id": 2351444,
+      "blocked_on_run_observations": {},
+      "unique_blocked_transactions": 0,
+      "max_simultaneous_blocked": 0,
+      "step_audit": {
+        "complete_steps": 401,
+        "missing_steps": 0,
+        "invalid_steps": 0,
+        "receipt_ids_per_step": 100
+      },
+      "node_count_including_run": 11359,
+      "run_and_flush_seconds": 99.94252724386752,
+      "ray_resources": {
+        "node:192.168.89.41": 1.0,
+        "memory": 116374461236.0,
+        "GPU": 2.0,
+        "CPU": 32.0,
+        "node:__internal_head__": 1.0,
+        "object_store_memory": 49874769100.0,
+        "accelerator_type:RTX-PRO-6000": 1.0
+      },
+      "cleanup_remaining": 0
+    }
+  },
+  "groups": {
+    "original": {
+      "all": {
+        "n": 760,
+        "mean_ms": 242.6043551966646,
+        "p99_ms": 1223.5598070546985,
+        "max_ms": 2480.948151089251,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 190,
+        "mean_ms": 765.7663778696013,
+        "p99_ms": 2340.698281303048,
+        "max_ms": 2480.948151089251,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 570,
+        "mean_ms": 68.2170143056857,
+        "p99_ms": 250.76794903725386,
+        "max_ms": 548.8467728719115,
+        "over_5s": 0
+      }
+    },
+    "remove_links": {
+      "all": {
+        "n": 760,
+        "mean_ms": 78.28320401206024,
+        "p99_ms": 199.66773688793182,
+        "max_ms": 462.9956241697073,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 190,
+        "mean_ms": 109.30089772139725,
+        "p99_ms": 296.93910107016563,
+        "max_ms": 462.9956241697073,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 570,
+        "mean_ms": 67.94397277561457,
+        "p99_ms": 169.8163328692317,
+        "max_ms": 333.0757226794958,
+        "over_5s": 0
+      }
+    },
+    "preserve_links": {
+      "all": {
+        "n": 380,
+        "mean_ms": 81.6681725781803,
+        "p99_ms": 296.4671989902854,
+        "max_ms": 968.1456536054611,
+        "over_5s": 0
+      },
+      "history": {
+        "n": 95,
+        "mean_ms": 117.72533723790394,
+        "p99_ms": 968.1456536054611,
+        "max_ms": 968.1456536054611,
+        "over_5s": 0
+      },
+      "other": {
+        "n": 285,
+        "mean_ms": 69.64911769160577,
+        "p99_ms": 181.5671781077981,
+        "max_ms": 306.99020996689796,
+        "over_5s": 0
+      }
+    }
+  },
+  "integration": {
+    "status": "validated_pending_commit",
+    "branch": "wz/kg-driven-dispatch",
+    "files": [
+      "backend/global_writer_api.py",
+      "backend/warehouse_graph_query.py",
+      "backend/warehouse_runtime_graph.py",
+      "tests/test_robot_process_kg.py"
+    ],
+    "regression_exit_code": 0,
+    "real_probe_exit_code": 0
+  },
+  "limitations": [
+    "No million-node prefix; short trials cannot establish rare-tail elimination",
+    "Lock samples count observations, not distinct incidents",
+    "Untagged transactions include own context/global/Step work",
+    "The new fix has not rerun three complete Ray+Neo4j golden scenarios or an all-day run"
+  ],
+  "write_speedup": 2.9706107965673083,
+  "write_reduction_percent": 66.33688933078845,
+  "environment": {
+    "neo4j": [
+      {
+        "edition": "community",
+        "name": "Neo4j Kernel",
+        "versions": [
+          "5.26.32"
+        ]
+      }
+    ],
+    "ray_cpu_configuration_expected": 32,
+    "database_uri": "bolt://127.0.0.1:17692",
+    "variant": "preserve",
+    "run_id": "wz-test-inrun-preserve-400-20261030",
+    "writer_sha256": "28f5ca2777bbcae3fcda2008df303d109e1dbbf1e40bf765ee3553f5debe34bd",
+    "prefix_nodes": 0,
+    "limitation": "400-step trial does not reproduce million-degree Run topology"
+  },
+  "all_day_interruption": {
+    "reason": "user prioritized isolated bug diagnosis and explicitly allowed day interruption",
+    "utc_epoch": 1793369669.8570192,
+    "run_id": "wz-test-day-memory-async-20261030",
+    "progress_before": {
+      "run_id": "wz-test-day-memory-async-20261030",
+      "status": "running",
+      "tick": 5160,
+      "last_successful_tick": 5160,
+      "graph": {
+        "latestCompleteStep": 5159,
+        "currentTick": 5160,
+        "lag": 1,
+        "errors": 0,
+        "lastError": null,
+        "contextErrors": 0,
+        "contextSamples": 10000,
+        "async": true,
+        "pendingSteps": 1,
+        "maxLagSteps": 8,
+        "pauseCount": 642,
+        "pauseSeconds": 1736.799220801331,
+        "backpressurePaused": false
+      },
+      "wall_seconds": 2068.167994327843,
+      "updated_at_utc": "2026-10-30T14:14:18Z"
+    },
+    "targets": [
+      {
+        "pid": 853966,
+        "args": [
+          "python",
+          "ops/kg_long_run.py",
+          "run",
+          "--scene",
+          "data/layouts/expansion-candidates/medium/layout.json",
+          "--dataset",
+          "/tmp/wz-kg-evidence/full-day-dataset",
+          "--config",
+          "config/wheeled-medium-100.json",
+          "--output",
+          "/tmp/wz-kg-evidence/full-day-memory-async-20261030",
+          "--run-id",
+          "wz-test-day-memory-async-20261030",
+          "--ray-address",
+          "127.0.0.1:27380",
+          "--robot-context-interval",
+          "10",
+          "--kg-state-source",
+          "memory",
+          "--robot-graph-backlog",
+          "8",
+          "--global-writer-url",
+          "http://127.0.0.1:14591",
+          "--cleanup",
+          ""
+        ]
+      }
+    ]
+  },
+  "duplicate_input_and_replay": {
+    "run_id": "wz-test-inrun-preserve-idempotency-20261030",
+    "status": "passed",
+    "rounds": [
+      {
+        "nodes": [
+          {
+            "labels": [
+              "AgentState"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "Execution"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "ExecutionState"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "Robot"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "RuntimeEvent"
+            ],
+            "n": 1
+          }
+        ],
+        "edges": [
+          {
+            "type": "ABOUT_EXECUTION",
+            "n": 1
+          },
+          {
+            "type": "ABOUT_ROBOT",
+            "n": 1
+          },
+          {
+            "type": "ASSIGNED_TO",
+            "n": 2
+          },
+          {
+            "type": "IN_RUN",
+            "n": 5
+          },
+          {
+            "type": "OF_EXECUTION",
+            "n": 1
+          },
+          {
+            "type": "OF_ROBOT",
+            "n": 1
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "labels": [
+              "AgentState"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "Execution"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "ExecutionState"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "Robot"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "RuntimeEvent"
+            ],
+            "n": 1
+          }
+        ],
+        "edges": [
+          {
+            "type": "ABOUT_EXECUTION",
+            "n": 1
+          },
+          {
+            "type": "ABOUT_ROBOT",
+            "n": 1
+          },
+          {
+            "type": "ASSIGNED_TO",
+            "n": 2
+          },
+          {
+            "type": "IN_RUN",
+            "n": 5
+          },
+          {
+            "type": "OF_EXECUTION",
+            "n": 1
+          },
+          {
+            "type": "OF_ROBOT",
+            "n": 1
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "labels": [
+              "AgentState"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "Execution"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "ExecutionState"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "Robot"
+            ],
+            "n": 1
+          },
+          {
+            "labels": [
+              "RuntimeEvent"
+            ],
+            "n": 1
+          }
+        ],
+        "edges": [
+          {
+            "type": "ABOUT_EXECUTION",
+            "n": 1
+          },
+          {
+            "type": "ABOUT_ROBOT",
+            "n": 1
+          },
+          {
+            "type": "ASSIGNED_TO",
+            "n": 2
+          },
+          {
+            "type": "IN_RUN",
+            "n": 5
+          },
+          {
+            "type": "OF_EXECUTION",
+            "n": 1
+          },
+          {
+            "type": "OF_ROBOT",
+            "n": 1
+          }
+        ]
+      }
+    ],
+    "duplicate_event_rows_per_snapshot": true,
+    "remaining_nodes": 0
+  },
+  "failed_attempts_retained": [
+    "attempt-1/smoke-a.log: existing importing-WITH syntax error",
+    "preserve-study/duplicate-events.json: first boolean marker candidate generated duplicate edges"
+  ]
+}

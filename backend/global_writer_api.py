@@ -190,7 +190,7 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
         with writer.driver.session(database=writer.database) as session:
             rows = session.run('MATCH (step:Step {run_id:$run_id}) WHERE step.tick=$tick AND step.complete=true '
                                'MATCH (run:Run {id:$run_id})<-[:IN_RUN]-(robot:Robot) '
-                               'CALL { WITH robot, $tick AS cutoff '
+                               'CALL { WITH robot WITH robot, $tick AS cutoff '
                                'MATCH (state:AgentState)-[:OF_ROBOT]->(robot) WHERE state.tick <= cutoff '
                                'RETURN state ORDER BY state.tick DESC LIMIT 1 } '
                                'RETURN robot.robot_id AS robot_id, '
