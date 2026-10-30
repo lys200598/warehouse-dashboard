@@ -321,6 +321,8 @@ A 套里以下机制服务于它自己的实验设计，不是项目需求，**C
 
 ## 9. 需要和 lys 确认的问题
 
+**已对齐（2026-10-30）**：结论见 [`LYS_ALIGNMENT_QUESTIONS_20261030.md`](LYS_ALIGNMENT_QUESTIONS_20261030.md) 开头的结论表；派单默认从图谱读状态；全局写入的接口样例见 [`GLOBAL_WRITER_INTERFACE_DRAFT_20261030.md`](GLOBAL_WRITER_INTERFACE_DRAFT_20261030.md)。下面保留原始问题，供追溯。
+
 每个问题的背景、可选做法和建议见 [`LYS_ALIGNMENT_QUESTIONS_20261030.md`](LYS_ALIGNMENT_QUESTIONS_20261030.md)。
 
 1. **告知并约定格式**：标记的处理留在主进程（主进程拆分由 wz 负责，不需要 lys 批准），因此全局写入需要的交接配对等记录由主进程交给他，格式需要约定，见第 3 条。
