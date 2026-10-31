@@ -35,7 +35,7 @@ def cleanup(sim):
         raise RuntimeError('cleanup blocked_inflight; run and queue preserved: ' + sim.run_id) from close_error
     request = Request(URL + '/v1/runs/' + sim.run_id, method='DELETE',
         data=json.dumps({'confirm_run_id': sim.run_id}).encode(), headers={'Content-Type': 'application/json'})
-    with urlopen(request, timeout=600) as response:
+    with urlopen(request, timeout=float(os.environ.get('WAREHOUSE_KG_CLEANUP_TIMEOUT', '3600'))) as response:
         if response.status != 200:
             raise AssertionError('run cleanup failed')
     from neo4j import GraphDatabase
@@ -214,7 +214,7 @@ class KGGoldenTests(unittest.TestCase):
             finally:
                 with urlopen(Request(URL + '/v1/runs/' + run_id, method='DELETE',
                     data=json.dumps({'confirm_run_id':run_id}).encode(),
-                    headers={'Content-Type':'application/json'}), timeout=600) as response:
+                    headers={'Content-Type':'application/json'}), timeout=float(os.environ.get('WAREHOUSE_KG_CLEANUP_TIMEOUT', '3600'))) as response:
                     self.assertEqual(response.status, 200)
                 with driver.session(database=config['database']) as session:
                     self.assertEqual(session.run('MATCH (n) WHERE n.run_id=$run OR (n:Run AND n.id=$run) '

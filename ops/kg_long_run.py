@@ -42,7 +42,7 @@ def cleanup_run(args, config):
     request = Request(args.global_writer_url.rstrip('/') + '/v1/runs/' + args.run_id, method='DELETE',
                       data=json.dumps({'confirm_run_id': args.run_id}).encode(),
                       headers={'Content-Type': 'application/json'})
-    with urlopen(request, timeout=600) as response:
+    with urlopen(request, timeout=getattr(args, 'cleanup_timeout', 3600.)) as response:
         if response.status != 200:
             raise RuntimeError('run deletion failed')
     with GraphDatabase.driver(config['uri'], auth=(config['user'], config['password'])) as driver:
@@ -287,6 +287,8 @@ def main():
     execute.add_argument('--robot-graph-backlog', type=int, default=8)
     execute.add_argument('--max-ticks', type=int)
     execute.add_argument('--cleanup', action='store_true')
+    execute.add_argument('--cleanup-timeout', type=float, default=3600.,
+                         help='seconds allowed for bounded large-run cleanup (default: 3600)')
     stop = commands.add_parser('stop-writer')
     stop.add_argument('--expected-pid', type=int, required=True)
     stop.add_argument('--pid-file', type=Path, default=Path('/tmp/wz-kg-evidence/writer.pid'))
@@ -306,6 +308,8 @@ def main():
             parser.error('--expected-pid must be positive')
         stop_owned_writer(args.expected_pid, args.pid_file)
     else:
+        if args.cleanup_timeout <= 0:
+            parser.error('--cleanup-timeout must be positive')
         if args.max_ticks is not None and args.max_ticks < 1:
             parser.error('--max-ticks must be positive')
         if not 1 <= args.robot_graph_backlog <= 128:

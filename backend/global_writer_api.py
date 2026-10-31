@@ -12,6 +12,7 @@ except ImportError:  # the writer core stays importable without FastAPI
     Request = None
 
 import argparse
+import asyncio
 import json
 import os
 import queue
@@ -330,12 +331,8 @@ def create_app(writer: GlobalWriter, *, queue_size: int = 256):
             body = _body(await request.body())
             if body.get('confirm_run_id') != run_id:
                 raise ValueError('confirm_run_id must equal the path run_id')
-            with writer.driver.session(database=writer.database) as session:
-                # Large test runs must not hold millions of deletions in one heap transaction.
-                session.run('MATCH (n {run_id:$run_id}) '
-                            'CALL (n) { DETACH DELETE n } IN TRANSACTIONS OF 1000 ROWS',
-                            run_id=run_id).consume()
-                session.run('MATCH (run:Run {id:$run_id}) DETACH DELETE run', run_id=run_id).consume()
+            from .warehouse_run_cleanup import delete_runtime_run
+            await asyncio.to_thread(delete_runtime_run, writer.driver, writer.database, run_id)
             return {'deleted': True, 'run_id': run_id}
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return JSONResponse({'detail': str(exc)}, status_code=400)
