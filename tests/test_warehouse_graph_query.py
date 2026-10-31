@@ -102,6 +102,19 @@ class WarehouseGraphQueryTests(unittest.TestCase):
         self.assertIn("head(collect(", query)
         self.assertIn("ORDER BY coalesce(e.updated_tick,-1) DESC", query)
 
+    def test_task_trace_aggregates_history_before_sorting_executions(self):
+        driver = FakeDriver([[{
+            "dataset_id": "dataset:day1",
+            "task": {"id": "task:1", "task_id": "T-1"},
+            "goods": None, "source": None, "target": None,
+        }], [], [], [], []])
+        graph = Neo4jWarehouseGraph(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        graph.task_execution_trace("T-1", run_id="run-a", tick=12)
+        query = driver.session_instance.queries[1][0]
+        self.assertIn("WITH e, current, collect(DISTINCT history.robot_id) AS historical_robot_ids", query)
+        self.assertIn("ORDER BY e.updated_tick DESC LIMIT 10", query)
+        self.assertLess(query.index("WITH e, current"), query.index("ORDER BY e.updated_tick"))
+
     def test_latest_complete_step_reads_run_pointer_then_nearest_prior_states(self):
         driver = FakeDriver([
             [{"step": {"tick": 40, "complete": True}}],
@@ -113,6 +126,16 @@ class WarehouseGraphQueryTests(unittest.TestCase):
         self.assertEqual(result["states"][0]["sampled_tick"], 40)
         self.assertIn("run.latest_step", driver.session_instance.queries[0][0])
         self.assertIn("state.tick <= cutoff", driver.session_instance.queries[1][0])
+
+    def test_complete_steps_returns_only_bounded_complete_metadata(self):
+        driver = FakeDriver([[{"step": {"tick": 8, "complete": True}}, {"step": {"tick": 4, "complete": True}}]])
+        graph = Neo4jWarehouseGraph(uri="bolt://test", user="neo4j", password=None, driver=driver)
+        result = graph.complete_steps("run-a", limit=999)
+        self.assertEqual([row["tick"] for row in result["steps"]], [4, 8])
+        query, parameters = driver.session_instance.queries[0]
+        self.assertIn("complete:true", query)
+        self.assertIn("LIMIT $limit", query)
+        self.assertEqual(parameters["limit"], 500)
 
     def test_handoffs_filter_by_task_and_robot(self):
         driver = FakeDriver([[{"handoff": {"id": "run-a:handoff:e-1", "donor_id": 1, "receiver_id": 2}}]])

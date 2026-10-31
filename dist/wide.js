@@ -39,7 +39,7 @@ export function robotColor(robot){const phase=robot.stage||'';return phase==='ch
 
 export function startWidePage(doc=document){
   const $=id=>doc.getElementById(id),canvas=$('wideCanvas'),ctx=canvas.getContext('2d'),stage=$('wideStage');
-  const state={camera:newCamera(),scene:null,status:null,frame:null,selected:null,runId:null,current:false,cursor:0,latest:0,playing:false,busy:false,pending:null,manualSeq:false};
+  const state={camera:newCamera(),scene:null,status:null,frame:null,selected:null,runId:null,run:null,current:false,cursor:0,latest:0,playing:false,busy:false,pending:null,manualSeq:false};
   let width=1,height=1,drag=null,lastTime=0,lastFetch=0,lastStatusRefresh=0;
   const set=(id,value)=>{$(id).textContent=String(value??'—');};
   function api(path){
@@ -48,22 +48,58 @@ export function startWidePage(doc=document){
     target.searchParams.set('run',state.runId);
     return target.pathname+target.search;
   }
-  async function loadRuns(){
+  function runPresentation(run){
+    if(run.running)return {label:'正在运行',className:'run-live',detail:'该运行仍在生成回放帧；使用“最新记录”可跳到当前已录制时刻。'};
+    if(run.current)return {label:'仍在写入',className:'run-writing',detail:'最近两分钟内仍有回放文件更新，记录可能尚未完整。'};
+    if(run.status==='complete')return {label:'已完成',className:'',detail:'该运行已完成，可安全回放其已录制帧。'};
+    if(run.status==='failed')return {label:'运行失败',className:'run-failed',detail:'该运行以失败状态结束；可查看已录制的历史帧。'};
+    return {label:'已归档',className:'',detail:'这是静态的已录制回放，不会继续写入。'};
+  }
+  function taskPresentation(run){
+    const total=Number(run.tasks_total);
+    if(!Number.isFinite(total)||total<=0)return '任务量未记录';
+    const completed=Number(run.completed);
+    if(Number.isFinite(completed))return `任务 ${completed}/${total} 已完成`;
+    const released=Number(run.released);
+    if(Number.isFinite(released))return `任务 ${released}/${total} 已释放`;
+    return `任务 ${total}`;
+  }
+  function updateRunSummary(){
+    const run=state.run,summary=$('runSummary');
+    if(!run||!summary)return;
+    const presentation=runPresentation(run);
+    const stateNode=$('runSummaryState');
+    stateNode.textContent=presentation.label;
+    stateNode.className=presentation.className;
+    set('runSummaryDataset',`数据集：${run.dataset_id||'未标记'}`);
+    set('runSummaryTasks',taskPresentation(run));
+    set('runSummaryTime',`已录制至 ${formatClock(run.latest_second||0)}`);
+    set('runSummaryDetail',`${presentation.detail} Run：${run.run_id||run.id}；帧 ${run.frame_count??0} 个。`);
+    summary.hidden=false;
+  }
+  function optionLabel(run){
+    const stateLabel=runPresentation(run).label;
+    const dataset=run.dataset_id||'未标记数据集';
+    return `${stateLabel} · ${dataset} · ${taskPresentation(run)} · ${formatClock(run.latest_second||0)}`;
+  }
+  async function loadRuns({preserveSelection=false}={}){
     try{
       const runs=await fetchJSON('/api/runs');
       if(!Array.isArray(runs)||!runs.length){error('暂无可用回放运行');return false;}
-      const requested=new URLSearchParams(location.search).get('run');
+      const requested=preserveSelection?state.runId:new URLSearchParams(location.search).get('run');
       const match=runs.find(run=>run.id===requested||run.run_id===requested);
       const current=runs.find(run=>run.current);
       const selected=match?match.id:(current?current.id:runs[0].id);
       const picker=$('runPicker'),select=$('runSelect');
       if(picker&&select){
-        select.replaceChildren(...runs.map(run=>new Option(`${run.current?'● 当前 · ':''}${run.run_id||run.id} · ${run.status||'recorded'} · ${formatClock(run.latest_second||0)}`,run.id,false,run.id===selected)));
+        select.replaceChildren(...runs.map(run=>new Option(optionLabel(run),run.id,false,run.id===selected)));
         picker.hidden=false;
-        select.addEventListener('change',()=>{const next=new URL(location.href);next.searchParams.set('run',select.value);location.href=next.toString();});
+        select.onchange=()=>{const next=new URL(location.href);next.searchParams.set('run',select.value);location.href=next.toString();};
       }
       state.runId=selected;
-      state.current=Boolean(current&&current.id===selected);
+      state.run=runs.find(run=>run.id===selected)||null;
+      state.current=Boolean(state.run?.current);
+      updateRunSummary();
       return true;
     }catch(_){
       if($('runPicker'))$('runPicker').hidden=true;
@@ -159,7 +195,7 @@ export function startWidePage(doc=document){
   $('runTimeline').addEventListener('input',()=>{state.playing=false;set('playRun','播放回放');showFrame(Number($('runTimeline').value));});
   $('playRun').addEventListener('click',()=>{if(state.cursor>=state.latest)showFrame(0);state.playing=!state.playing;set('playRun',state.playing?'暂停':'播放回放');lastTime=0;});
   $('latestRun').addEventListener('click',async()=>{state.playing=false;set('playRun','播放回放');try{await refresh();showFrame(state.latest);}catch{/* refresh already displays the server error */}});
-  $('refreshRun').addEventListener('click',async()=>{try{await refresh();showFrame(state.cursor||state.latest);}catch{/* keep the last real frame on a failed refresh */}});
+  $('refreshRun').addEventListener('click',async()=>{try{await loadRuns({preserveSelection:true});await refresh();showFrame(state.cursor||state.latest);}catch{/* keep the last real frame on a failed refresh */}});
   globalThis.addEventListener('resize',resize);
   function tick(now){
     if(state.playing&&!state.busy&&now-lastFetch>100){const delta=lastTime?Math.min(1,(now-lastTime)/1000):.1;lastTime=lastFetch=now;const next=Math.min(state.latest,state.cursor+Math.max(10,delta*Number($('replaySpeed').value)));showFrame(next);if(next>=state.latest){state.playing=false;set('playRun','播放回放');}}

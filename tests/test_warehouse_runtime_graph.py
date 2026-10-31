@@ -102,7 +102,7 @@ class RuntimeGraphWriterTests(unittest.TestCase):
         writer.record_snapshot(snapshot())
         calls = driver.session_instance.calls
         self.assertGreaterEqual(len(calls), 20)  # schema plus explicit node/relationship batches
-        run_call = calls[9][1]
+        run_call = next(parameters for query, parameters in calls if query == _WRITE_RUN_AND_ROBOTS)
         self.assertEqual(run_call["robots"][0]["id"], "warehouse-run-1:robot:1")
         self.assertEqual(run_call["run"]["dataset_id"], "dataset:day1")
         event_call = next(call for call in calls if call[0] == _WRITE_EVENTS)

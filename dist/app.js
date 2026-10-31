@@ -59,8 +59,10 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
   const ACTIVE_BOX_PALETTE = { top: "#e8c57c", left: "#9d7042", right: "#bd8952" };
 
   const state = {
-    running: false,
-    speed: 1,
+    // Match a fresh coordinator before its first authoritative snapshot
+    // arrives: run immediately at the default 60x speed.
+    running: true,
+    speed: 60,
     view: "iso",
     zoom: 1,
     panX: 0,
@@ -1540,6 +1542,25 @@ import {samePhysicalFrame,progressPresentation,platformStageProgress,platformTas
       steps.forEach((step) => step.classList.add("done"));
     }
     drawPortrait(robot);
+    syncKnowledgeGraphLink(robot);
+  }
+
+  // The graph workbench stays a separate read-only page.  This link carries
+  // only the current viewing context; it never changes a running simulation.
+  function syncKnowledgeGraphLink(selectedRobot = robots.find((item) => item.id === state.selectedId)) {
+    const link = $("#kgLink");
+    if (!link) return;
+    const frame = platformFrame;
+    if (!frame?.runId) {
+      link.href = "./kg.html";
+      return;
+    }
+    const params = new URLSearchParams({ run_id: frame.runId });
+    if (Number.isInteger(frame.tick) && frame.tick >= 0) params.set("tick", String(frame.tick));
+    if (selectedRobot?.id) params.set("robot_id", String(selectedRobot.id));
+    if (selectedRobot?.taskId) params.set("task_id", String(selectedRobot.taskId));
+    link.href = `./kg.html?${params.toString()}`;
+    link.title = `追溯 Run ${frame.runId} / tick ${frame.tick ?? "—"}${selectedRobot ? ` / ${robotCode(selectedRobot.id)}` : ""}`;
   }
 
   function updateMetrics() {

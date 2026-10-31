@@ -577,9 +577,10 @@ def create_app(settings: ServerSettings | None = None) -> Any:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     @app.get("/api/kg/warehouse/tasks/{task_id}/trace")
-    async def warehouse_task_trace(task_id: str, dataset_id: str | None = None) -> dict[str, Any]:
+    async def warehouse_task_trace(task_id: str, dataset_id: str | None = None,
+                                   run_id: str | None = None, tick: int | None = None) -> dict[str, Any]:
         try:
-            return await asyncio.to_thread(service.warehouse_graph.task_execution_trace, task_id, dataset_id)
+            return await asyncio.to_thread(service.warehouse_graph.task_execution_trace, task_id, dataset_id, run_id, tick)
         except WarehouseGraphUnavailable as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -614,6 +615,13 @@ def create_app(settings: ServerSettings | None = None) -> Any:
             return await asyncio.to_thread(service.warehouse_graph.runtime_state_trace, run_id, tick, robot_id)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except WarehouseGraphUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.get("/api/kg/warehouse/runs/{run_id}/steps")
+    async def warehouse_complete_steps(run_id: str, limit: int = 500) -> dict[str, Any]:
+        try:
+            return await asyncio.to_thread(service.warehouse_graph.complete_steps, run_id, limit=limit)
         except WarehouseGraphUnavailable as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
