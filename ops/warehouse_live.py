@@ -380,6 +380,8 @@ def main(argv=None):
                    help='use synchronous graph writes for comparison; memory dispatch defaults to bounded asynchronous writes')
     p.add_argument('--robot-graph-backlog',type=int,default=8,
                    help='maximum uncommitted robot ticks, including in-flight writes; 1..128, default 8')
+    p.add_argument('--autostart',action='store_true',help='a fresh run starts advancing immediately (restored runs stay paused)')
+    p.add_argument('--initial-speed',type=float,default=1.0,help='initial wall-clock speed, 0.1..120')
     p.add_argument('--robot-processes',choices=('off','local','ray'),default='off',
                    help='robots advance in their own robot processes (local objects or one Ray actor each); same dispatch results')
     p.add_argument('--kg-state-source', choices=('memory', 'neo4j'), default='memory',
@@ -437,7 +439,7 @@ def main(argv=None):
         query_summary_root=(args.summary_root or args.output_root) if args.query_acceleration=='summary' else None,
         query_summary_cache=args.query_summary_cache if args.query_acceleration=='summary' else None,
         query_point_path=args.query_point_file,mobility=args.mobility,max_active_robots=args.max_active_robots,
-        ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,robot_processes=args.robot_processes,
+        ray=args.ray,ray_address=args.ray_address,ray_actor_cpus=args.ray_actor_cpus,robot_processes=args.robot_processes,autostart=args.autostart,initial_speed=args.initial_speed,
         robot_graph=args.robot_graph,graph_state_interval=args.graph_state_interval,
         robot_graph_async=args.robot_graph_async,robot_graph_backlog=args.robot_graph_backlog,
         global_writer=args.global_writer,global_writer_queue=args.global_writer_queue,global_writer_url=args.global_writer_url,

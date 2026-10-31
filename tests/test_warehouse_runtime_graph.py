@@ -7,6 +7,7 @@ from backend.warehouse_runtime_graph import (
     _WRITE_EVENTS,
     _WRITE_EXECUTION_STATES,
     _WRITE_EXECUTIONS,
+    _WRITE_AGENT_STATES,
     _WRITE_RUN_AND_ROBOTS,
     v5_runtime_snapshot,
 )
@@ -114,7 +115,7 @@ class RuntimeGraphWriterTests(unittest.TestCase):
         self.assertEqual(history_call[1]["states"][0]["status"], "assigned")
         execution_event_call = next(call for call in calls if call[0] == _LINK_EVENTS_TO_EXECUTIONS)
         self.assertIn("ABOUT_EXECUTION", execution_event_call[0])
-        state_call = next(call for call in calls if "UNWIND $states" in call[0])
+        state_call = next(call for call in calls if call[0] == _WRITE_AGENT_STATES)
         self.assertEqual(state_call[1]["states"][0]["run_id"], "warehouse-run-1")
         self.assertEqual(state_call[1]["states"][0]["robot_id"], 1)
 

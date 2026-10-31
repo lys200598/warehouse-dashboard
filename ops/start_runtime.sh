@@ -226,6 +226,8 @@ if [ "$STACK" = "medium" ]; then
     --mobility wheeled
     --commit-seconds "${COMMIT_SECONDS:-5}"
     --dist "$ROOT/dist"
+    --autostart
+    --initial-speed 60
     --port 4173
   )
   if [ "$RAY" = "1" ]; then

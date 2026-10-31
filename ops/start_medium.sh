@@ -84,7 +84,7 @@ nohup "$ROOT/run_in_lade.sh" python "$ROOT/ops/warehouse_live.py" \
   --mobility wheeled \
   --commit-seconds 5 \
   "${RAY_ARGS[@]}" \
-  --port "$PORT" >"$LOG" 2>&1 &
+  --autostart --initial-speed 60 --port "$PORT" >"$LOG" 2>&1 &
 PID=$!
 echo "$PID" >"$PIDFILE"
 

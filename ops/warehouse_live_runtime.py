@@ -121,7 +121,10 @@ class WarehouseLiveRuntime:
                  robot_graph=False, graph_state_interval=4,
                  global_writer=False, global_writer_queue=256, global_writer_url=None,
                  kg_state_source='memory', legacy_a_graph=False, robot_context_interval=10,
-                 robot_graph_async=True, robot_graph_backlog=8):
+                 robot_graph_async=True, robot_graph_backlog=8, autostart=False, initial_speed=1.0):
+        # 4173 passes --autostart (lys): a fresh run starts advancing at once.
+        # Restored runs always stay paused; other launchers keep ready + Start.
+        self.autostart=bool(autostart)
         if type(robot_graph_async) is not bool:
             raise ValueError('robot_graph_async must be boolean')
         if type(robot_graph_backlog) is not int or not 1 <= robot_graph_backlog <= 128:
@@ -251,7 +254,7 @@ class WarehouseLiveRuntime:
         self.runtime_instance_id = str(uuid.uuid4())
         # Fresh live runs are intended to be immediately observable from the
         # 4173 console, rather than waiting for an initial manual Start click.
-        self._speed = 60.
+        self._speed = float(initial_speed)
         self._commands = queue.Queue(maxsize=128)
         self._lock = threading.RLock()
         self._changed = threading.Condition(self._lock)
@@ -571,10 +574,11 @@ class WarehouseLiveRuntime:
         # This is the authoritative live-runtime default used by 4173.  Do
         # not rely on a browser-side click: the owner must start advancing
         # before the first snapshot is published.
-        sim.running = not already_complete
+        autostart = getattr(self, 'autostart', False) and not resume and not already_complete
+        sim.running = autostart
         self._rate_points.clear()
         self._rate_points.append((time.monotonic(), sim.elapsed))
-        self._state = 'complete' if already_complete else 'running'
+        self._state = 'complete' if already_complete else ('running' if autostart else ('paused' if resume else 'ready'))
         self._scene = deepcopy(sim.scene)
         self._persist()
         if already_complete:
