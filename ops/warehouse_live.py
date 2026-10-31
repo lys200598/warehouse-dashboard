@@ -246,6 +246,12 @@ def create_app(runtime,datasets,dist,*,catalog_factory=None,catalog_description=
             return value if value is not None else JSONResponse({'detail':'complete Step not found'},status_code=404)
         except Exception as exc:return kg_unavailable(exc)
 
+    @app.get('/api/kg/warehouse/runs/{run_id}/steps')
+    async def kg_complete_steps(run_id: str, limit: int = 500):
+        if kg_graph is None:return kg_unavailable()
+        try:return await asyncio.to_thread(kg_graph.complete_steps,run_id,limit=limit)
+        except Exception as exc:return kg_unavailable(exc)
+
     @app.get('/api/kg/warehouse/runs/{run_id}/robots/{robot_id}/trace')
     async def kg_robot_trace(run_id: str, robot_id: int, tick: int | None = None, history_limit: int = 20):
         if kg_graph is None:return kg_unavailable()

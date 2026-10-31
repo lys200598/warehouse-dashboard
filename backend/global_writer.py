@@ -337,9 +337,9 @@ class GlobalWriter:
                     'MERGE (event)-[:IN_RUN]->(run)',
                     run_id=run_id, events=rows).consume()
             # Publish the complete boundary only after ownership and all global facts.
-            self._write_step(session, run_id, record.get('step') or {}, now)
+            self._write_step(session, run_id, record.get('step') or {}, now, record.get('elapsed'))
 
-    def _write_step(self, session, run_id: str, step: dict[str, Any], now: int):
+    def _write_step(self, session, run_id: str, step: dict[str, Any], now: int, elapsed: Any | None = None):
         """Write a monotonic complete-frame marker for bounded graph reads."""
         if not step:
             return
@@ -352,6 +352,7 @@ class GlobalWriter:
                 'commit_seq': int(step.get('commit_seq', tick)), 'expected_robot_count': expected,
                 'received_robot_ids_json': _json(received), 'received_robot_count': len(received),
                 'complete': True, 'source': str(step.get('source', 'main-coordinator')),
+                'elapsed': int(elapsed) if elapsed is not None else None,
                 'updated_at_ms': now}
         session.run(
             'MATCH (run:Run {id:$run_id}) '

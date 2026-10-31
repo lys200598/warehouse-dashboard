@@ -151,11 +151,12 @@ class Neo4jWarehouseGraph:
           AND coalesce(e.updated_tick,0) <= $tick
         OPTIONAL MATCH (current:Robot {id:e.current_robot_node_id})
         OPTIONAL MATCH (e)-[:ASSIGNED_TO]->(history:Robot)
+        WITH e, current, collect(DISTINCT history.robot_id) AS historical_robot_ids
+        ORDER BY e.updated_tick DESC LIMIT 10
         RETURN e { .id,.run_id,.status,.assigned_tick,.picked_tick,.completed_tick,.updated_tick,.cargo_id,.dataset_id,
                    .current_robot_id,.current_robot_node_id } AS execution,
                current { .robot_id,.battery,.stage } AS current_robot,
-               collect(DISTINCT history.robot_id) AS historical_robot_ids
-        ORDER BY e.updated_tick DESC LIMIT 10""",
+               historical_robot_ids""",
                                    task_id=task_id, dataset_id=dataset_id, run_id=run_id, tick=requested_tick)
         execution_states = self._query("""MATCH (state:ExecutionState {task_id:$task_id})
         WHERE (($run_id IS NOT NULL AND state.run_id=$run_id)
@@ -223,7 +224,9 @@ class Neo4jWarehouseGraph:
         rows = self._query("""MATCH (run:Run {id:$run_id})
         WITH run, run.latest_step AS tick
         MATCH (step:Step {run_id:$run_id}) WHERE step.tick = tick AND step.complete = true
-        RETURN step {.*} AS step""", run_id=run_id)
+        OPTIONAL MATCH (stat:RunStat {run_id:$run_id, tick:step.tick})
+        WITH step, max(stat.elapsed) AS stat_elapsed
+        RETURN step {.*, elapsed:coalesce(step.elapsed, stat_elapsed)} AS step""", run_id=run_id)
         if not rows:
             return None
         step = rows[0]['step']
@@ -231,6 +234,21 @@ class Neo4jWarehouseGraph:
         if include_states:
             result['states'] = self.complete_step_states(run_id, int(step['tick']), limit=limit)['states']
         return result
+
+    def complete_steps(self, run_id: str, *, limit: int = 500) -> dict[str, Any]:
+        """Return recent complete Step metadata only, in chronological order.
+
+        This deliberately excludes AgentState rows: the timeline controller
+        needs selectable graph-consistent cutoffs, not a full fleet snapshot.
+        """
+        limit = max(1, min(limit, 500))
+        rows = self._query("""MATCH (step:Step {run_id:$run_id, complete:true})
+        OPTIONAL MATCH (stat:RunStat {run_id:$run_id, tick:step.tick})
+        WITH step, max(stat.elapsed) AS stat_elapsed
+        RETURN step { .tick,.commit_seq,.expected_robot_count,.received_robot_count,
+                      .source,.updated_at_ms, elapsed:coalesce(step.elapsed, stat_elapsed) } AS step
+        ORDER BY step.tick DESC LIMIT $limit""", run_id=run_id, limit=limit)
+        return {"runId": run_id, "steps": [row["step"] for row in reversed(rows)], "limit": limit}
 
     def complete_step_states(self, run_id: str, tick: int, *, limit: int = 200) -> dict[str, Any]:
         """One nearest-prior AgentState per robot, bounded by a committed Step."""

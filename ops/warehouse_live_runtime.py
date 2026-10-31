@@ -249,7 +249,9 @@ class WarehouseLiveRuntime:
         self.wall_interval = float(wall_interval)
         self.expected_neo4j_uri = expected_neo4j_uri
         self.runtime_instance_id = str(uuid.uuid4())
-        self._speed = 1.
+        # Fresh live runs are intended to be immediately observable from the
+        # 4173 console, rather than waiting for an initial manual Start click.
+        self._speed = 60.
         self._commands = queue.Queue(maxsize=128)
         self._lock = threading.RLock()
         self._changed = threading.Condition(self._lock)
@@ -564,12 +566,15 @@ class WarehouseLiveRuntime:
             self._provider = self._core.provider.GraphHistoryProvider(store,
                 self._core.queries.FragmentQueryService.from_env(timeout=5, pool_size=4), max_lag_seconds=30)
             sim.history_provider = self._provider
-        sim.running = False
-        self._rate_points.clear()
-        self._rate_points.append((time.monotonic(), sim.elapsed))
         already_complete = (resume and sim.elapsed >= sim.manifest['duration_seconds']
             and sim.cursor == len(sim.tasks) and sim.metrics['completed'] == len(sim.tasks) and not sim.assists)
-        self._state = 'complete' if already_complete else ('paused' if resume else 'ready')
+        # This is the authoritative live-runtime default used by 4173.  Do
+        # not rely on a browser-side click: the owner must start advancing
+        # before the first snapshot is published.
+        sim.running = not already_complete
+        self._rate_points.clear()
+        self._rate_points.append((time.monotonic(), sim.elapsed))
+        self._state = 'complete' if already_complete else 'running'
         self._scene = deepcopy(sim.scene)
         self._persist()
         if already_complete:

@@ -9,7 +9,7 @@
       content="100 台轻量人形机器人协同完成取货、搬运和多层货架上架任务的可交互仓储仿真控制台。"
     />
     <title>100台人形机器人仓储调度台</title>
-    <link rel="stylesheet" href="./styles.css?v=20261028-original-v5" />
+    <link rel="stylesheet" href="./styles.css?v=20261031-kg-link" />
   </head>
   <body>
     <div class="app-shell">
@@ -38,7 +38,7 @@
           <button class="button ghost export-button" id="exportButton" type="button" aria-label="导出机器人状态">
             <span class="download-icon" aria-hidden="true">↓</span> 导出状态
           </button>
-          <a class="button ghost graph-link" href="./kg.html">知识图谱工作台</a>
+          <a class="button ghost graph-link" id="kgLink" href="./kg.html" title="打开当前运行批次、选中机器人和任务的知识图谱追溯">知识图谱工作台</a>
           <a class="button ghost replay-link" id="replayLink" href="http://127.0.0.1:14185/" target="_blank" rel="noopener" title="打开独立的多运行回放页面">回放页面</a>
         </div>
       </header>
@@ -197,9 +197,9 @@
               <button class="play-button" id="playButton" type="button" aria-label="暂停仿真"><span id="playIcon">Ⅱ</span></button>
               <div class="speed-control" id="speedControl">
                 <button type="button" data-speed="0.5">0.5×</button>
-                <button type="button" class="active" data-speed="1">1×</button>
+                <button type="button" data-speed="1">1×</button>
                 <button type="button" data-speed="2">2×</button>
-                <button type="button" data-speed="4">4×</button><button type="button" data-speed="20">20×</button><button type="button" data-speed="60">60×</button>
+                <button type="button" data-speed="4">4×</button><button type="button" data-speed="20">20×</button><button type="button" class="active" data-speed="60">60×</button>
               </div>
               <div class="timeline-track">
                 <div class="timeline-labels"><span id="timelineStart">00:00</span><span id="timelineLabel">等待输入</span><span id="timelineEnd">—</span></div>
@@ -293,6 +293,6 @@
       <span id="toastIcon">✓</span><p id="toastText">操作已完成</p>
     </div>
 
-    <script type="module" src="./app.js?v=20261028-original-v5"></script>
+    <script type="module" src="./app.js?v=20261031-default-60x"></script>
   </body>
 </html>

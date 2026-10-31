@@ -70,6 +70,15 @@ class RunCatalog:
                     results = value
             except (OSError, UnicodeError, json.JSONDecodeError):
                 results = {}
+        manifest = {}
+        manifest_path = directory / "live-manifest.json"
+        if manifest_path.is_file():
+            try:
+                value = json.loads(manifest_path.read_text(encoding="utf-8"))
+                if isinstance(value, dict):
+                    manifest = value
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                manifest = {}
         with sqlite3.connect(f"file:{directory / 'frames.sqlite'}?mode=ro", uri=True, timeout=5) as db:
             frame_count, first_second, latest_second = db.execute(
                 "SELECT COUNT(*), MIN(second), MAX(second) FROM frames"
@@ -77,6 +86,19 @@ class RunCatalog:
         run_id = str(latest.get("runId") or results.get("run_id") or directory.name)
         modified_at = (directory / "frames.sqlite").stat().st_mtime
         running = bool(latest.get("running"))
+        metrics = latest.get("metrics") if isinstance(latest.get("metrics"), dict) else {}
+        total_tasks = (
+            results.get("tasks_total")
+            or latest.get("totalTasks")
+            or manifest.get("tasks_total")
+        )
+        completed = results.get("completed")
+        if completed is None:
+            completed = metrics.get("completed")
+        unreleased = latest.get("unreleased")
+        released = results.get("released")
+        if released is None and total_tasks is not None and unreleased is not None:
+            released = max(0, int(total_tasks) - int(unreleased))
         # A run is "current" when it is still being written or was active in
         # the last two minutes. Historical runs keep their immutable status.
         current = (running or time.time() - modified_at <= 120) and results.get("status") not in {"complete", "failed"}
@@ -87,10 +109,17 @@ class RunCatalog:
             "status": results.get("status") or ("running" if running else "recorded"),
             "running": running,
             "current": current,
+            "dataset_id": str(
+                manifest.get("dataset_id")
+                or latest.get("dataset_id")
+                or latest.get("datasetId")
+                or ""
+            ) or None,
             "elapsed": latest.get("elapsed"),
             "wall_seconds": results.get("wall_seconds"),
-            "tasks_total": results.get("tasks_total"),
-            "released": results.get("released"),
+            "tasks_total": total_tasks,
+            "completed": completed,
+            "released": released,
             "unfinished": results.get("unfinished"),
             "frame_count": int(frame_count or 0),
             "first_second": first_second,

@@ -87,8 +87,11 @@ class SimulationCoordinator:
         self.tick = 0
         self.elapsed = 0.0
         self.completed = 0
+        # The dashboard opens as an active live simulation.  Keep this in the
+        # authoritative coordinator (rather than only in the browser) so a
+        # fresh 4173 run does not briefly render as paused / 1x.
         self.running = True
-        self.speed = 1.0
+        self.speed = 60.0
         self.task_sequence = 0
         self.task_credit = 0.0
         self.pending_priority = 0
@@ -557,8 +560,8 @@ class SimulationCoordinator:
             self.running = True
             self._record_system_event("仿真已继续")
         elif action == "set_speed":
-            if value not in {0.5, 1.0, 2.0, 4.0}:
-                raise ValueError("speed must be one of 0.5, 1, 2, 4")
+            if value not in {0.5, 1.0, 2.0, 4.0, 20.0, 60.0}:
+                raise ValueError("speed must be one of 0.5, 1, 2, 4, 20, 60")
             self.speed = float(value)
             self._record_system_event(f"仿真速度已切换为 {self.speed:g}×")
         elif action == "set_flow_rate":

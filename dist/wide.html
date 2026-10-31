@@ -15,12 +15,15 @@
     #queryStatus{font-size:12px;color:var(--muted)}#robotFacts dd{overflow-wrap:anywhere;max-width:185px;text-align:right}.map-note{letter-spacing:1px}.wide-error{color:#f0a65a!important}
     #runPicker{display:flex;gap:8px;align-items:center;font:12px var(--mono);color:var(--muted)}
     #runPicker[hidden]{display:none}
-    #runPicker select{max-width:420px}
+    #runPicker select{max-width:min(520px,48vw)}
+    .run-summary{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 15px 12px;padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--lime);border-radius:5px;background:#111a14;color:var(--muted);font:12px/1.5 var(--mono)}
+    .run-summary[hidden]{display:none}.run-summary strong{color:var(--text)}.run-summary .run-live{color:var(--lime)}.run-summary .run-writing{color:#f0a65a}.run-summary .run-failed{color:#ef7777}.run-summary code{color:#b6c7bb}.run-summary small{flex-basis:100%;color:var(--muted)}
+    @media(max-width:760px){.page-header{align-items:flex-start}.page-header #runPicker{width:100%;order:3}.page-header #runPicker select{max-width:calc(100vw - 94px);flex:1}.run-summary{margin-inline:10px}}
   </style>
 </head>
 <body>
 <main class="layout-app">
-  <header class="page-header"><div class="title-group"><span class="brand-symbol">▦</span><div><div class="eyebrow">WAREHOUSE / SHARED TEMPORAL KNOWLEDGE</div><h1>宽松仓库 · 真实运行与时序知识</h1></div></div><label id="runPicker" hidden>运行 <select id="runSelect"></select></label><button id="refreshRun" type="button">刷新运行</button></header>
+  <header class="page-header"><div class="title-group"><span class="brand-symbol">▦</span><div><div class="eyebrow">WAREHOUSE / SHARED TEMPORAL KNOWLEDGE</div><h1>宽松仓库 · 真实运行与时序知识</h1></div></div><label id="runPicker" hidden>回放运行 <select id="runSelect" aria-label="选择回放运行"></select></label><button id="refreshRun" type="button">刷新运行列表</button></header>
   <section class="overview" aria-label="当前场景">
     <div><span>米制布局</span><strong id="sceneSize">—</strong><p>来自当前运行绑定的地图</p></div>
     <div><span>物理泊位</span><strong id="bayCount">—</strong><p>P/C别名只计一个泊位</p></div>
@@ -35,6 +38,7 @@
       <div class="legend"><span><i class="lime"></i>作业</span><span><i class="blue"></i>充电</span><span><i class="orange"></i>等待/故障</span><span><i class="neutral"></i>待命</span><span id="frameClock">—</span></div>
       <div class="wide-controls"><button id="playRun" type="button">播放回放</button><button id="latestRun" type="button">最新记录</button><label style="margin:0">倍速 <select id="replaySpeed"><option value="20">20×</option><option value="60">60×</option><option value="300" selected>300×</option><option value="900">900×</option></select></label><output id="cursorValue">—</output></div>
       <input id="runTimeline" class="wide-timeline" type="range" min="0" max="0" step="10" value="0" aria-label="回放仿真时间">
+      <div id="runSummary" class="run-summary" hidden aria-live="polite"><strong id="runSummaryState">—</strong><span id="runSummaryDataset">—</span><span id="runSummaryTasks">—</span><span id="runSummaryTime">—</span><small id="runSummaryDetail">—</small></div>
       <p id="runStatus" aria-live="polite">正在连接只读运行接口…</p>
     </section>
     <aside class="inspector"><section><div class="eyebrow">ACTUAL AGENT STATE</div><h2>机器人与货物</h2><label for="robotSelect">选择本帧机器人</label><select id="robotSelect"><option value="">尚无运行帧</option></select><dl id="robotFacts"></dl><p class="fine-print">地图只显示后端返回的实体状态。空充电硬件可穿越，不代表停靠或满电机器人可穿越。</p></section><section><div class="eyebrow">KNOWLEDGE WATERMARK</div><h2>时序记录边界</h2><dl id="knowledgeFacts"></dl><p class="fine-print">查询按已提交序号 seq 截止；五分钟状态采样不冒充逐秒图谱快照。历史货权依照完整事件链还原。</p></section><section><div class="eyebrow">RESEARCH SCOPE</div><h2>稳定的实验载体</h2><p class="fine-print">地图、任务、机器人与查询绑定同一运行。100个模型、100车移动、100个并发查询是不同指标，不在本页互相替代。</p></section></aside>
@@ -42,5 +46,5 @@
   <section class="wide-query" aria-label="时序知识查询"><div class="eyebrow">READ-ONLY KNOWLEDGE / NO ARBITRARY CYPHER</div><h2>查看保管链、智能体记忆与协作</h2><div class="query-row"><label>查询类型<select id="queryKind"><option value="robot">机器人上下文</option><option value="goods">货物保管链</option><option value="cooperation">任务协作链</option></select></label><label>实体编号<input id="queryId" placeholder="机器人数字 / 货物ID / 任务ID" autocomplete="off"></label><label class="query-seq">截止序号 seq<input id="querySeq" type="number" min="1" step="1" placeholder="当前帧已提交序号"></label><button id="runQuery" type="button">查询</button></div><div class="query-actions"><button id="queryRobot" type="button">选中机器人</button><button id="queryGoods" type="button">选中货物保管链</button><button id="queryCoop" type="button">选中任务协作链</button><button id="copyKnowledge" type="button">复制结果</button></div><p id="queryStatus" aria-live="polite">查询结果直接来自服务端，不展示预制知识示例。</p><pre id="knowledgeResult">尚未查询</pre></section>
   <footer><span>WIDE WAREHOUSE / RUNTIME & TEMPORAL MEMORY</span><span>左键旋转 · 右/中键平移 · 滚轮缩放</span></footer>
 </main>
-<script type="module" src="./wide.js"></script>
+<script type="module" src="./wide.js?v=20261031-run-catalog"></script>
 </body></html>

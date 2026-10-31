@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>仓储知识图谱工作台</title>
-  <link rel="stylesheet" href="./styles.css?v=20261027-kg-11">
+  <link rel="stylesheet" href="./styles.css?v=20261031-kg-query-adaptive-height">
 </head>
 <body>
   <main class="kg-page" id="kgApp">
@@ -16,137 +16,419 @@
       </div>
       <a class="kg-back" href="/">← 返回仓库运行页</a>
     </header>
+    <div class="kg-shell">
+      <aside class="kg-sidebar" aria-label="运行与回看控制">
+        <section class="kg-sidebar-section"><span class="section-kicker">RUN CONTEXT</span><label for="run">当前 Run ID <input id="run" list="runSuggestions" placeholder="从 4173 自动带入，也可输入历史 Run ID" aria-label="当前运行批次 Run ID"><datalist id="runSuggestions"></datalist></label><span id="runContextHint">该 Run 将用于完整 Step、任务、机器人、运行态与全局记录查询。</span></section>
+        <section class="kg-step-controller" aria-labelledby="stepControllerTitle"><div><span class="section-kicker">COMPLETE STEP REPLAY</span><h2 id="stepControllerTitle">完整 Step 回看</h2><p id="stepControllerDetail">正在读取当前 Run 的完整 Step…</p></div><div class="kg-step-controls"><button id="stepPrevious" type="button" disabled>← 上一 Step</button><input id="stepSlider" type="range" min="0" max="0" value="0" disabled aria-label="完整 Step 回看"><button id="stepNext" type="button" disabled>下一 Step →</button><button id="stepLatest" type="button" disabled>回到最新</button></div><div class="kg-step-readout"><strong id="stepReadout">未选择 Step</strong><span id="stepReceipt">只读取 `Step.complete=true`，不会推进仿真。</span></div></section>
+        <section class="kg-sidebar-selection"><span class="section-kicker">CURRENT SELECTION</span><p id="sidebarSelection">先选择完整 Step，再从右侧选择任务或机器人。</p></section>
+        <nav class="kg-side-nav" aria-label="工作台分区"><a href="#kgRuntime">运行态</a><a href="#kgGlobal">全局记录</a><a href="#kgTasks">任务追溯</a><a href="#kgRobots">机器人追溯</a><a href="#kgQuery">高级查询</a></nav>
+      </aside>
+      <div class="kg-content">
     <section class="kg-dashboard-grid">
       <article class="kg-panel"><span class="section-kicker">DATASET</span><h2>生成测试数据</h2><p class="kg-value" id="dataset">正在读取 Neo4j…</p><p>任务、库存和货位来自可重复生成的 CSV 数据包。</p></article>
       <article class="kg-panel"><span class="section-kicker">NEO4J</span><h2>静态图谱与运行态写入</h2><p class="kg-value" id="write">正在检查连接…</p><p id="writeDetail">Warehouse / Task / Robot / Execution / Event 等节点由导入和运行后端写入。</p></article>
       <article class="kg-panel kg-closure-panel"><span class="section-kicker">READY CHECK</span><h2>可追溯状态</h2><ul id="closure"><li>正在检查数据集与数据库连接…</li></ul></article>
+      <article class="kg-panel kg-run-anchor"><span class="section-kicker">COMPLETE STEP</span><h2>图谱调度锚点</h2><p class="kg-value" id="runAnchor">等待当前 Run…</p><dl class="kg-anchor-facts" id="runAnchorFacts"><div><dt>完整 Step</dt><dd>—</dd></div><div><dt>机器人回执</dt><dd>—</dd></div><div><dt>派单状态来源</dt><dd>—</dd></div><div><dt>图谱写入</dt><dd>—</dd></div></dl><p id="runAnchorDetail">仅显示已完成 Step；不会触发仿真或写入。</p></article>
     </section>
     <p class="kg-relation-line"><b>Task</b> → Goods / Location　·　<b>Execution</b> → Task / Robot　·　<b>AgentState / Event</b> → Robot / Run</p>
-    <details class="kg-query-workbench">
-      <summary><span>查询与性能验证</span><small>仅预置只读查询 · 不开放任意 Cypher</small></summary>
-      <div class="kg-preset-actions" id="presetActions">
-        <button type="button" data-preset="run-progress">运行批次统计</button>
-        <button type="button" data-preset="task-trace">任务全链路</button>
-        <button type="button" data-preset="robot-trace">机器人上下文</button>
-        <label class="kg-tick-input">tick <input id="replayTick" type="number" min="0" value="0" aria-label="回放 tick"></label><button type="button" data-preset="replay-tick">指定 tick 回放</button>
-      </div>
-      <p class="kg-query-status" id="queryStatus">选择查询后执行。后端返回图谱查询耗时，网页同时记录端到端请求耗时。</p>
-      <div class="kg-query-timing"><span>后端图谱查询 <b id="queryBackendMs">—</b></span><span>浏览器请求总耗时 <b id="queryBrowserMs">—</b></span></div>
-      <pre class="kg-query-result" id="queryResult">尚无查询结果。</pre>
-      <button class="kg-export" id="queryExport" type="button" disabled>导出本次查询 JSON</button>
-    </details>
+    <p class="kg-graph-legend" aria-label="关系图节点图例"><span class="task">Task</span><span class="robot">Robot</span><span class="execution">Execution</span><span class="state">State</span><span class="event">Event</span><span class="handoff">Handoff</span><small>任务和机器人追溯图沿用这些颜色；亮线表示当前选中节点的直接关系。</small></p>
+    <section class="kg-runtime-grid" id="kgRuntime" aria-label="运行态与全局记录">
     <section class="kg-replay" aria-labelledby="runtimeTraceTitle">
       <div class="kg-replay-head"><div><span class="section-kicker">RUNTIME TRACE</span><h2 id="runtimeTraceTitle">图谱运行态追溯</h2></div><span>仅读取 Neo4j AgentState</span></div>
-      <p>输入 Run ID 和可选 tick，点击查询后返回该 tick 或此前最近一次写入的机器人文字状态。机器人编号留空时，显示该时刻所有已写入机器人。</p>
-      <div class="kg-trace kg-runtime-trace"><input id="runtimeRun" placeholder="运行批次 Run ID" aria-label="运行批次 ID"><input id="runtimeTick" type="number" min="0" placeholder="tick（留空为最新）" aria-label="追溯 tick"><input id="runtimeRobot" type="number" min="1" placeholder="机器人编号（可选）" aria-label="机器人编号"><button id="runtimeTrace" type="button">查询运行态</button></div>
-      <div class="kg-result" id="runtimeTraceResult">输入 Run ID 后查询；结果会明确显示请求 tick 与实际采样 tick。</div>
+      <p>使用上方当前 Run ID，输入可选 tick 和机器人编号；查询返回该 tick 或此前最近一次写入的机器人文字状态。机器人编号留空时，显示该时刻所有已写入机器人。</p>
+      <div class="kg-trace kg-runtime-trace"><input id="runtimeTick" type="number" min="0" placeholder="tick（留空为当前 Step）" aria-label="追溯 tick"><select id="runtimeRobot" aria-label="运行态机器人"><option value="">全部机器人</option></select><button id="runtimeTrace" type="button">查询运行态</button></div>
+      <div class="kg-result" id="runtimeTraceResult">请先在上方确认当前 Run ID；结果会明确显示请求 tick 与实际采样 tick。</div>
       <div class="kg-runtime-records" id="runtimeTraceRecords"></div>
     </section>
-    <section class="kg-replay" aria-labelledby="globalTitle">
+    <section class="kg-replay" id="kgGlobal" aria-labelledby="globalTitle">
       <div class="kg-replay-head"><div><span class="section-kicker">GLOBAL RUN</span><h2 id="globalTitle">全局统计与跨机协助</h2></div><span>RunStat / Assist / global RuntimeEvent</span></div>
-      <p>查询由全局 writer 写入的知识图谱记录：每个提交 tick 的 RunStat、跨机协助 Assist，以及 robot_id 为空的全局事件。</p>
-      <div class="kg-trace kg-runtime-trace"><input id="globalRun" placeholder="运行批次 Run ID" aria-label="运行批次 ID"><button id="globalTrace" type="button">查询全局记录</button></div>
-      <div class="kg-result" id="globalResult">输入 Run ID 后查询全局 RunStat / Assist / 事件。</div>
-      <div class="kg-runtime-records" id="globalRecords"></div>
+      <p>使用上方当前 Run ID 查询全局 writer 写入的 RunStat、跨机协助 Assist，以及 robot_id 为空的全局事件。</p>
+      <div class="kg-trace kg-runtime-trace"><button id="globalTrace" type="button">查询全局记录</button></div>
+      <div class="kg-result" id="globalResult">请先在上方确认当前 Run ID，再查询 RunStat / Assist / 事件。</div>
+      <div class="kg-context-grid" id="globalContext" aria-live="polite"></div>
+      <div class="kg-runtime-records kg-timeline" id="globalRecords"></div>
+    </section>
     </section>
     <section class="kg-query-grid">
-      <article class="kg-panel kg-query-panel"><span class="section-kicker">TASK TRACE</span><h2>按任务追溯：货物、起终点、执行和事件</h2><div class="kg-trace"><input id="task" placeholder="从下方选择任务，或输入任务 ID" aria-label="任务 ID"><button id="trace" type="button">查询任务</button></div><div class="kg-task-list" id="tasks">加载任务列表…</div><div class="kg-result" id="taskResult">选择一条任务，查看图谱中已关联的静态关系和运行态记录。</div><div class="kg-timeline" id="taskTimeline"></div></article>
-      <article class="kg-panel kg-query-panel"><span class="section-kicker">ROBOT TRACE</span><h2>按机器人追溯：状态轨迹与执行事件</h2><div class="kg-trace"><input id="run" placeholder="运行批次 Run ID" aria-label="运行批次 ID"><input id="robot" type="number" min="1" value="1" aria-label="机器人编号"><button id="robotTrace" type="button">查询机器人</button></div><div class="kg-result" id="robotResult">运行态写入后，输入当前 Run ID 与机器人编号，即可查看从 Neo4j 读取的状态和事件数。</div><div class="kg-timeline" id="robotTimeline"></div></article>
+      <article class="kg-panel kg-query-panel" id="kgTasks"><span class="section-kicker">TASK TRACE</span><h2>按任务追溯：货物、起终点、执行和事件</h2><div class="kg-trace"><input id="task" placeholder="输入任务 ID，或从下方推荐任务选择" aria-label="任务 ID"><button id="trace" type="button">查询任务</button></div><div class="kg-task-filter"><input id="taskFilter" type="search" placeholder="筛选任务 ID、货物、起点或终点" aria-label="筛选任务"><span id="taskHint">加载任务候选中…</span></div><div class="kg-task-list" id="tasks">加载任务列表…</div><div class="kg-result" id="taskResult">选择一条任务，查看图谱中已关联的静态关系和运行态记录。</div><section class="kg-bounded-graph" aria-labelledby="taskGraphTitle"><div class="kg-graph-heading"><span class="section-kicker">BOUNDED EVIDENCE GRAPH</span><h3 id="taskGraphTitle">任务关联证据图</h3></div><p>只投影本次追溯已返回的节点和关系（上限 36 个），不扫描全图。</p><div class="kg-graph-canvas" id="taskGraph" data-detail-id="taskGraphDetail"></div><p class="kg-graph-detail" id="taskGraphDetail">查询任务后可查看其运行态证据。</p></section><div class="kg-timeline" id="taskTimeline" data-graph-target="taskGraph"></div></article>
+      <article class="kg-panel kg-query-panel" id="kgRobots"><span class="section-kicker">ROBOT TRACE</span><h2>按机器人追溯：状态轨迹与执行事件</h2><div class="kg-trace"><select id="robot" aria-label="机器人编号"><option value="">等待当前 Step 的机器人状态…</option></select><button id="robotTrace" type="button">查询机器人</button></div><p class="kg-selector-hint" id="robotHint">会优先推荐当前 Step 正在作业的机器人；候选项包含阶段、电量与任务。</p><div class="kg-result" id="robotResult">使用上方当前 Run ID，选择机器人后查看 Neo4j 中的状态和事件数。</div><div class="kg-context-grid" id="robotContext" aria-live="polite"></div><section class="kg-bounded-graph" aria-labelledby="robotGraphTitle"><div class="kg-graph-heading"><span class="section-kicker">BOUNDED EVIDENCE GRAPH</span><h3 id="robotGraphTitle">机器人关联证据图</h3></div><p>以机器人为中心显示状态、执行任务和事件；点击时间线可定位对应证据。</p><div class="kg-graph-canvas" id="robotGraph" data-detail-id="robotGraphDetail"></div><p class="kg-graph-detail" id="robotGraphDetail">查询机器人后可查看其运行态证据。</p></section><div class="kg-timeline" id="robotTimeline" data-graph-target="robotGraph"></div></article>
     </section>
+    <details class="kg-query-workbench" id="kgQuery" open>
+      <summary><span>查询与性能验证</span><small>仅预置只读查询 · 不开放任意 Cypher</small></summary>
+      <div class="kg-preset-actions" id="presetActions"><button type="button" data-preset="run-progress">运行批次统计</button><button type="button" data-preset="task-trace">任务全链路</button><button type="button" data-preset="robot-trace">机器人上下文</button><label class="kg-tick-input">tick <input id="replayTick" type="number" min="0" value="0" aria-label="回放 tick"></label><button type="button" data-preset="replay-tick">指定 tick 回放</button></div>
+      <p class="kg-query-target" id="queryTarget">查询目标：等待当前 Run 与完整 Step 信息。</p><p class="kg-time-context" id="timeContext">时间上下文：完整 Step 是任务与机器人追溯的默认时间锚点；此处 tick 仅覆盖预置查询。</p>
+      <p class="kg-query-status" id="queryStatus">选择查询后执行。后端返回图谱查询耗时，网页同时记录端到端请求耗时。</p>
+      <div class="kg-query-timing"><span>后端图谱查询 <b id="queryBackendMs">—</b></span><span>浏览器请求总耗时 <b id="queryBrowserMs">—</b></span></div>
+      <div class="kg-query-page-controls"><label>每页显示 <select id="queryPageSize" aria-label="每页展示结果数"><option value="25">25</option><option value="50">50</option><option value="100" selected>100</option><option value="200">200</option></select> 行</label><span id="queryPageInfo">尚无结果。</span><span><button id="queryPrevious" type="button" disabled>← 上一页</button><button id="queryNext" type="button" disabled>下一页 →</button></span></div>
+      <div class="kg-query-result table-wrap" id="queryResult"><p class="kg-query-empty">尚无查询结果。</p></div><button class="kg-export" id="queryExport" type="button" disabled>导出本次查询 JSON</button>
+      <details class="kg-query-history"><summary>本页最近查询（刷新后清空）</summary><div class="table-wrap"><table aria-label="知识图谱预置查询历史"><thead><tr><th>查询</th><th>Run / tick</th><th>图谱查询</th><th>端到端</th><th>时间</th></tr></thead><tbody id="queryHistory"><tr><td colspan="5">尚无成功查询。</td></tr></tbody></table></div></details>
+    </details>
+      </div>
+    </div>
   </main>
   <script>
     const $ = selector => document.querySelector(selector);
     const request = async path => { const response = await fetch(path); const payload = await response.json().catch(() => ({})); if (!response.ok) throw new Error(payload.detail || `请求失败 (${response.status})`); return payload; };
     const text = (element, value) => { element.textContent = value; };
+    function enableHorizontalDrag(element) {
+      let drag = null;
+      element.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || element.scrollWidth <= element.clientWidth) return;
+        drag = {pointerId:event.pointerId, x:event.clientX, left:element.scrollLeft, moved:false};
+        element.setPointerCapture(event.pointerId);
+      });
+      element.addEventListener('pointermove', event => {
+        if (!drag || event.pointerId !== drag.pointerId) return;
+        const delta = event.clientX - drag.x;
+        if (Math.abs(delta) > 3) { drag.moved = true; element.dataset.dragging = 'true'; element.scrollLeft = drag.left - delta; event.preventDefault(); }
+      });
+      const end = event => {
+        if (!drag || event.pointerId !== drag.pointerId) return;
+        if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId);
+        delete element.dataset.dragging; drag = null;
+      };
+      element.addEventListener('pointerup', end); element.addEventListener('pointercancel', end);
+    }
+    enableHorizontalDrag($('#queryResult'));
     let latestRunId = '';
     let lastQueryResult = null;
+    let queryHistory = [];
+    let queryRows = [], queryColumns = [], queryReceivedCount = 0, queryPage = 1;
+    let taskCandidates = [], preferredRobotId = null;
     let firstTaskId = '';
+    let completeSteps = [];
+    let selectedStepIndex = -1;
+    const deepLink = new URLSearchParams(window.location.search);
+    const deepLinkValue = name => (deepLink.get(name) || '').trim();
+    const deepLinkTick = () => {
+      const value = Number(deepLinkValue('tick'));
+      return Number.isInteger(value) && value >= 0 ? value : null;
+    };
+    function syncRunContext(runId) {
+      const value = (runId || '').trim(); latestRunId = value;
+      if (!value) { text($('#runContextHint'), '尚未选择 Run。可从 4173 运行页跳转，或在此输入已落库的历史 Run ID。'); renderQueryTarget(); refreshSidebarSelection(); return; }
+      if ($('#run').value !== value) $('#run').value = value;
+      text($('#runContextHint'), `当前 Run ${value} 将用于完整 Step、任务、机器人、运行态与全局记录查询。`);
+      try { const values = JSON.parse(localStorage.getItem('warehouseKgRecentRuns') || '[]'); localStorage.setItem('warehouseKgRecentRuns', JSON.stringify([value, ...values.filter(item => item !== value)].slice(0, 6))); } catch (_) {}
+      renderRunSuggestions();
+      renderQueryTarget();
+      refreshSidebarSelection();
+    }
+    function renderRunSuggestions() {
+      const list = $('#runSuggestions'); if (!list) return;
+      let values = []; try { values = JSON.parse(localStorage.getItem('warehouseKgRecentRuns') || '[]'); } catch (_) {}
+      if (latestRunId && !values.includes(latestRunId)) values.unshift(latestRunId);
+      list.replaceChildren(...values.slice(0, 6).map(value => { const option = document.createElement('option'); option.value = value; option.label = value === latestRunId ? `${value}（当前运行）` : `${value}（最近使用）`; return option; }));
+    }
+    function applyDeepLink() {
+      const runId = deepLinkValue('run_id'), taskId = deepLinkValue('task_id'), robotId = deepLinkValue('robot_id'), tick = deepLinkTick();
+      if (runId) syncRunContext(runId);
+      if (taskId) $('#task').value = taskId;
+      if (robotId && Number.isInteger(Number(robotId)) && Number(robotId) > 0) preferredRobotId = Number(robotId);
+      if (tick !== null) { $('#replayTick').value = String(tick); $('#runtimeTick').value = String(tick); }
+    }
     function updateClosure(health, summary) {
       const dataset = summary.datasets?.[0]; const runReady = Boolean(latestRunId);
       const rows = [[Boolean(dataset), dataset ? `静态数据已导入：${dataset.task_count} 个任务` : '静态数据未导入：先执行图谱导入脚本'], [health?.status === 'ok', health?.status === 'ok' ? 'Neo4j 已连接：可执行真实图谱查询' : `Neo4j 不可用：${health?.status || '未知状态'}`], [runReady, runReady ? `运行态已写入：Run ${latestRunId}` : '运行态尚未写入：启动后端时开启 WAREHOUSE_NEO4J_WRITE_ENABLED=1']];
       $('#closure').replaceChildren(...rows.map(([ok, label]) => { const item = document.createElement('li'); item.className = ok ? 'ok' : 'pending'; item.textContent = `${ok ? '✓' : '○'} ${label}`; return item; }));
     }
     function renderTimeline(element, values, emptyText) {
-      element.replaceChildren(...values.map(value => { const item = document.createElement('span'); item.textContent = value; return item; }));
+      element.replaceChildren(...values.map(value => { const item = document.createElement('span'); const detail = typeof value === 'string' ? {text: value} : value; item.textContent = detail.text; if (detail.kind) item.classList.add(`kg-event-${detail.kind}`); if (detail.focus) { item.dataset.focus = detail.focus; item.tabIndex = 0; item.setAttribute('role', 'button'); item.title = '点击高亮关系图中的对应证据'; const focus = () => focusBoundedGraph($(`#${element.dataset.graphTarget}`), detail.focus); item.addEventListener('click', focus); item.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); focus(); } }); } return item; }));
       if (!values.length) text(element, emptyText);
+    }
+    function setAnchorFacts(values) {
+      $('#runAnchorFacts').replaceChildren(...values.map(([label, value, tone = '']) => { const row = document.createElement('div'), dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value; if (tone) dd.className = tone; row.append(dt, dd); return row; }));
+    }
+    function renderContextGroups(element, groups, emptyText = '暂无上下文记录。') {
+      const fragment = document.createDocumentFragment(); let count = 0;
+      for (const [title, rows] of groups) {
+        if (!rows?.length) continue;
+        count += rows.length;
+        const section = document.createElement('section'), heading = document.createElement('h3'), list = document.createElement('dl');
+        heading.textContent = title;
+        for (const [label, value, tone = ''] of rows) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value; if (tone) dd.className = tone; list.append(dt, dd); }
+        section.append(heading, list); fragment.append(section);
+      }
+      if (!count) { const empty = document.createElement('p'); empty.className = 'kg-context-empty'; empty.textContent = emptyText; fragment.append(empty); }
+      element.replaceChildren(fragment);
+    }
+    function cellValue(value) {
+      if (value === null || value === undefined || value === '') return '—';
+      if (typeof value === 'object') return JSON.stringify(value);
+      return String(value);
+    }
+    function renderQueryTarget() {
+      const runId = $('#run')?.value.trim() || latestRunId || '未选择'; const rawTick = $('#replayTick')?.value.trim(); const tick = rawTick && Number(rawTick) > 0 ? `完整 Step / tick ${rawTick}` : '最新完整 Step';
+      const target = $('#queryTarget'); if (target) text(target, `查询目标：Run ${runId} · ${tick} · 仅预置只读查询 · 仅返回接口已限定的图谱范围 · 页面最多浏览 200 行。`);
+    }
+    function currentTraceTick() { const step = selectedCompleteStep(); return step ? Number(step.tick) : 0; }
+    function refreshSidebarSelection() {
+      const host = $('#sidebarSelection'); if (!host) return;
+      const runId = $('#run')?.value.trim() || latestRunId || '未选择 Run';
+      const step = selectedCompleteStep(), taskId = $('#task')?.value.trim(), robotId = Number($('#robot')?.value);
+      const parts = [`Run ${runId}`, step ? `Step ${step.tick} · ${stepTimeLabel(step)}` : '未选择完整 Step'];
+      if (taskId) parts.push(`任务 ${taskId}`);
+      if (Number.isInteger(robotId) && robotId > 0) parts.push(`HR-${String(robotId).padStart(3, '0')}`);
+      text(host, parts.join(' · '));
+    }
+    function stepTimeLabel(step) {
+      const elapsed = Number(step?.elapsed);
+      if (!Number.isFinite(elapsed) || elapsed < 0) return '仿真时间未记录';
+      const total = Math.floor(elapsed), hours = Math.floor(total / 3600), minutes = Math.floor((total % 3600) / 60), seconds = total % 60;
+      return `仿真 ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+    function updateTimeContext() {
+      const step = selectedCompleteStep(), message = step ? `时间上下文：当前完整 Step 为 tick ${step.tick}（${stepTimeLabel(step)}，commit ${step.commit_seq ?? step.tick}）。tick 是离散调度步编号，不是秒数；任务、机器人、运行态和全局追溯默认以该 Step 为准。高级预置查询可单独填写 tick。` : '时间上下文：尚未选择完整 Step；追溯将读取当前 Run 的最新已写入状态。';
+      text($('#timeContext'), message);
+    }
+    function renderTaskCandidates() {
+      const keyword = $('#taskFilter').value.trim().toLowerCase(), selected = $('#task').value.trim();
+      const rows = taskCandidates.filter(task => !keyword || [task.task_id, task.goods_id, task.source_id, task.target_id, task.status, task.robot_id].some(value => String(value ?? '').toLowerCase().includes(keyword)));
+      $('#tasks').replaceChildren(...rows.map(task => { const button = document.createElement('button'); const active = task.task_id === selected; button.className = active ? 'selected' : ''; button.textContent = `${task.task_id} · ${task.status || '待执行'}${task.robot_id ? ` · HR-${String(task.robot_id).padStart(3,'0')}` : ''} · ${task.source_id} → ${task.target_id}`; button.title = `货物 ${task.goods_id || '—'}；点击追溯此任务`; button.addEventListener('click', () => { $('#task').value = task.task_id; renderTaskCandidates(); void traceTask(task.task_id); }); return button; }));
+      text($('#taskHint'), rows.length ? `显示 ${rows.length}/${taskCandidates.length} 个任务；浅绿色为当前选中任务。` : `没有匹配“${keyword}”的任务。`);
+    }
+    async function loadTaskCandidates() {
+      taskCandidates = await request('/api/kg/warehouse/tasks?limit=30'); firstTaskId = taskCandidates[0]?.task_id || '';
+      const recommended = taskCandidates.find(task => task.status && task.status !== '待执行') || taskCandidates[0];
+      if (!$('#task').value.trim() && recommended) $('#task').value = recommended.task_id;
+      renderTaskCandidates();
+    }
+    async function loadRobotCandidates() {
+      const runId = $('#run').value.trim() || latestRunId, tick = currentTraceTick();
+      if (!runId) { $('#robot').replaceChildren(new Option('请先选择当前 Run', '')); $('#runtimeRobot').replaceChildren(new Option('全部机器人', '')); return; }
+      try {
+        const suffix = tick > 0 ? `?tick=${encodeURIComponent(tick)}` : '';
+        const response = await request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/runtime-trace${suffix}`), states = response.states || [];
+        const suggested = states.find(state => state.task_id && state.stage !== 'idle') || states.find(state => state.stage !== 'idle') || states[0];
+        const current = Number($('#robot').value) || preferredRobotId || suggested?.robot_id;
+        const makeOption = state => new Option(`HR-${String(state.robot_id).padStart(3,'0')}｜${stageLabel(state.stage)}｜${state.battery ?? '—'}%｜${state.task_id || '无任务'}`, String(state.robot_id));
+        $('#robot').replaceChildren(...(states.length ? states.map(makeOption) : [new Option('当前 Step 无机器人状态', '')]));
+        $('#runtimeRobot').replaceChildren(new Option('全部机器人', ''), ...states.map(makeOption));
+        if (current && states.some(state => Number(state.robot_id) === Number(current))) { $('#robot').value = String(current); $('#runtimeRobot').value = String(current); }
+        const sampled = response.sampledTick == null ? '无图谱状态' : `采样 tick ${response.sampledTick}`;
+        text($('#robotHint'), states.length ? `推荐优先显示作业中机器人；候选来自 ${sampled}，含阶段、电量与当前任务。` : `当前 Step 未读到机器人状态；请确认 Run 已完成图谱写入。`);
+        refreshSidebarSelection();
+      } catch (error) { $('#robot').replaceChildren(new Option('机器人候选读取失败', '')); text($('#robotHint'), `无法读取机器人候选：${error.message}`); }
+    }
+    function renderQueryTable(result) {
+      const incoming = Array.isArray(result) ? result : result && typeof result === 'object' ? [result] : [{result}]; queryReceivedCount = incoming.length; queryRows = incoming.slice(0, 200); queryColumns = [...new Set(queryRows.flatMap(row => row && typeof row === 'object' && !Array.isArray(row) ? Object.keys(row) : ['result']))].slice(0, 16); queryPage = 1; renderQueryPage();
+    }
+    function renderQueryPage() {
+      const host = $('#queryResult'), pageSize = Number($('#queryPageSize').value) || 100, pages = Math.max(1, Math.ceil(queryRows.length / pageSize)); queryPage = Math.min(Math.max(1, queryPage), pages);
+      if (!queryRows.length) { host.innerHTML = '<p class="kg-query-empty">查询成功，但没有匹配记录。</p>'; text($('#queryPageInfo'), '0 行结果。'); $('#queryPrevious').disabled = true; $('#queryNext').disabled = true; return; }
+      const columns = queryColumns, start = (queryPage - 1) * pageSize, visibleRows = queryRows.slice(start, start + pageSize);
+      const table = document.createElement('table'), head = document.createElement('thead'), body = document.createElement('tbody'), header = document.createElement('tr');
+      columns.forEach(column => { const th = document.createElement('th'); th.textContent = column; header.append(th); }); head.append(header);
+      visibleRows.forEach(row => { const tr = document.createElement('tr'); columns.forEach(column => { const td = document.createElement('td'); const value = row && typeof row === 'object' && !Array.isArray(row) ? row[column] : column === 'result' ? row : undefined; td.textContent = cellValue(value); td.title = td.textContent; tr.append(td); }); body.append(tr); });
+      table.append(head, body); host.replaceChildren(table);
+      const capped = queryReceivedCount > queryRows.length ? `；仅保留前 ${queryRows.length} 行` : ''; text($('#queryPageInfo'), `第 ${queryPage}/${pages} 页 · 展示 ${start + 1}–${start + visibleRows.length} / ${queryRows.length} 行${capped}`); $('#queryPrevious').disabled = queryPage <= 1; $('#queryNext').disabled = queryPage >= pages;
+    }
+    function renderQueryHistory() {
+      const body = $('#queryHistory');
+      if (!queryHistory.length) { body.innerHTML = '<tr><td colspan="5">尚无成功查询。</td></tr>'; return; }
+      body.replaceChildren(...queryHistory.map(item => { const tr = document.createElement('tr'); [item.preset, `${item.runId || '—'} / ${item.tick || '—'}`, `${item.backendMs} ms`, `${item.browserMs} ms`, item.time].forEach(value => { const td = document.createElement('td'); td.textContent = value; tr.append(td); }); return tr; }));
+    }
+    function timelineItem(tick, text, kind = 'event', focus = '') { return {tick: Number.isFinite(Number(tick)) ? Number(tick) : Number.MAX_SAFE_INTEGER, text, kind, focus}; }
+    const svgEl = (name, attributes = {}) => { const node = document.createElementNS('http://www.w3.org/2000/svg', name); Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value))); return node; };
+    const graphLabel = value => String(value || '未知').replace(/^HR-0*/, 'HR-').slice(0, 18);
+    function focusBoundedGraph(container, key) {
+      if (!container || !key) return;
+      container.querySelectorAll('.is-focused, .is-related').forEach(node => node.classList.remove('is-focused', 'is-related'));
+      const selected = container.querySelector(`[data-node-key="${CSS.escape(key)}"]`);
+      if (!selected) { const detail = $(`#${container.dataset.detailId}`); if (detail) text(detail, '该时间线证据未进入当前 36 节点的有界投影。可缩小追溯范围后重试。'); return; }
+      selected.classList.add('is-focused');
+      container.querySelectorAll('.kg-graph-edge').forEach(edge => { if (edge.dataset.from === key || edge.dataset.to === key) { edge.classList.add('is-related'); const other = edge.dataset.from === key ? edge.dataset.to : edge.dataset.from; container.querySelector(`[data-node-key="${CSS.escape(other)}"]`)?.classList.add('is-related'); } });
+      const detail = $(`#${container.dataset.detailId}`); if (detail) text(detail, `已高亮：${selected.dataset.nodeLabel || key}；亮线表示本次追溯中已返回的直接关系。`);
+    }
+    function renderBoundedGraph(container, model, emptyText) {
+      container.replaceChildren();
+      const rawNodes = model?.nodes || []; if (!rawNodes.length) { text(container, emptyText); return; }
+      const unique = new Map(); rawNodes.forEach(node => { if (node?.key && !unique.has(node.key)) unique.set(node.key, node); });
+      const nodes = [...unique.values()].slice(0, 36), kept = new Set(nodes.map(node => node.key));
+      const edgeKeys = new Set(), edges = (model?.edges || []).filter(edge => edge?.from && edge?.to && kept.has(edge.from) && kept.has(edge.to)).filter(edge => { const key = `${edge.from}|${edge.to}|${edge.label || ''}`; if (edgeKeys.has(key)) return false; edgeKeys.add(key); return true; });
+      const width = 760, height = 310, lanes = 5, byLane = Array.from({length: lanes}, () => []);
+      nodes.forEach(node => byLane[Math.max(0, Math.min(lanes - 1, Number(node.lane) || 0))].push(node));
+      const positions = new Map(); byLane.forEach((laneNodes, lane) => laneNodes.forEach((node, index) => positions.set(node.key, {x: 68 + lane * 156, y: 35 + (index + 1) * (240 / (laneNodes.length + 1))})));
+      const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, class: 'kg-graph-svg', role: 'img', 'aria-label': model.title || '有界关系图'});
+      edges.forEach(edge => { const source = positions.get(edge.from), target = positions.get(edge.to); if (!source || !target) return; const line = svgEl('line', {x1:source.x, y1:source.y, x2:target.x, y2:target.y, class:'kg-graph-edge'}); line.dataset.from = edge.from; line.dataset.to = edge.to; svg.append(line); });
+      nodes.forEach(node => { const point = positions.get(node.key), group = svgEl('g', {class:`kg-graph-node kg-graph-${node.kind || 'default'}`, transform:`translate(${point.x} ${point.y})`, tabindex:'0', role:'button', 'aria-label':node.label}); group.dataset.nodeKey = node.key; group.dataset.nodeLabel = node.label; group.append(svgEl('circle', {r:18}), svgEl('text', {x:0, y:4, 'text-anchor':'middle'})); group.lastChild.textContent = graphLabel(node.short || node.label); group.addEventListener('click', () => focusBoundedGraph(container, node.key)); group.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); focusBoundedGraph(container, node.key); } }); svg.append(group); });
+      container.append(svg); const detail = $(`#${container.dataset.detailId}`); if (detail) text(detail, `已投影 ${nodes.length} 个节点、${edges.length} 条关系；点击节点或下方时间线查看直接关联。`);
+    }
+    function appendGraphNode(model, node) { if (node?.key && !model.nodes.some(item => item.key === node.key)) model.nodes.push(node); }
+    function appendGraphEdge(model, from, to, label = '') { if (from && to && from !== to) model.edges.push({from, to, label}); }
+    function buildTaskGraph(taskId, result) {
+      const model = {title:`任务 ${taskId} 关联证据图`, nodes:[], edges:[]}, taskKey = `task:${taskId}`; appendGraphNode(model, {key:taskKey,label:taskId,short:'Task',kind:'task',lane:2});
+      (result.static?.nodes || []).forEach(node => { if (node.kind === 'task') return; const key = `static:${node.id || node.properties?.id || node.label}`; appendGraphNode(model, {key,label:node.label || node.id,short:node.kind,kind:node.kind === 'goods' ? 'goods' : 'location',lane:node.kind === 'goods' ? 0 : 1}); appendGraphEdge(model, taskKey, key, node.kind); });
+      (result.executions || []).forEach((item, index) => { const execution = item.execution || {}, executionKey = `execution:${execution.id || `${taskId}:${index}`}`; appendGraphNode(model,{key:executionKey,label:execution.id || `执行 ${index + 1}`,short:'Execution',kind:'execution',lane:3}); appendGraphEdge(model,taskKey,executionKey,'执行'); const robot = item.current_robot || {}; if (robot.robot_id != null) { const robotKey = `robot:${robot.robot_id}`; appendGraphNode(model,{key:robotKey,label:`HR-${String(robot.robot_id).padStart(3,'0')}`,short:`HR-${robot.robot_id}`,kind:'robot',lane:4}); appendGraphEdge(model,executionKey,robotKey,'负责'); } });
+      (result.executionStates || []).forEach((item,index) => { const state = item.state || {}, robot = item.robot || {}, stateKey = `task-state:${state.id || `${state.tick}:${index}`}`; appendGraphNode(model,{key:stateKey,label:`执行状态 tick ${state.tick ?? '—'}`,short:state.status || 'state',kind:'state',lane:3}); appendGraphEdge(model,taskKey,stateKey,'状态'); if (robot.robot_id != null) { const robotKey=`robot:${robot.robot_id}`; appendGraphNode(model,{key:robotKey,label:`HR-${String(robot.robot_id).padStart(3,'0')}`,short:`HR-${robot.robot_id}`,kind:'robot',lane:4}); appendGraphEdge(model,stateKey,robotKey,'属于'); } });
+      (result.handoffs || []).forEach((item,index) => { const handoffKey=`handoff:${item.tick ?? 'x'}:${index}`; appendGraphNode(model,{key:handoffKey,label:`交接 tick ${item.tick ?? '—'}`,short:'Handoff',kind:'handoff',lane:3}); appendGraphEdge(model,taskKey,handoffKey,'交接'); [item.donor_id,item.receiver_id].filter(value => value != null).forEach(robotId => { const robotKey=`robot:${robotId}`; appendGraphNode(model,{key:robotKey,label:`HR-${String(robotId).padStart(3,'0')}`,short:`HR-${robotId}`,kind:'robot',lane:4}); appendGraphEdge(model,handoffKey,robotKey,'参与'); }); });
+      (result.events || []).forEach((item,index) => { const event=item.event || {}, eventKey=`task-event:${event.id || `${event.tick}:${index}`}`; appendGraphNode(model,{key:eventKey,label:`${event.type || '事件'} tick ${event.tick ?? '—'}`,short:event.type || 'Event',kind:'event',lane:4}); appendGraphEdge(model,taskKey,eventKey,'事件'); }); return model;
+    }
+    function buildRobotGraph(runId, robotId, result) {
+      const model={title:`HR-${String(robotId).padStart(3,'0')} 关联证据图`,nodes:[],edges:[]}, robotKey=`robot:${robotId}`; appendGraphNode(model,{key:robotKey,label:`HR-${String(robotId).padStart(3,'0')}`,short:`HR-${robotId}`,kind:'robot',lane:2});
+      [result.latestState, ...(result.trajectory || []).slice(-10)].filter(Boolean).forEach((state,index) => { const stateKey=`robot-state:${state.id || `${state.tick}:${index}`}`; appendGraphNode(model,{key:stateKey,label:`状态 tick ${state.tick ?? '—'}`,short:state.stage || 'state',kind:'state',lane:1}); appendGraphEdge(model,robotKey,stateKey,'状态'); });
+      (result.executions || []).forEach((item,index) => { const execution=item.execution || {}, task=item.task || {}, executionKey=`execution:${execution.id || `${robotId}:${index}`}`, taskKey=`task:${execution.task_id || task.task_id || index}`; appendGraphNode(model,{key:executionKey,label:execution.id || `执行 ${index + 1}`,short:execution.status || 'Execution',kind:'execution',lane:3}); appendGraphEdge(model,robotKey,executionKey,'执行'); appendGraphNode(model,{key:taskKey,label:execution.task_id || task.task_id || 'Task',short:'Task',kind:'task',lane:4}); appendGraphEdge(model,executionKey,taskKey,'任务'); });
+      (result.events || []).forEach((event,index) => { const eventKey=`robot-event:${event.id || `${event.tick}:${index}`}`; appendGraphNode(model,{key:eventKey,label:`${event.type || '事件'} tick ${event.tick ?? '—'}`,short:event.type || 'Event',kind:'event',lane:3}); appendGraphEdge(model,robotKey,eventKey,'事件'); if (event.task_id) { const taskKey=`task:${event.task_id}`; appendGraphNode(model,{key:taskKey,label:event.task_id,short:'Task',kind:'task',lane:4}); appendGraphEdge(model,eventKey,taskKey,'关联'); } }); return model;
+    }
+    async function loadRunAnchor(frame = null) {
+      const runId = $('#run').value.trim() || latestRunId;
+      if (!runId) { text($('#runAnchor'), '尚未选择 Run'); setAnchorFacts([['完整 Step', '—'], ['机器人回执', '—'], ['派单状态来源', '—'], ['图谱写入', '—']]); text($('#runAnchorDetail'), '请从 4173 运行页进入，或在“当前 Run ID”填写已落库的历史运行批次。'); return; }
+      text($('#runAnchor'), `Run ${runId}`);
+      const graph = frame?.robotGraph || {}, source = frame?.kgStateSource || frame?.metadata?.kg_state_source || '未知';
+      try {
+        const stepResult = await request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/steps/latest?states=false`);
+        const step = stepResult?.step || {}, expected = Number(step.expected_robot_count), received = Number(step.received_robot_count);
+        const graphTick = Number.isInteger(graph.latestCompleteStep) ? graph.latestCompleteStep : step.tick;
+        const writeText = graph.async ? `异步队列 ${graph.pendingSteps ?? 0}` : '同步或未报告';
+        setAnchorFacts([
+          ['完整 Step', Number.isInteger(step.tick) && step.complete ? `tick ${step.tick} · ${stepTimeLabel(step)} · 已确认` : '未找到完整 Step', step.complete ? 'ok' : 'warning'],
+          ['机器人回执', Number.isFinite(expected) && expected > 0 ? `${received}/${expected}` : '—', expected > 0 && received >= expected ? 'ok' : 'warning'],
+          ['派单状态来源', source === 'neo4j' ? 'Neo4j 图谱读取' : source === 'memory' ? '内存派单 / 图谱校验' : source],
+          ['图谱写入', writeText, graph.lastError ? 'warning' : '']
+        ]);
+        const currentTick = Number.isInteger(frame?.tick) ? frame.tick : null;
+        const lag = currentTick !== null && Number.isInteger(graphTick) ? Math.max(0, currentTick - graphTick) : null;
+        text($('#runAnchorDetail'), `Run.latest_step 指向最后一个已收齐回执的 Step${lag === null ? '' : `；相对当前 tick ${currentTick} ${lag ? `滞后 ${lag} 步` : '已同步'}`}。${graph.lastError ? ` 写入告警：${graph.lastError}` : ''}`);
+      } catch (error) {
+        setAnchorFacts([['完整 Step', '不可读取', 'warning'], ['机器人回执', '—'], ['派单状态来源', source], ['图谱写入', graph.lastError || '等待 Neo4j']]);
+        text($('#runAnchorDetail'), `未读取到完整 Step：${error.message}。请检查 Neo4j 连接、Run ID 是否正确，以及全局记录服务是否已写入完整回执；仿真不受本工作台查询失败影响。`);
+      }
+    }
+    function selectedCompleteStep() { return completeSteps[selectedStepIndex] || null; }
+    function syncSelectedStepFields() {
+      const step = selectedCompleteStep(); if (!step) return;
+      $('#replayTick').value = String(step.tick); $('#runtimeTick').value = String(step.tick);
+      $('#stepSlider').value = String(selectedStepIndex);
+      $('#stepReadout').textContent = `tick ${step.tick} · ${stepTimeLabel(step)} · commit ${step.commit_seq ?? step.tick}`;
+      const expected = Number(step.expected_robot_count), received = Number(step.received_robot_count);
+      $('#stepReceipt').textContent = Number.isFinite(expected) && expected > 0 ? `完整回执 ${received}/${expected} · 来源 ${step.source || 'main-coordinator'}。tick 是离散调度步；${stepTimeLabel(step)} 是该步对应的仿真经过时间。` : `完整 Step 元数据缺少回执计数；tick 是离散调度步，${stepTimeLabel(step)}。`;
+      $('#stepPrevious').disabled = selectedStepIndex <= 0;
+      $('#stepNext').disabled = selectedStepIndex < 0 || selectedStepIndex >= completeSteps.length - 1;
+      $('#stepLatest').disabled = selectedStepIndex < 0 || selectedStepIndex === completeSteps.length - 1;
+      updateTimeContext();
+      refreshSidebarSelection();
+    }
+    async function refreshSelectedStepViews() {
+      const step = selectedCompleteStep(); if (!step) return;
+      syncSelectedStepFields();
+      const jobs = [];
+      jobs.push(loadRobotCandidates());
+      if ($('#task').value.trim()) jobs.push(traceTask($('#task').value.trim()));
+      if ($('#run').value.trim() && Number($('#robot').value) > 0) jobs.push(traceRobot());
+      if ($('#run').value.trim() || latestRunId) { jobs.push(traceGlobal(), traceRuntime()); }
+      await Promise.allSettled(jobs);
+      $('#stepControllerDetail').textContent = `已按完整 Step tick ${step.tick} 刷新当前已填写的追溯面板；滑块拖动期间不会访问 Neo4j，释放后才读取。`;
+    }
+    async function loadCompleteSteps() {
+      const runId = $('#run').value.trim() || latestRunId;
+      if (!runId) { completeSteps = []; selectedStepIndex = -1; $('#stepSlider').disabled = true; $('#stepControllerDetail').textContent = '尚未选择 Run；请从 4173 运行页跳转，或在“当前 Run ID”填写历史运行批次后回看完整 Step。'; return; }
+      try {
+        const response = await request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/steps?limit=500`);
+        completeSteps = response.steps || []; const slider = $('#stepSlider');
+        if (!completeSteps.length) { slider.disabled = true; $('#stepControllerDetail').textContent = '当前 Run 尚未写入完整 Step。请确认该 Run 已运行过，且 100 个机器人回执已由全局记录服务提交到 Neo4j。'; return; }
+        const requested = deepLinkTick() ?? Number($('#replayTick').value);
+        const exact = completeSteps.findIndex(step => Number(step.tick) === requested);
+        const nearest = completeSteps.reduce((candidate, step, index) => Number(step.tick) <= requested ? index : candidate, -1);
+        selectedStepIndex = exact >= 0 ? exact : nearest >= 0 ? nearest : completeSteps.length - 1;
+        slider.min = '0'; slider.max = String(completeSteps.length - 1); slider.disabled = false;
+        syncSelectedStepFields();
+        void loadRobotCandidates();
+        $('#stepControllerDetail').textContent = `已载入最近 ${completeSteps.length} 个完整 Step；滑块按实际已落库 Step 排列，不假设每个 tick 都存在。`;
+      } catch (error) {
+        $('#stepControllerDetail').textContent = `完整 Step 列表读取失败：${error.message}。其他图谱查询仍可单独使用。`;
+      }
     }
     function tickLabel(value, label) { return Number.isFinite(Number(value)) ? `${label} tick ${value}` : ''; }
     function stageLabel(stage) {
       return ({idle: '待命', charging: '充电', toPick: '前往取货点', toRack: '前往货架', picking: '取货中', placing: '上架中', returning: '返回调度区', warning: '告警'})[stage] || stage || '未知状态';
     }
     async function traceRuntime() {
-      const runId = $('#runtimeRun').value.trim() || $('#run').value.trim() || latestRunId;
+      const runId = $('#run').value.trim() || latestRunId;
       const rawTick = $('#runtimeTick').value.trim(), rawRobot = $('#runtimeRobot').value.trim();
-      const tick = rawTick === '' ? null : Number(rawTick), robotId = rawRobot === '' ? null : Number(rawRobot);
-      if (!runId) { text($('#runtimeTraceResult'), '请填写运行批次 Run ID。'); return; }
+      const tick = rawTick === '' ? (currentTraceTick() || null) : Number(rawTick), robotId = rawRobot === '' ? null : Number(rawRobot);
+      if (!runId) { text($('#runtimeTraceResult'), '尚未选择 Run。请从 4173 运行页进入，或在“当前 Run ID”输入框填写历史运行批次。'); return; }
       if ((tick !== null && (!Number.isInteger(tick) || tick < 0)) || (robotId !== null && (!Number.isInteger(robotId) || robotId < 1))) { text($('#runtimeTraceResult'), 'tick 必须为非负整数；机器人编号必须为正整数。'); return; }
       const params = new URLSearchParams(); if (tick !== null) params.set('tick', String(tick)); if (robotId !== null) params.set('robot_id', String(robotId));
       text($('#runtimeTraceResult'), `正在查询 Run ${runId} 的运行态图谱记录…`); $('#runtimeTraceRecords').replaceChildren();
       try {
         const result = await request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/runtime-trace?${params}`);
         const requested = result.requestedTick == null ? '最新记录' : `请求 tick ${result.requestedTick}`;
-        if (result.sampledTick == null) { text($('#runtimeTraceResult'), `${requested}：未找到${robotId ? ` HR-${String(robotId).padStart(3, '0')}` : ''}的 AgentState。请确认 Run ID、tick 及运行态写入。`); return; }
+        if (result.sampledTick == null) { text($('#runtimeTraceResult'), `${requested}：Run ${runId} 未找到${robotId ? ` HR-${String(robotId).padStart(3, '0')}` : ''}的 AgentState。请检查：① Run ID 是否存在；② 所选 tick 是否早于首个完整 Step；③ 启动参数是否开启机器人图谱写入。`); return; }
         text($('#runtimeTraceResult'), `${requested}，实际读取图谱采样 tick ${result.sampledTick}；返回 ${result.states.length} 条机器人状态。`);
         const records = result.states.map(state => `HR-${String(state.robot_id).padStart(3, '0')}｜${stageLabel(state.stage)}｜位置 (${Number(state.x).toFixed(2)}, ${Number(state.y).toFixed(2)})｜电量 ${state.battery ?? '—'}%｜任务 ${state.task_id || '无'}｜货物 ${state.cargo_id || '无'}`);
         renderTimeline($('#runtimeTraceRecords'), records, '该采样 tick 没有机器人状态。');
-      } catch (error) { text($('#runtimeTraceResult'), `查询失败：${error.message}`); }
+      } catch (error) { text($('#runtimeTraceResult'), `查询失败：${error.message}。请确认 Neo4j 可连接、当前 Run 已写入图谱，并检查 4173 后端日志。`); }
     }
     function parseJson(value) {
       if (typeof value !== 'string') return value;
       try { return JSON.parse(value); } catch (_) { return value; }
     }
     async function traceGlobal() {
-      const runId = $('#globalRun').value.trim() || $('#run').value.trim() || latestRunId;
-      if (!runId) { text($('#globalResult'), '请填写运行批次 Run ID。'); return; }
+      const runId = $('#run').value.trim() || latestRunId;
+      if (!runId) { text($('#globalResult'), '尚未选择 Run。请从 4173 运行页进入，或在“当前 Run ID”输入框填写历史运行批次。'); return; }
+      const selectedTick = currentTraceTick(); const cutoff = Number.isInteger(selectedTick) && selectedTick > 0 ? selectedTick : null;
       text($('#globalResult'), `正在查询 Run ${runId} 的全局记录…`); $('#globalRecords').replaceChildren();
       try {
-        const [statsResult, assists, events, dispatch] = await Promise.all([
+        const [statsResult, assists, events, dispatch, handoffs] = await Promise.all([
           request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/stats?limit=100`),
           request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/assists?limit=100`),
           request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/global-events?limit=100`),
-          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/dispatch`).catch(() => null),
+          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/dispatch${cutoff === null ? '' : `?commit_seq=${cutoff}`}`).catch(() => null),
+          request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/handoffs?limit=100${cutoff === null ? '' : `&tick=${cutoff}`}`),
         ]);
-        const stats = statsResult.stats || [];
+        const stats = (statsResult.stats || []).filter(stat => cutoff === null || Number(stat.tick) <= cutoff);
         if (!stats.length) {
           text($('#globalResult'), `Run ${runId}：尚未找到 RunStat。请确认启动时开启了 --global-writer 且已产生提交。`);
           return;
         }
         const latest = stats[0] || {}, counts = parseJson(latest.counts_json) || {}, tasks = parseJson(latest.tasks_json) || {}, metrics = parseJson(latest.metrics_json) || {};
         const dispatchInfo = dispatch ? `DispatchState #${dispatch.commit_seq}：active ${dispatch.active_job_count ?? '—'}，pending ${dispatch.pending_count ?? '—'}，ports ${JSON.stringify(parseJson(dispatch.ports_json) || {})}` : 'DispatchState：暂无';
-        text($('#globalResult'), `Run ${runId}：${stats.length} 个 RunStat，最新 tick ${latest.tick}，commit_seq ${latest.commit_seq}，状态 ${latest.status}；机器人阶段 ${JSON.stringify(counts)}；任务 ${JSON.stringify(tasks)}；完成 ${metrics.completed ?? '—'}；协助 ${assists.length}，全局事件 ${events.length}；${dispatchInfo}`);
-        const statLines = stats.slice(0, 12).map(stat => {
-          const c = parseJson(stat.counts_json) || {}, t = parseJson(stat.tasks_json) || {}, m = parseJson(stat.metrics_json) || {};
-          return `RunStat #${stat.commit_seq} · tick ${stat.tick} · ${stat.status} · 阶段 ${JSON.stringify(c)} · 任务 ${JSON.stringify(t)} · 完成 ${m.completed ?? '—'} · durable ${stat.durable_seq ?? '—'}/mirrored ${stat.mirrored_seq ?? '—'}`;
-        });
-        const assistLines = assists.map(item => `Assist ${item.donor_id}→${item.receiver_id ?? '?'} · ${item.task_id ?? '无任务'} · ${item.status} · tick ${item.start_tick}–${item.end_tick ?? '—'} · ${item.reason ?? ''}`);
-        const dispatchLines = dispatch ? [`Dispatch #${dispatch.commit_seq} · tick ${dispatch.tick} · active ${dispatch.active_job_count ?? '—'} · pending ${dispatch.pending_count ?? '—'} · ${JSON.stringify(parseJson(dispatch.robots_json) || {})} · ${JSON.stringify(parseJson(dispatch.tasks_json) || {})}`] : [];
-        const eventLines = events.map(event => `Event tick ${event.tick ?? '-'} · ${event.type} · ${event.text ?? ''} · ${event.task_id ?? ''}`);
-        renderTimeline($('#globalRecords'), [...statLines, ...dispatchLines, ...assistLines, ...eventLines], '没有全局记录。');
-      } catch (error) { text($('#globalResult'), `查询失败：${error.message}`); }
+        text($('#globalResult'), `Run ${runId}：最新完整全局记录为 tick ${latest.tick} / commit_seq ${latest.commit_seq}。下方按调度、协助、交接和事件分组展示，不会改变运行状态。`);
+        const dispatchRobots = parseJson(dispatch?.robots_json) || {}, dispatchTasks = parseJson(dispatch?.tasks_json) || {};
+        renderContextGroups($('#globalContext'), [
+          ['运行摘要', [['状态', latest.status || '—', latest.status === 'failed' ? 'warning' : 'ok'], ['完成任务', String(metrics.completed ?? '—')], ['机器人阶段', Object.entries(counts).map(([key, value]) => `${stageLabel(key)} ${value}`).join(' · ') || '—'], ['任务状态', Object.entries(tasks).map(([key, value]) => `${key} ${value}`).join(' · ') || '—']]],
+          ['派单快照', dispatch ? [['commit / tick', `${dispatch.commit_seq ?? '—'} / ${dispatch.tick ?? '—'}`], ['执行中 / 待派', `${dispatch.active_job_count ?? '—'} / ${dispatch.pending_count ?? '—'}`], ['载货机器人', String(dispatchRobots.carrying ?? '—')], ['故障 / 最低电量', `${dispatchRobots.faults ?? '—'} / ${dispatchRobots.min_battery ?? '—'}%`], ['已发布任务', String(dispatchTasks.released ?? '—')]] : [['派单快照', '当前尚无 DispatchState', 'warning']]],
+          ['协同与交接', [['活动协助', String(assists.length), assists.length ? 'warning' : ''], ['货物交接', String(handoffs.length), handoffs.length ? 'warning' : ''], ['全局事件', String(events.length)], ['图谱水位', `durable ${latest.durable_seq ?? '—'} / mirrored ${latest.mirrored_seq ?? '—'}`]]]
+        ]);
+        const statLines = stats.slice(0, 6).map(stat => timelineItem(stat.tick, `全局快照 · tick ${stat.tick} · ${stat.status} · 完成 ${parseJson(stat.metrics_json)?.completed ?? '—'}`, 'stat'));
+        const assistLines = assists.filter(item => cutoff === null || Number(item.start_tick) <= cutoff).map(item => timelineItem(item.start_tick, `协助 HR-${String(item.donor_id ?? '?').padStart(3, '0')} → HR-${String(item.receiver_id ?? '?').padStart(3, '0')} · ${item.task_id ?? '无任务'} · ${item.status}${item.reason ? ` · ${item.reason}` : ''}`, 'assist'));
+        const handoffLines = handoffs.map(item => timelineItem(item.tick, `货物交接 HR-${String(item.donor_id ?? '?').padStart(3, '0')} → HR-${String(item.receiver_id ?? '?').padStart(3, '0')} · ${item.task_id ?? item.goods_id ?? '未关联任务'}${item.reason ? ` · ${item.reason}` : ''}`, 'handoff'));
+        const eventLines = events.filter(event => cutoff === null || Number(event.tick) <= cutoff).map(event => timelineItem(event.tick, `全局事件 · ${event.type} · ${event.text ?? ''}${event.task_id ? ` · ${event.task_id}` : ''}`, 'event'));
+        renderTimeline($('#globalRecords'), [...statLines, ...assistLines, ...handoffLines, ...eventLines].sort((a, b) => b.tick - a.tick).slice(0, 24), '没有全局记录。');
+      } catch (error) { text($('#globalResult'), `查询失败：${error.message}。请确认 Neo4j 可连接、Run 已写入图谱，并检查全局记录服务状态。`); }
     }
     async function traceTask(id) {
       if (!id) { text($('#taskResult'), '请先从任务列表选择一条任务，或输入有效任务 ID。'); return; }
       $('#task').value = id;
+      renderTaskCandidates();
+      refreshSidebarSelection();
       try {
-        const suffix = latestRunId ? `?run_id=${encodeURIComponent(latestRunId)}` : '';
+        const params = new URLSearchParams(); const runId = $('#run').value.trim() || latestRunId; const tick = currentTraceTick();
+        if (runId) params.set('run_id', runId); if (Number.isInteger(tick) && tick > 0) params.set('tick', String(tick));
+        const suffix = params.size ? `?${params}` : '';
         const result = await request(`/api/kg/warehouse/tasks/${encodeURIComponent(id)}/trace${suffix}`);
         const task = result.static?.nodes?.find(node => node.kind === 'task')?.properties || {};
         const executions = result.executions || [], events = result.events || [];
         text($('#taskResult'), `${id}：${task.goods_id || '货物未知'}，${task.source_id || '起点未知'} → ${task.target_id || '终点未知'}；已关联 ${executions.length} 条执行记录、${events.length} 条运行事件。${executions.length ? '下方显示机器人执行生命周期。' : '尚未写入运行态执行记录。'}`);
-        const lifecycle = executions.flatMap(item => {
-          const execution = item.execution || {}, robot = item.robot || {};
+        renderBoundedGraph($('#taskGraph'), buildTaskGraph(id, result), '暂无任务图谱关系。');
+        const lifecycle = executions.flatMap((item, index) => {
+          const execution = item.execution || {}, robot = item.current_robot || {};
           const prefix = `HR-${String(robot.robot_id ?? '?').padStart(3, '0')} · ${execution.status || 'unknown'}`;
-          return [tickLabel(execution.assigned_tick, `${prefix} 已分配`), tickLabel(execution.picked_tick, `${prefix} 已取货`), tickLabel(execution.completed_tick, `${prefix} 已完成`)].filter(Boolean);
+          const focus = `execution:${execution.id || `${id}:${index}`}`;
+          return [[execution.assigned_tick, `${prefix} 已分配`, 'assigned'], [execution.picked_tick, `${prefix} 已取货`, 'picked'], [execution.completed_tick, `${prefix} 已完成`, 'completed']].filter(([value]) => Number.isFinite(Number(value))).map(([value, label, kind]) => timelineItem(value, `${label} · tick ${value}`, kind, focus));
         });
-        const eventLines = events.map(item => `${item.event?.tick ?? '-'} · HR-${String(item.robot_id ?? '?').padStart(3, '0')} · ${item.event?.type || 'event'}${item.event?.text ? ` · ${item.event.text}` : ''}`);
-        renderTimeline($('#taskTimeline'), [...lifecycle, ...eventLines].slice(-16), '暂无任务运行事件；启动带图谱写入的后端并运行仿真后可形成完整任务链路。');
-      } catch (error) { text($('#taskResult'), `查询失败：${error.message}`); $('#taskTimeline').replaceChildren(); }
+        const stateLines = (result.executionStates || []).map((item,index) => { const state = item.state || {}, robot = item.robot || {}; return timelineItem(state.tick, `执行状态 · HR-${String(robot.robot_id ?? state.robot_id ?? '?').padStart(3, '0')} · ${state.status || 'unknown'} · tick ${state.tick ?? '—'}`, 'state', `task-state:${state.id || `${state.tick}:${index}`}`); });
+        const handoffLines = (result.handoffs || []).map((item,index) => timelineItem(item.tick, `货物交接 · HR-${String(item.donor_id ?? '?').padStart(3, '0')} → HR-${String(item.receiver_id ?? '?').padStart(3, '0')}${item.reason ? ` · ${item.reason}` : ''} · tick ${item.tick ?? '—'}`, 'handoff', `handoff:${item.tick ?? 'x'}:${index}`));
+        const eventLines = events.map((item,index) => { const event = item.event || {}; return timelineItem(event.tick, `运行事件 · HR-${String(item.robot_id ?? '?').padStart(3, '0')} · ${event.type || 'event'}${event.text ? ` · ${event.text}` : ''} · tick ${event.tick ?? '—'}`, 'event', `task-event:${event.id || `${event.tick}:${index}`}`); });
+        renderTimeline($('#taskTimeline'), [...lifecycle, ...stateLines, ...handoffLines, ...eventLines].sort((a, b) => a.tick - b.tick).slice(-28), '暂无任务运行事件；启动带图谱写入的后端并运行仿真后可形成完整任务链路。');
+      } catch (error) { text($('#taskResult'), `查询失败：${error.message}`); $('#taskTimeline').replaceChildren(); text($('#taskGraph'), '任务关系图暂不可用。'); }
     }
     async function traceRobot() {
       const runId = $('#run').value.trim(); const robotId = Number($('#robot').value);
-      if (!runId || !Number.isInteger(robotId) || robotId < 1) { text($('#robotResult'), '请填写有效的 Run ID 和机器人编号（例如 1）。'); return; }
+      if (!runId || !Number.isInteger(robotId) || robotId < 1) { text($('#robotResult'), !runId ? '尚未选择 Run。请在上方填写当前 Run ID，或从 4173 运行页进入。' : '请填写有效机器人编号（例如 1）。'); return; }
+      refreshSidebarSelection();
       try {
-        const tick = Number($('#replayTick').value);
+        const tick = currentTraceTick();
         const suffix = Number.isInteger(tick) && tick > 0 ? `?tick=${encodeURIComponent(tick)}&history_limit=20` : '?history_limit=20';
         const result = await request(`/api/kg/warehouse/runs/${encodeURIComponent(runId)}/robots/${robotId}/trace${suffix}`);
         const state = result.latestState || {}, stateTick = state.tick;
@@ -155,10 +437,16 @@
         const atTick = result.requestedTick == null ? '最新写入状态' : `请求 tick ${result.requestedTick}`;
         const sampled = stateTick == null ? '未找到状态采样' : `${atTick}：采样 tick ${stateTick}${result.stateAgeTicks ? `（滞后 ${result.stateAgeTicks} tick）` : ''}`;
         text($('#robotResult'), `HR-${String(robotId).padStart(3, '0')} · ${sampled} · ${state.stage || 'unknown'} · ${place} · ${task}。轨迹 ${result.trajectory?.length ?? 0} 条，执行任务 ${result.executions?.length ?? 0} 条，事件 ${result.events?.length ?? 0} 条。`);
-        const executionLines = (result.executions || []).map(item => { const execution = item.execution || {}, taskInfo = item.task || {}; const ticks = [tickLabel(execution.assigned_tick, '分配'), tickLabel(execution.picked_tick, '取货'), tickLabel(execution.completed_tick, '完成')].filter(Boolean).join(' / '); return `${execution.task_id || '-'} · ${execution.status || 'unknown'}${taskInfo.source_id ? ` · ${taskInfo.source_id} → ${taskInfo.target_id}` : ''}${ticks ? ` · ${ticks}` : ''}`; });
-        const eventLines = (result.events || []).map(event => `${event.tick ?? '-'} · ${event.type || 'event'}${event.task_id ? ` · ${event.task_id}` : ''}${event.text ? ` · ${event.text}` : ''}`);
+        renderContextGroups($('#robotContext'), [
+          ['当前自身状态', [['阶段', stageLabel(state.stage)], ['电量', state.battery == null ? '—' : `${state.battery}%`, Number(state.battery) < 20 ? 'warning' : ''], ['位置', place], ['当前任务', state.task_id || '无'], ['当前货物', state.cargo_id || '无']]],
+          ['短期图谱记忆', [['请求 tick', result.requestedTick == null ? '最新完整状态' : String(result.requestedTick)], ['采样 tick', stateTick == null ? '—' : String(stateTick)], ['状态滞后', result.stateAgeTicks ? `${result.stateAgeTicks} tick` : '无'], ['轨迹采样', `${result.trajectory?.length ?? 0} 条`], ['近期事件', `${result.events?.length ?? 0} 条`]]],
+          ['任务与协作', [['执行记录', `${result.executions?.length ?? 0} 条`], ['最近执行任务', result.executions?.[0]?.execution?.task_id || '无'], ['最近事件', result.events?.[0]?.type || '无']]]
+        ]);
+        renderBoundedGraph($('#robotGraph'), buildRobotGraph(runId, robotId, result), '暂无机器人图谱关系。');
+        const executionLines = (result.executions || []).map((item,index) => { const execution = item.execution || {}, taskInfo = item.task || {}; const ticks = [tickLabel(execution.assigned_tick, '分配'), tickLabel(execution.picked_tick, '取货'), tickLabel(execution.completed_tick, '完成')].filter(Boolean).join(' / '); return {text: `${execution.task_id || '-'} · ${execution.status || 'unknown'}${taskInfo.source_id ? ` · ${taskInfo.source_id} → ${taskInfo.target_id}` : ''}${ticks ? ` · ${ticks}` : ''}`, kind: 'assigned', focus:`execution:${execution.id || `${robotId}:${index}`}`}; });
+        const eventLines = (result.events || []).map((event,index) => ({text: `${event.tick ?? '-'} · ${event.type || 'event'}${event.task_id ? ` · ${event.task_id}` : ''}${event.text ? ` · ${event.text}` : ''}`, kind: 'event', focus:`robot-event:${event.id || `${event.tick}:${index}`}`}));
         renderTimeline($('#robotTimeline'), [...executionLines, ...eventLines].slice(-20), '未找到该机器人运行记录。请确认 Run ID 来自开启图谱写入的当前后端。');
-      } catch (error) { text($('#robotResult'), `查询失败：${error.message}`); $('#robotTimeline').replaceChildren(); }
+      } catch (error) { text($('#robotResult'), `查询失败：${error.message}。请确认 Neo4j 可连接、Run ID 正确且机器人运行态已写入。`); $('#robotTimeline').replaceChildren(); text($('#robotGraph'), '机器人关系图暂不可用。'); }
     }
     async function runPreset(preset) {
       const taskId = $('#task').value.trim() || firstTaskId;
@@ -175,8 +463,10 @@
         text($('#queryBackendMs'), `${payload.timing.backend_query_ms.toFixed(3)} ms`);
         text($('#queryBrowserMs'), `${browserMs.toFixed(3)} ms`);
         text($('#queryStatus'), `${preset} 完成；结果仅来自 Neo4j 的预置只读查询。`);
-        text($('#queryResult'), JSON.stringify(payload.result, null, 2));
+        renderQueryTable(payload.result);
         lastQueryResult = {...payload, browser_request_ms: Number(browserMs.toFixed(3)), request: requestBody};
+        queryHistory = [{preset, runId: requestBody.runId, tick: requestBody.tick || '—', backendMs: payload.timing.backend_query_ms.toFixed(3), browserMs: browserMs.toFixed(3), time: new Date().toLocaleTimeString('zh-CN', {hour12:false})}, ...queryHistory].slice(0, 20);
+        renderQueryHistory();
         $('#queryExport').disabled = false;
       } catch (error) {
         text($('#queryStatus'), `查询失败：${error.message}`);
@@ -184,9 +474,25 @@
       }
     }
     async function boot() {
-      try { const dashboard = await request('/api/kg/warehouse/dashboard'); const summary = dashboard.summary || {}; const dataset = summary.datasets?.[0]; const warehouse = summary.warehouses?.[0]; text($('#dataset'), dataset ? `任务 ${dataset.task_count} · 初始货物 ${dataset.initial_goods_count} · 货位 ${warehouse?.slot_count ?? 0}` : '尚未导入静态数据'); text($('#write'), dashboard.health?.status === 'ok' ? 'Neo4j 已连接，可查询图谱' : 'Neo4j 未连接或认证失败'); if (dashboard.health?.status !== 'ok') text($('#writeDetail'), dashboard.health?.detail || '请检查 Neo4j 服务、连接地址和后端密码配置。'); try { const health = await request('/api/health'); latestRunId = health.runtime?.runId || health.runId || health.run_id || ''; $('#run').value = latestRunId; $('#runtimeRun').value = latestRunId; $('#globalRun').value = latestRunId; } catch (_) {} updateClosure(dashboard.health, summary); const tasks = await request('/api/kg/warehouse/tasks?limit=10'); firstTaskId = tasks[0]?.task_id || ''; if (firstTaskId && !$('#task').value.trim()) $('#task').value = firstTaskId; $('#tasks').replaceChildren(...tasks.map(task => { const button = document.createElement('button'); button.textContent = `${task.task_id} · ${task.task_type} · ${task.source_id} → ${task.target_id}`; button.addEventListener('click', () => traceTask(task.task_id)); return button; })); } catch (error) { text($('#dataset'), `读取失败：${error.message}`); text($('#write'), '无法读取后端图谱状态'); updateClosure(null, {}); }
+      applyDeepLink(); renderRunSuggestions(); renderQueryHistory(); renderQueryTarget(); updateTimeContext();
+      try { const dashboard = await request('/api/kg/warehouse/dashboard'); const summary = dashboard.summary || {}; const dataset = summary.datasets?.[0]; const warehouse = summary.warehouses?.[0]; text($('#dataset'), dataset ? `任务 ${dataset.task_count} · 初始货物 ${dataset.initial_goods_count} · 货位 ${warehouse?.slot_count ?? 0}` : '尚未导入静态数据'); text($('#write'), dashboard.health?.status === 'ok' ? 'Neo4j 已连接，可查询图谱' : 'Neo4j 未连接或认证失败'); if (dashboard.health?.status !== 'ok') text($('#writeDetail'), dashboard.health?.detail || '请检查 Neo4j 服务、连接地址和后端密码配置。'); let snapshot = null; try { snapshot = await request('/api/snapshot'); const activeRun = snapshot.runId || snapshot.run_id || ''; if (!latestRunId && activeRun) syncRunContext(activeRun); } catch (_) {} updateClosure(dashboard.health, summary); await loadRunAnchor(snapshot); await loadCompleteSteps(); await loadTaskCandidates(); if (deepLinkValue('task_id')) void traceTask(deepLinkValue('task_id')); if (deepLinkValue('robot_id')) void traceRobot(); } catch (error) { text($('#dataset'), `读取失败：${error.message}`); text($('#write'), '无法读取后端图谱状态'); updateClosure(null, {}); await loadRunAnchor(null); }
     }
-    $('#trace').addEventListener('click', () => traceTask($('#task').value.trim())); $('#robotTrace').addEventListener('click', traceRobot); $('#runtimeTrace').addEventListener('click', traceRuntime); $('#globalTrace').addEventListener('click', traceGlobal); boot();
+    $('#trace').addEventListener('click', () => traceTask($('#task').value.trim())); $('#robotTrace').addEventListener('click', traceRobot); $('#runtimeTrace').addEventListener('click', traceRuntime); $('#globalTrace').addEventListener('click', traceGlobal);
+    $('#taskFilter').addEventListener('input', renderTaskCandidates);
+    $('#task').addEventListener('change', renderTaskCandidates);
+    $('#robot').addEventListener('change', event => { preferredRobotId = Number(event.target.value) || null; $('#runtimeRobot').value = event.target.value; refreshSidebarSelection(); });
+    $('#runtimeRobot').addEventListener('change', event => { if (event.target.value) { preferredRobotId = Number(event.target.value); $('#robot').value = event.target.value; } refreshSidebarSelection(); });
+    $('#run').addEventListener('change', event => { syncRunContext(event.target.value); void Promise.all([loadRunAnchor(), loadCompleteSteps(), loadRobotCandidates()]); });
+    $('#replayTick').addEventListener('change', renderQueryTarget);
+    $('#queryPageSize').addEventListener('change', () => { if (queryReceivedCount) { queryPage = 1; renderQueryPage(); } });
+    $('#queryPrevious').addEventListener('click', () => { if (queryPage > 1) { queryPage -= 1; renderQueryPage(); } });
+    $('#queryNext').addEventListener('click', () => { const pages = Math.ceil(queryRows.length / (Number($('#queryPageSize').value) || 100)); if (queryPage < pages) { queryPage += 1; renderQueryPage(); } });
+    $('#stepPrevious').addEventListener('click', () => { selectedStepIndex = Math.max(0, selectedStepIndex - 1); void refreshSelectedStepViews(); });
+    $('#stepNext').addEventListener('click', () => { selectedStepIndex = Math.min(completeSteps.length - 1, selectedStepIndex + 1); void refreshSelectedStepViews(); });
+    $('#stepLatest').addEventListener('click', () => { selectedStepIndex = completeSteps.length - 1; void refreshSelectedStepViews(); });
+    $('#stepSlider').addEventListener('input', event => { selectedStepIndex = Number(event.target.value); syncSelectedStepFields(); const step = selectedCompleteStep(); $('#stepControllerDetail').textContent = `已选 tick ${step?.tick ?? '—'}（${stepTimeLabel(step)}）；释放滑块后读取该完整 Step 的追溯信息。`; });
+    $('#stepSlider').addEventListener('change', () => { void refreshSelectedStepViews(); });
+    boot();
     $('#presetActions').addEventListener('click', event => { const button = event.target.closest('button[data-preset]'); if (button) runPreset(button.dataset.preset); });
     $('#queryExport').addEventListener('click', () => { if (!lastQueryResult) return; const blob = new Blob([JSON.stringify(lastQueryResult, null, 2)], {type:'application/json;charset=utf-8'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `warehouse-graph-query-${Date.now()}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); });
   </script>
