@@ -121,7 +121,7 @@ class WarehouseLiveRuntime:
                  robot_graph=False, graph_state_interval=4,
                  global_writer=False, global_writer_queue=256, global_writer_url=None,
                  kg_state_source='memory', legacy_a_graph=False, robot_context_interval=10,
-                 robot_graph_async=True, robot_graph_backlog=8, autostart=False, initial_speed=1.0):
+                 robot_graph_async=True, robot_graph_backlog=120, autostart=False, initial_speed=1.0):
         # 4173 passes --autostart (lys): a fresh run starts advancing at once.
         # Restored runs always stay paused; other launchers keep ready + Start.
         self.autostart=bool(autostart)
@@ -936,7 +936,7 @@ class WarehouseLiveRuntime:
         snap['metadata']['robot_processes']=getattr(self,'robot_processes','off')
         snap['metadata']['kg_state_source']=getattr(self, 'kg_state_source', 'memory')
         snap['metadata']['robot_graph_async']=bool(getattr(self._sim, 'robot_graph_async', False))
-        snap['metadata']['robot_graph_backlog']=getattr(self, 'robot_graph_backlog', 8)
+        snap['metadata']['robot_graph_backlog']=getattr(self, 'robot_graph_backlog', 120)
         snap['metadata']['robot_agents_enabled']=getattr(self,'robot_agents',False)
         snap['metadata']['legacy_a_graph']=getattr(self, 'legacy_a_graph', False)
         fleet=getattr(self._store.mirror,'agent_fleet',None) if self._store.mirror else None

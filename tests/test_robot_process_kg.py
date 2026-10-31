@@ -19,7 +19,7 @@ ADDRESS = os.environ.get('WAREHOUSE_RAY_TEST_ADDRESS')
 URL = os.environ.get('WAREHOUSE_KG_TEST_URL')
 STATE_SOURCE = os.environ.get('WAREHOUSE_KG_STATE_SOURCE', 'neo4j')
 GRAPH_ASYNC = os.environ.get('WAREHOUSE_KG_GRAPH_ASYNC', '1') != '0'
-GRAPH_BACKLOG = int(os.environ.get('WAREHOUSE_KG_GRAPH_BACKLOG', '8'))
+GRAPH_BACKLOG = int(os.environ.get('WAREHOUSE_KG_GRAPH_BACKLOG', '120'))
 
 
 def cleanup(sim):

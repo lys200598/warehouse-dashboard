@@ -378,8 +378,8 @@ def main(argv=None):
     p.add_argument('--robot-graph',action='store_true',help='each Ray actor writes its own robot graph subgraph')
     p.add_argument('--robot-graph-sync',dest='robot_graph_async',action='store_false',default=True,
                    help='use synchronous graph writes for comparison; memory dispatch defaults to bounded asynchronous writes')
-    p.add_argument('--robot-graph-backlog',type=int,default=8,
-                   help='maximum uncommitted robot ticks, including in-flight writes; 1..128, default 8')
+    p.add_argument('--robot-graph-backlog',type=int,default=120,
+                   help='maximum queued/in-flight robot graph frames; 1..128, default 120; pauses at the limit')
     p.add_argument('--autostart',action='store_true',help='a fresh run starts advancing immediately (restored runs stay paused)')
     p.add_argument('--initial-speed',type=float,default=1.0,help='initial wall-clock speed, 0.1..120')
     p.add_argument('--robot-processes',choices=('off','local','ray'),default='off',
@@ -400,6 +400,8 @@ def main(argv=None):
     p.add_argument('--agent-timeout',type=float,default=30.)
     p.add_argument('--agent-startup-timeout',type=float,default=120.)
     args=p.parse_args(argv)
+    if not 1<=args.robot_graph_backlog<=128:
+        p.error('--robot-graph-backlog must be within 1..128')
     if args.max_active_robots is not None and not 1<=args.max_active_robots<=100:
         p.error('--max-active-robots must be within 1..100')
     if not 1<=args.query_workers<=24:p.error('--query-workers must be within 1..24')

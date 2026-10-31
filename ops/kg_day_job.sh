@@ -45,7 +45,7 @@ bash ops/kg_dev_env.sh python ops/kg_long_run.py run \
   --config config/wheeled-medium-100.json \
   --output "$day_output_dir" --run-id "$day_run_id" \
   --ray-address 127.0.0.1:27380 --robot-context-interval 10 \
-  --kg-state-source memory --robot-graph-backlog 8 \
+  --kg-state-source memory --robot-graph-backlog "${ROBOT_GRAPH_BACKLOG:-120}" \
   --global-writer-url http://127.0.0.1:14591 --cleanup &
 day_child_pid=$!
 wait "$day_child_pid"

@@ -284,7 +284,8 @@ def main():
     execute.add_argument('--robot-context-interval', type=int, default=10)
     execute.add_argument('--kg-state-source', choices=('memory', 'neo4j'), default='memory')
     execute.add_argument('--robot-graph-sync', dest='robot_graph_async', action='store_false', default=True)
-    execute.add_argument('--robot-graph-backlog', type=int, default=8)
+    execute.add_argument('--robot-graph-backlog', type=int, default=120,
+                         help='queued/in-flight graph frames, 1..128; pauses at the limit, default 120')
     execute.add_argument('--max-ticks', type=int)
     execute.add_argument('--cleanup', action='store_true')
     execute.add_argument('--cleanup-timeout', type=float, default=3600.,

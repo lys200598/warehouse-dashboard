@@ -275,6 +275,51 @@ class AsyncRobotGraphQueueTests(unittest.TestCase):
         self.assertGreater(stats['pause_seconds'], 0.)
         self.assertFalse(stats['waiting'])
 
+    def test_demo_capacities_retain_every_frame_and_pause_instead_of_dropping(self):
+        for capacity in (8, 120):
+            with self.subTest(capacity=capacity):
+                entered, release, resumed = (threading.Event() for _ in range(3))
+                written, errors = [], []
+                def process(frame):
+                    entered.set()
+                    if not release.wait(2.):
+                        raise TimeoutError('test processor was not released')
+                    written.append(frame)
+                queue = AsyncRobotGraphQueue(process, capacity=capacity)
+                def reserve():
+                    try:
+                        queue.reserve()
+                        resumed.set()
+                    except BaseException as exc:
+                        errors.append(exc)
+                waiter = None
+                try:
+                    for tick in range(1, capacity + 1):
+                        frame = {'tick': tick, 'robot': {'x': tick}}
+                        queue.submit(frame)
+                        frame['robot']['x'] = -1
+                    self.assertTrue(entered.wait(1.))
+                    self.assertEqual(queue.snapshot()['pending'], capacity)
+                    with self.assertRaises(GraphQueueError):
+                        queue.submit({'tick': capacity + 1})
+                    waiter = threading.Thread(target=reserve, daemon=True)
+                    waiter.start()
+                    self.wait_until(lambda: queue.snapshot()['waiting'])
+                    self.assertFalse(resumed.is_set())
+                    release.set()
+                    self.assertTrue(resumed.wait(1.))
+                    queue.flush(1.)
+                    self.assertEqual(written, [{'tick': t, 'robot': {'x': t}} for t in range(1, capacity + 1)])
+                    stats = queue.snapshot()
+                    self.assertEqual((stats['pending'], stats['max_pending'], stats['confirmed_tick']),
+                                     (0, capacity, capacity))
+                    self.assertEqual(errors, [])
+                finally:
+                    release.set()
+                    if waiter is not None:
+                        waiter.join(1.)
+                    queue.close(1.)
+
     def test_submit_freezes_nested_robot_events_and_global_record(self):
         entered, release = threading.Event(), threading.Event()
         written = []

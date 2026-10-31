@@ -160,7 +160,7 @@ class RayRobotProcessSplit(RobotProcessSplit):
 
     def __init__(self, *args, robot_graph=False, graph_state_interval=4,
                  kg_state_source='memory', global_writer_url=None, robot_context_interval=10,
-                 robot_graph_async=True, robot_graph_backlog=8, **kwargs):
+                 robot_graph_async=True, robot_graph_backlog=120, **kwargs):
         if type(robot_graph_async) is not bool:
             raise ValueError('robot_graph_async must be a boolean')
         if type(robot_graph_backlog) is not int or not 1 <= robot_graph_backlog <= 128:
